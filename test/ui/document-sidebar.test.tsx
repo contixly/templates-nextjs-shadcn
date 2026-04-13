@@ -32,17 +32,17 @@ describe("DocumentSidebar", () => {
     mockDesktopViewport();
   });
 
-  it("renders a labelled search input with the UI copy used by the notes sidebar", () => {
+  it("renders a labelled search input for configurable sidebar copy", () => {
     const TestSidebar = () => {
       const searchQueryState = React.useState("");
 
       return (
         <DocumentProvider>
           <DocumentSidebar
-            headerName="Workspace Notes"
+            headerName="Workspace items"
             searchQueryState={searchQueryState}
-            searchQueryPlaceholder="Search notes…"
-            searchAriaLabel="Search notes"
+            searchQueryPlaceholder="Search…"
+            searchAriaLabel="Search workspace"
           >
             <div>Sidebar content</div>
           </DocumentSidebar>
@@ -52,9 +52,9 @@ describe("DocumentSidebar", () => {
 
     render(<TestSidebar />);
 
-    expect(screen.getByRole("textbox", { name: "Search notes" })).toHaveAttribute(
+    expect(screen.getByRole("textbox", { name: "Search workspace" })).toHaveAttribute(
       "placeholder",
-      "Search notes…"
+      "Search…"
     );
   });
 });

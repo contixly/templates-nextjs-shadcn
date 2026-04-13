@@ -48,10 +48,11 @@ export function WorkspacesEmptyState({ empty }: WorkspacesEmptyStateProps) {
               <span className="text-primary font-semibold">2</span>
             </div>
             <div>
-              <p className="text-foreground font-medium">Add Content</p>
+              <p className="text-foreground font-medium">Add your domain logic</p>
               <p>
-                Add notes, tasks, and goals to your workspace. Everything stays organized in its own
-                space.
+                Extend <code className="bg-muted rounded px-1 py-0.5 text-xs">src/features/</code>{" "}
+                and Prisma models with the entities your app needs; keep each workspace as a
+                boundary for that data.
               </p>
             </div>
           </div>

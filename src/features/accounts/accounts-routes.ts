@@ -51,7 +51,7 @@ const accountsRoutes: AccountsRoutes = buildFeature("accounts", {
 
       title: "Welcome",
       description:
-        "Get started with the template application — organize your content with workspaces, notes, tasks, and reusable flows.",
+        "Get started with the template — authentication, workspaces, and patterns you can adapt to your product.",
       openGraph: {
         title: "Welcome",
         description: "Your account is ready. Explore the template structure and start customizing.",

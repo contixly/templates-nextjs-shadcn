@@ -3,90 +3,19 @@ import Image from "next/image";
 import { Badge } from "@components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@components/ui/card";
 import { Separator } from "@components/ui/separator";
-import {
-  IconCloud,
-  IconComponents,
-  IconDatabase,
-  IconLayersSubtract,
-  IconLock,
-  IconPlug,
-  IconRoute,
-  IconServer,
-  IconTerminal,
-  IconWebhook,
-} from "@tabler/icons-react";
+import { IconLock, IconTerminal } from "@tabler/icons-react";
 import { loadCurrentUserId } from "@features/accounts/accounts-actions";
 import { NavUserLogin } from "@features/accounts/components/nav/nav-user-login";
 import { buildMetadata } from "@lib/metadata";
 import applicationRoutes from "@features/application/application-routes";
+import {
+  templateExtensionPointBlocks,
+  templateStackFeatureBlocks,
+} from "@features/application/template-landing-content";
 import { getFromCookie } from "@lib/cookies";
 import { LAST_LOGIN_METHOD_KEY } from "@lib/environment";
 
 export const metadata: Metadata = buildMetadata(applicationRoutes.pages.home);
-
-// Placeholder copy for the template landing page — replace titles and descriptions with your product.
-const features = [
-  {
-    icon: IconRoute,
-    title: "App Router & layouts",
-    description:
-      "Route groups, metadata, and shared shells you can reshape for marketing, auth, and authenticated areas.",
-    badge: "Included",
-  },
-  {
-    icon: IconServer,
-    title: "Server actions & validation",
-    description:
-      "Typed mutations with Zod, protected actions, and cache invalidation patterns ready to extend.",
-    badge: "Included",
-  },
-  {
-    icon: IconDatabase,
-    title: "Prisma & PostgreSQL",
-    description:
-      "Schema, migrations, and a singleton data layer — point `DATABASE_URL` at your database and evolve the model.",
-    badge: "Included",
-  },
-  {
-    icon: IconLock,
-    title: "Better Auth & OAuth",
-    description:
-      "Session handling and social providers; configure secrets and callback URLs for your environments.",
-    badge: "Included",
-  },
-  {
-    icon: IconLayersSubtract,
-    title: "Feature-sliced modules",
-    description:
-      "Business logic grouped under `features/` with repositories, actions, and routes to mirror your domain.",
-    badge: "Included",
-  },
-  {
-    icon: IconComponents,
-    title: "shadcn/ui & Tailwind",
-    description:
-      "Accessible primitives and tokens — swap themes, add screens, and keep UI consistent as you grow.",
-    badge: "Included",
-  },
-];
-
-const integrations = [
-  {
-    icon: IconPlug,
-    title: "REST or GraphQL clients",
-    description: "Add SDKs or fetch wrappers for the APIs your product depends on.",
-  },
-  {
-    icon: IconWebhook,
-    title: "Inbound webhooks",
-    description: "Expose routes that turn provider events into your own domain records.",
-  },
-  {
-    icon: IconCloud,
-    title: "File & object storage",
-    description: "Optional S3-style storage hooks for uploads when your feature needs blobs.",
-  },
-];
 
 export default function HomePage() {
   const loadCurrentUserIdPromise = loadCurrentUserId();
@@ -145,7 +74,7 @@ export default function HomePage() {
         </div>
 
         <div className="grid w-full max-w-5xl gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {features.map((feature) => (
+          {templateStackFeatureBlocks.map((feature) => (
             <Card key={feature.title}>
               <CardHeader>
                 <div className="flex items-center justify-between">
@@ -176,7 +105,7 @@ export default function HomePage() {
         </div>
 
         <div className="grid w-full max-w-4xl gap-4 md:grid-cols-3">
-          {integrations.map((item) => (
+          {templateExtensionPointBlocks.map((item) => (
             <Card key={item.title}>
               <CardContent className="flex flex-col gap-3">
                 <item.icon aria-hidden="true" className="text-foreground size-5" />
@@ -203,9 +132,7 @@ export default function HomePage() {
             "Tailwind v4",
             "Prisma",
             "PostgreSQL",
-            "AWS S3",
             "Better Auth",
-            "Vercel AI SDK",
             "shadcn/ui",
           ].map((tech) => (
             <Badge key={tech} variant="outline">

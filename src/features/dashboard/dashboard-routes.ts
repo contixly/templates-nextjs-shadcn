@@ -14,7 +14,7 @@ const dashboardRoutes: DashboardRoutes = buildFeature("dashboard", {
 
       title: "Dashboard",
       description:
-        "Your dashboard with quick access to workspaces, notes, and other application data.",
+        "Your dashboard — extend this area with summaries and shortcuts for your own workflows.",
       openGraph: {
         ...GlobalOpenGraph,
         title: "Dashboard",

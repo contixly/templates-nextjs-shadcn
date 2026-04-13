@@ -1,7 +1,7 @@
 import { PartialRecord } from "@typings/common";
 import { Icon } from "@tabler/icons-react";
 
-export type PathParametersType = "workspaceId" | "noteId" | "query";
+export type PathParametersType = "workspaceId" | "query";
 
 /**
  * Represents the structure and metadata for the description of a page in an application.

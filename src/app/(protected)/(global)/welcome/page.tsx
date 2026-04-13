@@ -2,65 +2,13 @@ import type { Metadata } from "next";
 import { Badge } from "@components/ui/badge";
 import { Card, CardDescription, CardHeader, CardTitle } from "@components/ui/card";
 import { Separator } from "@components/ui/separator";
-import {
-  IconCheckbox,
-  IconFolders,
-  IconLayoutDashboard,
-  IconNotebook,
-  IconSparkles,
-  IconTarget,
-} from "@tabler/icons-react";
 import { HomeCTASection } from "@features/application/components/home-cta-section";
+import { templateStackFeatureBlocks } from "@features/application/template-landing-content";
 import { Suspense } from "react";
 import { buildMetadata } from "@lib/metadata";
 import accountsRoutes from "@features/accounts/accounts-routes";
 
 export const metadata: Metadata = buildMetadata(accountsRoutes.pages.welcome);
-
-const features = [
-  {
-    icon: IconFolders,
-    title: "Workspaces",
-    description: "Organize content into isolated contexts for projects, teams, or clients.",
-    badge: "Ready" as const,
-  },
-  {
-    icon: IconNotebook,
-    title: "Rich Notes",
-    description: "An editor with auto-save, slash commands, and full formatting support.",
-    badge: "Ready" as const,
-  },
-  {
-    icon: IconCheckbox,
-    title: "Smart Tasks",
-    description: "Checklists, due dates, priorities, and completion tracking.",
-    badge: "Coming" as const,
-  },
-  {
-    icon: IconLayoutDashboard,
-    title: "Dashboard",
-    description: "At-a-glance overview of activity, summaries, and next steps.",
-    badge: "Coming" as const,
-  },
-  {
-    icon: IconSparkles,
-    title: "AI Assistance",
-    description: "AI helpers for suggestions, expansion, and generation with clear boundaries.",
-    badge: "Planned" as const,
-  },
-  {
-    icon: IconTarget,
-    title: "Goals",
-    description: "Track longer-term objectives and link tasks or notes when needed.",
-    badge: "Planned" as const,
-  },
-];
-
-const badgeVariant: Record<"Ready" | "Coming" | "Planned", "default" | "secondary" | "outline"> = {
-  Ready: "default",
-  Coming: "secondary",
-  Planned: "outline",
-};
 
 const steps = [
   {
@@ -68,12 +16,14 @@ const steps = [
     description: "A default workspace is ready. Find it in the sidebar.",
   },
   {
-    title: "Create Content",
-    description: "Add notes with the editor or plan tasks to stay on track.",
+    title: "Customize the codebase",
+    description:
+      "Add your domain models, routes under src/app/, and feature modules under src/features/.",
   },
   {
-    title: "Grow the template",
-    description: "Create additional workspaces for projects, teams, or other contexts anytime.",
+    title: "Ship",
+    description:
+      "Deploy with your hosting provider and iterate — this template is only the foundation.",
   },
 ];
 
@@ -102,17 +52,17 @@ export default async function WelcomePage({
         <div className="flex max-w-2xl flex-col items-center gap-3 text-center">
           <h2 className="text-xl font-bold tracking-tight md:text-2xl">What is included</h2>
           <p className="text-muted-foreground text-sm">
-            Use these building blocks as a base for your own service.
+            Same overview as the public landing page — edit copy in template-landing-content.ts.
           </p>
         </div>
 
         <div className="grid w-full max-w-2xl gap-4 md:grid-cols-2">
-          {features.map((feature) => (
+          {templateStackFeatureBlocks.map((feature) => (
             <Card key={feature.title}>
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <feature.icon className="text-foreground size-5" />
-                  <Badge variant={badgeVariant[feature.badge]}>{feature.badge}</Badge>
+                  <Badge variant="secondary">{feature.badge}</Badge>
                 </div>
                 <CardTitle className="mt-2">{feature.title}</CardTitle>
                 <CardDescription>{feature.description}</CardDescription>

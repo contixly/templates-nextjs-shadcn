@@ -49,7 +49,7 @@ The project follows FSD principles. Each feature is self-contained in `features/
 - `npm run lint` - Run ESLint.
 - `npm run format` - Format code with Prettier.
 - `npm run test` - Run all Jest tests.
-- `npm run test -- --testPathPattern=<pattern>` - Run a single test file (e.g., `npm run test -- --testPathPattern=notes`).
+- `npm run test -- --testPathPattern=<pattern>` - Run a single test file (e.g., `npm run test -- --testPathPattern=workspaces`).
 - `npm run shadcn:upgrade` - Upgrade all shadcn/ui components to latest.
 - `npx prisma migrate dev --name <name>` - Create and apply a migration.
 - `npx prisma generate` - Regenerate Prisma client.
@@ -95,12 +95,11 @@ All mutations must be server actions. Location: `features/{feature}/actions/`.
 - **ID Generation**: Use `cuid(2)` for all primary keys.
 - **Naming**: Use `@map("table_name")` to keep Postgres tables lowercase plural.
 - **Indexing**: Always index foreign keys and fields used in `where` clauses (e.g., `userId`).
-- **Storage**: Entity metadata in Postgres; large JSON/blobs (Notes/AI chats) in **AWS S3**.
+- **Storage**: Application data in **PostgreSQL** via Prisma. Add object storage (e.g. S3-compatible) when your feature needs large blobs.
 
 ## External Services
 
 - **Auth**: Better Auth with Google and GitHub OAuth providers. Route handler at `app/api/auth/[...all]/route.ts`.
-- **S3**: AWS S3 for storing note content and AI chat messages. Client initialized in `server/s3.ts`.
 - **Prisma**: Uses `pg` adapter with connection pooling. Client is a singleton in `server/prisma.ts`.
 
 ## Logging
@@ -151,12 +150,10 @@ All data access uses three-layer caching:
 
 ## Content Storage
 
-- **Entity Metadata**: Stored in PostgreSQL (titles, settings, relationships).
-- **Large Content**: Notes and AI chat messages stored in **AWS S3** (via `contentUrl` field).
-- **S3 Client**: Initialized in `server/s3.ts` with `getSignedUrl` for presigned uploads.
+- **Relational data**: Stored in PostgreSQL through Prisma models under `prisma/schema.prisma`.
+- **Large blobs**: Not included by default — add an object-storage client under `src/server/` and env vars when you need uploads.
 
 ## Learned Workspace Facts
 
 - The project actively uses the Cursor plugin ecosystem (Context7 for docs lookup, Continuous Learning for memory).
 - Jest is used for testing; test files live in `test/{feature_name}/{test_module}` (e.g. `test/server/` for server-side code).
-- For category color inline styles use rgb format (e.g. `getCategoryColorRgb`) so server and client render the same value and hydration mismatch is avoided.

@@ -4,16 +4,16 @@ import { id } from "@lib/z";
 import type { WorkspaceWithCounts } from "@features/workspaces/workspaces-types";
 import { createProtectedActionWithInput } from "@lib/actions";
 import { workspacesLogger } from "@features/workspaces/workspaces-logger";
-import { findFirstWorkspaceByIdAndUserIdWithCounts } from "@features/workspaces/workspaces-repository";
+import { findFirstWorkspaceByIdAndUserId } from "@features/workspaces/workspaces-repository";
 import { forbidden } from "next/navigation";
 
 /**
- * Fetches a single Workspace by ID with placeholder entity counts.
+ * Fetches a single workspace by ID when it belongs to the current user.
  */
 export const loadWorkspace = createProtectedActionWithInput<string, WorkspaceWithCounts>(
   id,
   async (workspaceId, { userId }) => {
-    const workspace = await findFirstWorkspaceByIdAndUserIdWithCounts(workspaceId, userId, {
+    const workspace = await findFirstWorkspaceByIdAndUserId(workspaceId, userId, {
       name: true,
       isDefault: true,
     });
@@ -24,7 +24,7 @@ export const loadWorkspace = createProtectedActionWithInput<string, WorkspaceWit
 
     return {
       success: true,
-      data: workspace,
+      data: workspace as WorkspaceWithCounts,
     };
   },
   { actionName: "loadWorkspace", logger: workspacesLogger }

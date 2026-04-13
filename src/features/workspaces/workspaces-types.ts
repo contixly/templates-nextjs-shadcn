@@ -2,14 +2,8 @@ import { Workspace } from "@/prisma/generated/client";
 import { updateTag } from "next/cache";
 import { revalidateTags } from "@lib/cache";
 
-// Extended Workspace with relation counts
-export type WorkspaceWithCounts = Workspace & {
-  _count: {
-    notes: number; // F1.3 - Note Management
-    tasks?: number; // F1.5 - Task Management
-    goals?: number; // F3.1 - Goals Management
-  };
-};
+/** Alias kept for call sites; the schema currently has no per-workspace relation counts. */
+export type WorkspaceWithCounts = Workspace;
 
 export const CACHE_WorkspacesByUserIdTag = (userId: string) => `workspaces_user_${userId}`;
 export const CACHE_WorkspaceByIdTag = (workspaceId: string) => `workspace_${workspaceId}`;

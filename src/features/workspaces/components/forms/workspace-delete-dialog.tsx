@@ -75,15 +75,12 @@ export const WorkspaceDeleteDialog = ({
 
   if (!workspace) return null;
 
-  const totalItems =
-    (workspace._count.tasks ?? 0) + (workspace._count.notes ?? 0) + (workspace._count.goals ?? 0);
-
   return (
     <Modal
       open={open}
       onOpenChange={onOpenChange}
       title="Delete Workspace?"
-      description="This action cannot be undone. All data in this workspace will be permanently deleted."
+      description="This action cannot be undone. The workspace record will be permanently removed."
       trigger={
         <Button type="button" variant="destructive">
           {common.words.verbs.delete}
@@ -93,22 +90,15 @@ export const WorkspaceDeleteDialog = ({
     >
       <form onSubmit={handleSubmit(submit)} className="space-y-4">
         <FieldGroup>
-          {totalItems > 0 ||
-            (workspace.isDefault && (
-              <div className="border-destructive/50 bg-destructive/10 rounded-lg border p-4">
-                <p className="text-sm font-medium">{workspace.name}</p>
-                {totalItems > 0 && (
-                  <p className="text-muted-foreground mt-2 text-sm">
-                    This workspace contains {totalItems} items that will be deleted.
-                  </p>
-                )}
-                {workspace.isDefault && (
-                  <p className="text-muted-foreground mt-2 text-sm">
-                    This is your default workspace. Another workspace will be set as default.
-                  </p>
-                )}
-              </div>
-            ))}
+          {workspace.isDefault ? (
+            <div className="border-destructive/50 bg-destructive/10 rounded-lg border p-4">
+              <p className="text-sm font-medium">{workspace.name}</p>
+              <p className="text-muted-foreground mt-2 text-sm">
+                This is your default workspace. Another workspace will be set as default after
+                deletion.
+              </p>
+            </div>
+          ) : null}
 
           <Controller
             name="confirmationText"

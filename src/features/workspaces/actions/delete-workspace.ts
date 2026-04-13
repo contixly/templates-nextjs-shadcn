@@ -9,12 +9,7 @@ import { findFirstWorkspaceByIdAndUserId } from "../workspaces-repository";
 import { forbidden } from "next/navigation";
 import { updateWorkspaceCache } from "@features/workspaces/workspaces-types";
 
-/**
- * Deletes a Workspace and cascades to all related entities.
- *
- * Cascade Effects:
- * - Notes, Tasks, Goals, Categories, Tags all deleted automatically via Prisma onDelete: Cascade
- */
+/** Deletes a workspace row after ownership checks (see Prisma schema for cascade rules). */
 export const deleteWorkspace = createProtectedActionWithInput<DeleteWorkspaceInput, void>(
   deleteWorkspaceSchema,
   async (input, { userId, logger }) => {

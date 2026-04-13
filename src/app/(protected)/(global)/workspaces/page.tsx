@@ -11,7 +11,7 @@ export const metadata: Metadata = buildMetadata(workspaceRoutes.pages.workspaces
  *
  * Features:
  * - Displays all user's workspaces in a grid
- * - Create new workspace button
+ * - Create a new workspace button
  * - Workspace cards with counts and actions
  * - Empty state for users with no workspaces
  */

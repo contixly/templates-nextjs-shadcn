@@ -75,23 +75,13 @@ export const updateWorkspace = createProtectedActionWithInput<
 
     logger.debug("Updated Workspace for user");
 
-    // Add placeholder counts
-    const workspaceWithCounts: WorkspaceWithCounts = {
-      ...updatedWorkspace,
-      _count: {
-        notes: 0,
-        tasks: 0,
-        goals: 0,
-      },
-    };
-
     // 8. Revalidate cache
     updateWorkspaceCache({ workspaceId: id, userId });
 
     // 9. Return success with data
     return {
       success: true,
-      data: workspaceWithCounts,
+      data: updatedWorkspace,
     };
   },
   {

@@ -12,25 +12,16 @@ import {
 } from "@components/ui/sidebar";
 import Link from "next/link";
 import routes from "@features/routes";
-import {
-  IconChecklist,
-  IconCirclePlusFilled,
-  IconCodeDots,
-  IconDashboard,
-  IconMail,
-  IconTargetArrow,
-} from "@tabler/icons-react";
+import { IconCirclePlusFilled, IconCodeDots, IconDashboard, IconMail } from "@tabler/icons-react";
 import { Button } from "@components/ui/button";
 import { WorkspaceCreateDialog } from "@features/workspaces/components/forms/workspace-create-dialog";
 import { WorkspaceWithCounts } from "@features/workspaces/workspaces-types";
 import { Badge } from "@components/ui/badge";
 import { NavMainProps } from "@components/application/navigation/nav-main";
 import { MenuItem } from "@typings/ui";
-import { getMenuItem } from "@lib/ui";
 
-const getWorkspaceMenuItems = cache(
-  (workspace: WorkspaceWithCounts): (MenuItem & { count: number })[] => []
-);
+/** Empty placeholder — add per-workspace nav items when your feature defines routes under a workspace. */
+const getWorkspaceMenuItems = cache((): (MenuItem & { count: number })[] => []);
 
 const renderWorkspaceMenu = (workspace: WorkspaceWithCounts, isActiveWorkspace = false) => (
   <Fragment key={workspace.id}>
@@ -51,7 +42,7 @@ const renderWorkspaceMenu = (workspace: WorkspaceWithCounts, isActiveWorkspace =
         </SidebarMenuButton>
       </SidebarMenuItem>
     )}
-    {getWorkspaceMenuItems(workspace).map((item) => {
+    {getWorkspaceMenuItems().map((item) => {
       if (!item.url) {
         return (
           <SidebarMenuItem key={item.label}>
