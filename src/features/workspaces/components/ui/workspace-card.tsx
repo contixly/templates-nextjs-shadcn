@@ -9,12 +9,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@components/ui/card";
-import routes from "@features/routes";
 import type { WorkspaceWithCounts } from "@features/workspaces/workspaces-types";
 import { Skeleton } from "@components/ui/skeleton";
 import { WorkspaceDeleteDialog } from "@features/workspaces/components/forms/workspace-delete-dialog";
 import { WorkspaceSettingsDialog } from "@features/workspaces/components/forms/workspace-settings-dialog";
-import { getMenuItem } from "@lib/ui";
 import { MenuItem } from "@typings/ui";
 
 interface WorkspaceCardProps {
@@ -31,7 +29,7 @@ export function WorkspaceCard({ workspace, canDelete, canChangeDefault }: Worksp
       count: workspace._count.tasks ?? 0,
     },
     {
-      ...getMenuItem(routes.notes.pages.workspace_notes, { workspaceId: workspace.id }),
+      label: "Notes",
       count: workspace._count.notes ?? 0,
     },
     {

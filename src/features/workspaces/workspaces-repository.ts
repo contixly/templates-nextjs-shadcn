@@ -17,6 +17,15 @@ import { WorkspaceSelect } from "@/prisma/generated/models/Workspace";
  */
 const logger = workspacesLogger.child({ type: "repository" });
 
+const withDefaultCounts = <T extends Workspace>(workspace: T): WorkspaceWithCounts => ({
+  ...workspace,
+  _count: {
+    notes: 0,
+    tasks: 0,
+    goals: 0,
+  },
+});
+
 /**
  * Returns all workspaces owned by a user, ordered for UI consumption: default
  * workspace first, then name A→Z. Includes note counts for sidebar badges.
@@ -35,10 +44,12 @@ export const findManyWorkspacesByUserId = async (
     .child({ function: "findManyWorkspacesByUserId", userId })
     .debug("Fetching workspaces for user with counts");
 
-  return prisma.workspace.findMany({
+  const workspaces = await prisma.workspace.findMany({
     where: { userId },
     orderBy: [{ isDefault: "desc" }, { name: "asc" }],
   });
+
+  return workspaces.map(withDefaultCounts);
 };
 
 /**
@@ -87,17 +98,20 @@ export const findFirstWorkspaceByIdAndUserIdWithCounts = async (
     .child({ function: "findFirstWorkspaceByIdAndUserIdWithCounts", id, userId, select })
     .debug("Fetching workspace by id for user with selected fields and counts");
 
-  return prisma.workspace.findFirst({
+  const workspace = await prisma.workspace.findFirst({
     where: {
       id,
       userId,
     },
     select: {
-      _count: {
-        select: { notes: true },
-      },
       id: true,
       ...(select ?? {}),
     },
   });
+
+  if (!workspace) {
+    return null;
+  }
+
+  return withDefaultCounts(workspace as Workspace);
 };
