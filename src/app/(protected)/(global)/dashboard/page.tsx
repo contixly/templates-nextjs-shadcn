@@ -5,7 +5,7 @@ import { SectionCards } from "@features/dashboard/ui/template/section-cards";
 import data from "./data.json";
 import { Suspense } from "react";
 import { buildMetadata } from "@lib/metadata";
-import dashboardRoutes from "@features/dashboard/dashoard-routes";
+import dashboardRoutes from "@features/dashboard/dashboard-routes";
 
 export const metadata: Metadata = buildMetadata(dashboardRoutes.pages.application_dashboard);
 

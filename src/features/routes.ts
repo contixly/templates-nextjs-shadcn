@@ -1,5 +1,5 @@
 import application, { ApplicationRoutes } from "@features/application/application-routes";
-import dashboard, { DashboardRoutes } from "@features/dashboard/dashoard-routes";
+import dashboard, { DashboardRoutes } from "@features/dashboard/dashboard-routes";
 import workspaces, { WorkspaceRoutes } from "@features/workspaces/workspaces-routes";
 import accounts, { AccountsRoutes } from "@features/accounts/accounts-routes";
 
