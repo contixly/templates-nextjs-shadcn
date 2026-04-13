@@ -1,0 +1,255 @@
+import type { Metadata } from "next";
+import Image from "next/image";
+import { Badge } from "@components/ui/badge";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@components/ui/card";
+import { Separator } from "@components/ui/separator";
+import {
+  IconCloud,
+  IconComponents,
+  IconDatabase,
+  IconLayersSubtract,
+  IconLock,
+  IconPlug,
+  IconRoute,
+  IconServer,
+  IconTerminal,
+  IconWebhook,
+} from "@tabler/icons-react";
+import { loadCurrentUserId } from "@features/accounts/accounts-actions";
+import { NavUserLogin } from "@features/accounts/components/nav/nav-user-login";
+import { buildMetadata } from "@lib/metadata";
+import applicationRoutes from "@features/application/application-routes";
+import { getFromCookie } from "@lib/cookies";
+import { LAST_LOGIN_METHOD_KEY } from "@lib/environment";
+
+export const metadata: Metadata = buildMetadata(applicationRoutes.pages.home);
+
+// Placeholder copy for the template landing page — replace titles and descriptions with your product.
+const features = [
+  {
+    icon: IconRoute,
+    title: "App Router & layouts",
+    description:
+      "Route groups, metadata, and shared shells you can reshape for marketing, auth, and authenticated areas.",
+    badge: "Included",
+  },
+  {
+    icon: IconServer,
+    title: "Server actions & validation",
+    description:
+      "Typed mutations with Zod, protected actions, and cache invalidation patterns ready to extend.",
+    badge: "Included",
+  },
+  {
+    icon: IconDatabase,
+    title: "Prisma & PostgreSQL",
+    description:
+      "Schema, migrations, and a singleton data layer — point `DATABASE_URL` at your database and evolve the model.",
+    badge: "Included",
+  },
+  {
+    icon: IconLock,
+    title: "Better Auth & OAuth",
+    description:
+      "Session handling and social providers; configure secrets and callback URLs for your environments.",
+    badge: "Included",
+  },
+  {
+    icon: IconLayersSubtract,
+    title: "Feature-sliced modules",
+    description:
+      "Business logic grouped under `features/` with repositories, actions, and routes to mirror your domain.",
+    badge: "Included",
+  },
+  {
+    icon: IconComponents,
+    title: "shadcn/ui & Tailwind",
+    description:
+      "Accessible primitives and tokens — swap themes, add screens, and keep UI consistent as you grow.",
+    badge: "Included",
+  },
+];
+
+const integrations = [
+  {
+    icon: IconPlug,
+    title: "REST or GraphQL clients",
+    description: "Add SDKs or fetch wrappers for the APIs your product depends on.",
+  },
+  {
+    icon: IconWebhook,
+    title: "Inbound webhooks",
+    description: "Expose routes that turn provider events into your own domain records.",
+  },
+  {
+    icon: IconCloud,
+    title: "File & object storage",
+    description: "Optional S3-style storage hooks for uploads when your feature needs blobs.",
+  },
+];
+
+export default function HomePage() {
+  const loadCurrentUserIdPromise = loadCurrentUserId();
+  const getLastLoginPromise = getFromCookie(LAST_LOGIN_METHOD_KEY);
+
+  return (
+    <div className="flex flex-col">
+      {/* Hero */}
+      <section className="relative flex flex-col items-center gap-8 px-4 py-20 text-center md:px-6 md:py-32">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,oklch(0.95_0.02_260)_0%,transparent_70%)] dark:bg-[radial-gradient(ellipse_at_top,oklch(0.2_0.03_260)_0%,transparent_70%)]" />
+        <div className="relative flex max-w-3xl flex-col items-center gap-6">
+          <Badge variant="outline" className="gap-1.5">
+            <IconTerminal aria-hidden="true" className="size-3" />
+            Template application
+          </Badge>
+
+          <h1 className="text-3xl font-bold tracking-tight text-pretty md:text-5xl">
+            A neutral starting point for
+            <br />
+            <span className="text-muted-foreground">your next service</span>
+          </h1>
+
+          <p className="text-muted-foreground max-w-xl text-sm leading-relaxed md:text-base">
+            This template includes authentication, routing, persistence, and shared UI patterns so
+            you can adapt it into a custom service without rebuilding the foundation.
+          </p>
+
+          <NavUserLogin
+            loadCurrentUserIdPromise={loadCurrentUserIdPromise}
+            getLastLoginPromise={getLastLoginPromise}
+            dotShowLogout
+            showHomepageCTA
+          />
+
+          <div className="text-muted-foreground flex flex-col items-center gap-2 text-xs sm:flex-row sm:gap-4">
+            <span className="flex items-center gap-1.5 whitespace-nowrap">
+              <IconLock aria-hidden="true" className="size-3 shrink-0" />
+              Social login only, no passwords
+            </span>
+          </div>
+        </div>
+      </section>
+
+      <Separator />
+
+      {/* Features */}
+      <section className="flex flex-col items-center gap-10 px-4 py-16 md:px-6 md:py-24">
+        <div className="flex max-w-2xl flex-col items-center gap-3 text-center">
+          <h2 className="text-xl font-bold tracking-tight text-pretty md:text-2xl">
+            What ships with this template
+          </h2>
+          <p className="text-muted-foreground text-sm">
+            Opinionated defaults you can rename, extend, or remove — edit this section to describe
+            your product.
+          </p>
+        </div>
+
+        <div className="grid w-full max-w-5xl gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {features.map((feature) => (
+            <Card key={feature.title}>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <feature.icon aria-hidden="true" className="text-foreground size-5" />
+                  <Badge variant="secondary">{feature.badge}</Badge>
+                </div>
+                <CardTitle className="mt-2">{feature.title}</CardTitle>
+                <CardDescription>{feature.description}</CardDescription>
+              </CardHeader>
+            </Card>
+          ))}
+        </div>
+      </section>
+
+      <Separator />
+
+      {/* Integrations */}
+      <section className="flex flex-col items-center gap-10 px-4 py-16 md:px-6 md:py-24">
+        <div className="flex max-w-2xl flex-col items-center gap-3 text-center">
+          <Badge variant="secondary">Extension points</Badge>
+          <h2 className="text-xl font-bold tracking-tight text-pretty md:text-2xl">
+            Where to plug in your own logic
+          </h2>
+          <p className="text-muted-foreground text-sm">
+            Placeholder ideas — replace with integrations, partners, or workflows your users care
+            about.
+          </p>
+        </div>
+
+        <div className="grid w-full max-w-4xl gap-4 md:grid-cols-3">
+          {integrations.map((item) => (
+            <Card key={item.title}>
+              <CardContent className="flex flex-col gap-3">
+                <item.icon aria-hidden="true" className="text-foreground size-5" />
+                <div className="flex flex-col gap-1">
+                  <span className="text-sm font-medium">{item.title}</span>
+                  <span className="text-muted-foreground text-xs">{item.description}</span>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </section>
+
+      <Separator />
+
+      {/* Tech stack */}
+      <section className="flex flex-col items-center gap-6 px-4 py-16 md:px-6 md:py-24">
+        <h2 className="text-xl font-bold tracking-tight text-pretty md:text-2xl">Built with</h2>
+        <div className="flex flex-wrap items-center justify-center gap-3">
+          {[
+            "Next.js 16",
+            "React 19",
+            "TypeScript",
+            "Tailwind v4",
+            "Prisma",
+            "PostgreSQL",
+            "AWS S3",
+            "Better Auth",
+            "Vercel AI SDK",
+            "shadcn/ui",
+          ].map((tech) => (
+            <Badge key={tech} variant="outline">
+              {tech}
+            </Badge>
+          ))}
+        </div>
+      </section>
+
+      <Separator />
+
+      {/* CTA */}
+      <section className="flex flex-col items-center gap-6 px-4 py-16 text-center md:px-6 md:py-24">
+        <Image
+          src="/img/branding/template_logo_nb_s.png"
+          alt="Application template logo"
+          width={48}
+          height={48}
+          style={{ width: "auto", height: "auto" }}
+          className="opacity-80"
+        />
+        <h2 className="text-xl font-bold tracking-tight text-pretty md:text-2xl">
+          Start from here
+        </h2>
+        <p className="text-muted-foreground max-w-md text-sm">
+          Clone the template, create your first workspace, and shape the app around your domain.
+        </p>
+        <NavUserLogin
+          loadCurrentUserIdPromise={loadCurrentUserIdPromise}
+          getLastLoginPromise={getLastLoginPromise}
+          dotShowLogout
+          showHomepageCTA
+        />
+      </section>
+
+      {/* Footer */}
+      <footer className="border-t px-4 py-8 md:px-6">
+        <div className="text-muted-foreground mx-auto flex max-w-5xl flex-col items-center justify-between gap-4 text-xs md:flex-row">
+          <span>&copy; 2026 Application Template. All rights reserved.</span>
+          <div className="flex items-center gap-4">
+            <span>example.com</span>
+          </div>
+        </div>
+      </footer>
+    </div>
+  );
+}

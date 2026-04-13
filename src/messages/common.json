@@ -1,0 +1,68 @@
+{
+  "words": {
+    "verbs": {
+      "close": "Close",
+      "continue": "Continue",
+      "save": "Save",
+      "create": "Create",
+      "hide": "Hide",
+      "search": "Search",
+      "edit": "Edit",
+      "refresh": "Refresh",
+      "cancel": "Cancel",
+      "return": "Return",
+      "show-more": "Show more",
+      "reset": "Reset",
+      "copy": "Copy",
+      "delete": "Delete",
+      "selectFile": "Select file",
+      "add": "Add"
+    },
+    "nouns": {
+      "details": "Details",
+      "more": "More",
+      "example": "For example",
+      "search": "Search",
+      "no-data": "No data",
+      "information": "Useful information",
+      "unknown": "Unknown"
+    },
+    "time": {
+      "minute": "Minute",
+      "minutes": "Minutes",
+      "minutes-short": "min",
+      "hour": "Hour",
+      "hour-short": "hr",
+      "hours": "Hours",
+      "day": "Day",
+      "days": "Days"
+    }
+  },
+  "errors": {
+    "conflictError": {
+      "title": "Data save conflict on server",
+      "description": "Someone recorded a new version of the object while you were editing it. You need to reload the entity to get the latest changes."
+    },
+    "notAuthorized": {
+      "title": "403",
+      "subTitle": "Oops! You are not authorized!",
+      "description": "It seems like the page you are access not for you."
+    },
+    "notLogged": {
+      "title": "401",
+      "subTitle": "Oops! You are not logged in!",
+      "description": "You need to authorize to continue working"
+    },
+    "notFound": {
+      "title": "404",
+      "subTitle": "Oops! Page Not Found!",
+      "description": "It seems like the page you are looking for does not exist or might have been removed."
+    },
+    "globalError": {
+      "title": "500",
+      "subTitle": "Oops! Something went wrong :(",
+      "description": "We apologize for the inconvenience. Please try again later."
+    },
+    "returnHome": "Return home"
+  }
+}
