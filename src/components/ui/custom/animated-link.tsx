@@ -21,11 +21,6 @@ export default function AnimatedLink({
   ...props
 }: AnimatedLinkProps) {
   return (
-    <Link
-      transitionTypes={transitionTypes}
-      {...props}
-    >
-      <span className="inline-flex items-center gap-1">{children}</span>
-    </Link>
+    <Link transitionTypes={transitionTypes}{...props}>{children}</Link>
   );
 }
