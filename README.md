@@ -1,6 +1,6 @@
 # Next.js Template
 
-[![Use this template](https://img.shields.io/badge/Use%20this%20template-2ea44f?style=for-the-badge&logo=github)](https://github.com/YOUR_GITHUB_OWNER/YOUR_REPO_NAME/generate)
+[![Use this template](https://img.shields.io/badge/Use%20this%20template-2ea44f?style=for-the-badge&logo=github)](https://github.com/new?template_name=templates-nextjs-shadcn&template_owner=contixly)
 
 A neutral starting point for building custom services with Next.js, TypeScript, Tailwind CSS v4, Better Auth, Prisma,
 and shadcn/ui.
