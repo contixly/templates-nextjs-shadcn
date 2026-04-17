@@ -6,6 +6,7 @@ import { updateWorkspaceCache, WorkspaceWithCounts } from "../workspaces-types";
 import { createProtectedActionWithInput } from "@lib/actions";
 import prisma from "@server/prisma";
 import { workspacesLogger } from "@features/workspaces/workspaces-logger";
+import { WORKSPACE_ERROR_KEYS } from "@features/workspaces/workspaces-errors";
 
 export const createWorkspace = createProtectedActionWithInput<
   CreateWorkspaceInput,
@@ -26,7 +27,7 @@ export const createWorkspace = createProtectedActionWithInput<
     if (existingWorkspace) {
       return {
         success: false,
-        error: { message: "A Workspace with this name already exists", code: HttpCodes.CONFLICT },
+        error: { message: WORKSPACE_ERROR_KEYS.duplicateName, code: HttpCodes.CONFLICT },
       };
     }
 
@@ -68,7 +69,7 @@ export const createWorkspace = createProtectedActionWithInput<
   },
   {
     actionName: "createWorkspace",
-    validationErrorMessage: "Workspace name is required",
+    validationErrorMessage: WORKSPACE_ERROR_KEYS.nameRequired,
     logger: workspacesLogger,
   }
 );

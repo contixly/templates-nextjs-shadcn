@@ -9,20 +9,21 @@ import { Input } from "@components/ui/input";
 import { CopyButton } from "@components/ui/custom/copy-button";
 import { timeTools } from "@lib/time";
 import { ProfileForm } from "@features/accounts/components/forms/profile-form";
+import { useLocale, useTranslations } from "next-intl";
 
 export interface UserProfileProps {
   loadCurrentUserPromise: Promise<User | undefined>;
 }
 
 export const UserProfile = ({ loadCurrentUserPromise }: UserProfileProps) => {
+  const t = useTranslations("accounts.ui.profile");
+
   return (
     <>
       <Card>
         <CardHeader>
-          <CardTitle>Avatar</CardTitle>
-          <CardDescription>
-            Your avatar is synced from your connected social account.
-          </CardDescription>
+          <CardTitle>{t("avatarTitle")}</CardTitle>
+          <CardDescription>{t("avatarDescription")}</CardDescription>
         </CardHeader>
         <CardContent>
           <Suspense fallback={<AvatarCardSkeleton />}>
@@ -33,10 +34,8 @@ export const UserProfile = ({ loadCurrentUserPromise }: UserProfileProps) => {
 
       <Card>
         <CardHeader>
-          <CardTitle>Display Name</CardTitle>
-          <CardDescription>
-            This is the name that will be displayed across the application.
-          </CardDescription>
+          <CardTitle>{t("displayNameTitle")}</CardTitle>
+          <CardDescription>{t("displayNameDescription")}</CardDescription>
         </CardHeader>
         <CardContent>
           <Suspense fallback={<ProfileFormSkeleton />}>
@@ -47,25 +46,21 @@ export const UserProfile = ({ loadCurrentUserPromise }: UserProfileProps) => {
 
       <Card>
         <CardHeader>
-          <CardTitle>Email Address</CardTitle>
-          <CardDescription>
-            Your email address is used for notifications and account recovery.
-          </CardDescription>
+          <CardTitle>{t("emailTitle")}</CardTitle>
+          <CardDescription>{t("emailDescription")}</CardDescription>
         </CardHeader>
         <CardContent>
           <Suspense fallback={<RowSkeleton />}>
             <EmailRow loadCurrentUserPromise={loadCurrentUserPromise} />
           </Suspense>
-          <p className="text-muted-foreground mt-2 text-sm">
-            Email cannot be changed. It is linked to your social account.
-          </p>
+          <p className="text-muted-foreground mt-2 text-sm">{t("emailHint")}</p>
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader>
-          <CardTitle>User ID</CardTitle>
-          <CardDescription>Your unique identifier in our system.</CardDescription>
+          <CardTitle>{t("userIdTitle")}</CardTitle>
+          <CardDescription>{t("userIdDescription")}</CardDescription>
         </CardHeader>
         <CardContent>
           <Suspense fallback={<RowSkeleton />}>
@@ -76,8 +71,8 @@ export const UserProfile = ({ loadCurrentUserPromise }: UserProfileProps) => {
 
       <Card>
         <CardHeader>
-          <CardTitle>Member Since</CardTitle>
-          <CardDescription>The date you created your account.</CardDescription>
+          <CardTitle>{t("memberSinceTitle")}</CardTitle>
+          <CardDescription>{t("memberSinceDescription")}</CardDescription>
         </CardHeader>
         <CardContent>
           <Suspense fallback={<LineSkeleton />}>
@@ -90,6 +85,7 @@ export const UserProfile = ({ loadCurrentUserPromise }: UserProfileProps) => {
 };
 
 const AvatarCardContent = ({ loadCurrentUserPromise }: UserProfileProps) => {
+  const t = useTranslations("accounts.ui.profile");
   const profile = use(loadCurrentUserPromise);
 
   if (!profile) return null;
@@ -103,22 +99,26 @@ const AvatarCardContent = ({ loadCurrentUserPromise }: UserProfileProps) => {
         </AvatarFallback>
       </Avatar>
       <div className="text-muted-foreground text-sm">
-        <p>Avatar images are provided by your connected accounts.</p>
-        <p>To change your avatar, update it on Google or GitHub.</p>
+        <p>{t("avatarHintPrimary")}</p>
+        <p>{t("avatarHintSecondary")}</p>
       </div>
     </div>
   );
 };
 
-const AvatarCardSkeleton = () => (
-  <div className="flex items-center gap-6">
-    <Skeleton className="size-20 shrink-0 rounded-full" />
-    <div className="text-muted-foreground text-sm">
-      <p>Avatar images are provided by your connected accounts.</p>
-      <p>To change your avatar, update it on Google or GitHub.</p>
+const AvatarCardSkeleton = () => {
+  const t = useTranslations("accounts.ui.profile");
+
+  return (
+    <div className="flex items-center gap-6">
+      <Skeleton className="size-20 shrink-0 rounded-full" />
+      <div className="text-muted-foreground text-sm">
+        <p>{t("avatarHintPrimary")}</p>
+        <p>{t("avatarHintSecondary")}</p>
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 const EmailRow = ({ loadCurrentUserPromise }: UserProfileProps) => {
   const profile = use(loadCurrentUserPromise);
@@ -154,11 +154,12 @@ const RowSkeleton = () => (
 );
 
 const MemberSince = ({ loadCurrentUserPromise }: UserProfileProps) => {
+  const locale = useLocale();
   const profile = use(loadCurrentUserPromise);
 
   if (!profile) return null;
 
-  return <p className="text-sm">{timeTools.formatDate(profile.createdAt)}</p>;
+  return <p className="text-sm">{timeTools.formatDate(profile.createdAt, locale)}</p>;
 };
 
 const LineSkeleton = () => <Skeleton className="h-5 w-40" />;
@@ -169,6 +170,6 @@ const ProfileFormSkeleton = () => (
       <Skeleton className="h-8" />
       <Skeleton className="h-4 w-40" />
     </div>
-    <Skeleton className="h-8 w-14" />
+    <Skeleton className="h-8 w-24" />
   </div>
 );

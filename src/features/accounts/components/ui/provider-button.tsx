@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { Badge } from "@components/ui/badge";
 import { signIn } from "@lib/auth-client";
 import type { VariantProps } from "class-variance-authority";
+import { useTranslations } from "next-intl";
 
 export const ProviderButton = ({
   provider,
@@ -23,6 +24,7 @@ export const ProviderButton = ({
   VariantProps<typeof buttonVariants> & {
     asChild?: boolean;
   }) => {
+  const t = useTranslations("accounts.ui.providerButton");
   const redirect: string | null = useSearchParams().get("redirect");
   const isLast = provider.id === lastMethod;
 
@@ -47,9 +49,9 @@ export const ProviderButton = ({
         {...props}
       >
         {provider.icon && <provider.icon className="mr-2" />}
-        Login with <span className="capitalize">{provider.name}</span>
+        {t("loginWith", { provider: provider.name })}
       </Button>
-      {lastMethod && isLast && <Badge className="absolute -top-2 -right-2">Last used</Badge>}
+      {lastMethod && isLast && <Badge className="absolute -top-2 -right-2">{t("lastUsed")}</Badge>}
     </div>
   );
 };

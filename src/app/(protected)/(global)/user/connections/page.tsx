@@ -4,10 +4,11 @@ import { UserConnections } from "@features/accounts/components/user-connections"
 import { loadCurrentUserAccounts } from "@features/accounts/accounts-actions";
 import { getFromCookie } from "@lib/cookies";
 import { LAST_LOGIN_METHOD_KEY } from "@lib/environment";
-import { buildMetadata } from "@lib/metadata";
+import { buildPageMetadata } from "@lib/metadata";
 import accountsRoutes from "@features/accounts/accounts-routes";
 
-export const metadata: Metadata = buildMetadata(accountsRoutes.pages.connections);
+export const generateMetadata = async (): Promise<Metadata> =>
+  buildPageMetadata(accountsRoutes.pages.connections);
 
 export default async function ConnectionsPage() {
   const loadCurrentUserAccountsPromise = loadCurrentUserAccounts();

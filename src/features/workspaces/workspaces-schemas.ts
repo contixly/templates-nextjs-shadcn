@@ -1,10 +1,18 @@
 import { z } from "zod";
 import { id } from "@lib/z";
+import { WORKSPACE_ERROR_KEYS } from "@features/workspaces/workspaces-errors";
+import { AnyTranslationsFn } from "@/src/i18n/config";
 
-const WORKSPACE_NAME_MAX_LENGTH = 50;
+export const WORKSPACE_NAME_MAX_LENGTH = 50;
 const workspaceNamePattern = /^[\p{L}0-9\s\-_]+$/u;
 
-const createWorkspaceNameSchema = (previousName?: string) =>
+const getErrorMessage = (
+  tAny: AnyTranslationsFn | undefined,
+  key: (typeof WORKSPACE_ERROR_KEYS)[keyof typeof WORKSPACE_ERROR_KEYS],
+  options?: object
+) => (tAny ? tAny(key, options) : key);
+
+const createWorkspaceNameSchema = (previousName?: string, tAny?: AnyTranslationsFn) =>
   z
     .string()
     .superRefine((value, ctx) => {
@@ -13,22 +21,23 @@ const createWorkspaceNameSchema = (previousName?: string) =>
       if (trimmedValue.length === 0) {
         ctx.addIssue({
           code: "custom",
-          message: "Workspace name is required",
+          message: getErrorMessage(tAny, WORKSPACE_ERROR_KEYS.nameRequired),
         });
       }
 
       if (trimmedValue.length > WORKSPACE_NAME_MAX_LENGTH) {
         ctx.addIssue({
           code: "custom",
-          message: `Workspace name must be ${WORKSPACE_NAME_MAX_LENGTH} characters or less`,
+          message: getErrorMessage(tAny, WORKSPACE_ERROR_KEYS.nameTooLong, {
+            max: WORKSPACE_NAME_MAX_LENGTH,
+          }),
         });
       }
 
       if (!workspaceNamePattern.test(trimmedValue)) {
         ctx.addIssue({
           code: "custom",
-          message:
-            "Workspace name can only contain letters, numbers, spaces, hyphens, and underscores",
+          message: getErrorMessage(tAny, WORKSPACE_ERROR_KEYS.nameInvalidCharacters),
         });
       }
 
@@ -39,7 +48,7 @@ const createWorkspaceNameSchema = (previousName?: string) =>
       ) {
         ctx.addIssue({
           code: "custom",
-          message: "New workspace name must be different from current name",
+          message: getErrorMessage(tAny, WORKSPACE_ERROR_KEYS.nameUnchanged),
         });
       }
     })
@@ -52,29 +61,44 @@ export const createWorkspaceSchema = z.object({
   isDefault: z.boolean().default(false),
 });
 
+export const createWorkspaceFormSchema = (tAny: AnyTranslationsFn) =>
+  z.object({
+    name: createWorkspaceNameSchema(undefined, tAny),
+    isDefault: z.boolean().default(false),
+  });
+
 export const updateWorkspaceSchema = z.object({
   id,
   name: name.optional(),
   isDefault: z.boolean().optional(),
 });
 
-export const createUpdateWorkspaceFormSchema = (previousName: string) =>
+export const createUpdateWorkspaceFormSchema = (previousName: string, tAny: AnyTranslationsFn) =>
   z.object({
     id,
-    name: createWorkspaceNameSchema(previousName).optional(),
+    name: createWorkspaceNameSchema(previousName, tAny).optional(),
     isDefault: z.boolean().optional(),
   });
 
-export const deleteWorkspaceSchema = z
-  .object({
-    id,
-    name: z.string(),
-    confirmationText: z.string().trim().min(1, "Confirmation text is required"),
-  })
-  .refine((data) => data.confirmationText === data.name, {
-    message: "Confirmation text does not match workspace name",
-    path: ["confirmationText"],
-  });
+const createDeleteWorkspaceSchema = (tAny?: AnyTranslationsFn) =>
+  z
+    .object({
+      id,
+      name: z.string(),
+      confirmationText: z
+        .string()
+        .trim()
+        .min(1, getErrorMessage(tAny, WORKSPACE_ERROR_KEYS.confirmationRequired)),
+    })
+    .refine((data) => data.confirmationText === data.name, {
+      message: getErrorMessage(tAny, WORKSPACE_ERROR_KEYS.confirmationMismatch),
+      path: ["confirmationText"],
+    });
+
+export const deleteWorkspaceSchema = createDeleteWorkspaceSchema();
+
+export const createDeleteWorkspaceFormSchema = (tAny: AnyTranslationsFn) =>
+  createDeleteWorkspaceSchema(tAny);
 
 export type CreateWorkspaceInput = z.input<typeof createWorkspaceSchema>;
 export type UpdateWorkspaceInput = z.input<typeof updateWorkspaceSchema>;

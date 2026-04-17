@@ -6,7 +6,7 @@ import { Separator } from "@components/ui/separator";
 import { IconLock, IconTerminal } from "@tabler/icons-react";
 import { loadCurrentUserId } from "@features/accounts/accounts-actions";
 import { NavUserLogin } from "@features/accounts/components/nav/nav-user-login";
-import { buildMetadata } from "@lib/metadata";
+import { buildPageMetadata } from "@lib/metadata";
 import applicationRoutes from "@features/application/application-routes";
 import {
   templateExtensionPointBlocks,
@@ -14,10 +14,13 @@ import {
 } from "@features/application/template-landing-content";
 import { getFromCookie } from "@lib/cookies";
 import { LAST_LOGIN_METHOD_KEY } from "@lib/environment";
+import { getTranslations } from "next-intl/server";
 
-export const metadata: Metadata = buildMetadata(applicationRoutes.pages.home);
+export const generateMetadata = async (): Promise<Metadata> =>
+  buildPageMetadata(applicationRoutes.pages.home);
 
-export default function HomePage() {
+export default async function HomePage() {
+  const t = await getTranslations("application.pages.home");
   const loadCurrentUserIdPromise = loadCurrentUserId();
   const getLastLoginPromise = getFromCookie(LAST_LOGIN_METHOD_KEY);
 
@@ -29,18 +32,17 @@ export default function HomePage() {
         <div className="relative flex max-w-3xl flex-col items-center gap-6">
           <Badge variant="outline" className="gap-1.5">
             <IconTerminal aria-hidden="true" className="size-3" />
-            Template application
+            {t("heroBadge")}
           </Badge>
 
           <h1 className="text-3xl font-bold tracking-tight text-pretty md:text-5xl">
-            A neutral starting point for
+            {t("heroTitlePrefix")}
             <br />
-            <span className="text-muted-foreground">your next service</span>
+            <span className="text-muted-foreground">{t("heroTitleEmphasis")}</span>
           </h1>
 
           <p className="text-muted-foreground max-w-xl text-sm leading-relaxed md:text-base">
-            This template includes authentication, routing, persistence, and shared UI patterns so
-            you can adapt it into a custom service without rebuilding the foundation.
+            {t("heroDescription")}
           </p>
 
           <NavUserLogin
@@ -53,7 +55,7 @@ export default function HomePage() {
           <div className="text-muted-foreground flex flex-col items-center gap-2 text-xs sm:flex-row sm:gap-4">
             <span className="flex items-center gap-1.5 whitespace-nowrap">
               <IconLock aria-hidden="true" className="size-3 shrink-0" />
-              Social login only, no passwords
+              {t("heroSecurity")}
             </span>
           </div>
         </div>
@@ -65,24 +67,21 @@ export default function HomePage() {
       <section className="flex flex-col items-center gap-10 px-4 py-16 md:px-6 md:py-24">
         <div className="flex max-w-2xl flex-col items-center gap-3 text-center">
           <h2 className="text-xl font-bold tracking-tight text-pretty md:text-2xl">
-            What ships with this template
+            {t("featuresTitle")}
           </h2>
-          <p className="text-muted-foreground text-sm">
-            Opinionated defaults you can rename, extend, or remove — edit this section to describe
-            your product.
-          </p>
+          <p className="text-muted-foreground text-sm">{t("featuresDescription")}</p>
         </div>
 
         <div className="grid w-full max-w-5xl gap-4 md:grid-cols-2 lg:grid-cols-3">
           {templateStackFeatureBlocks.map((feature) => (
-            <Card key={feature.title}>
+            <Card key={feature.id}>
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <feature.icon aria-hidden="true" className="text-foreground size-5" />
-                  <Badge variant="secondary">{feature.badge}</Badge>
+                  <Badge variant="secondary">{t(`featureBlocks.${feature.id}.badge`)}</Badge>
                 </div>
-                <CardTitle className="mt-2">{feature.title}</CardTitle>
-                <CardDescription>{feature.description}</CardDescription>
+                <CardTitle className="mt-2">{t(`featureBlocks.${feature.id}.title`)}</CardTitle>
+                <CardDescription>{t(`featureBlocks.${feature.id}.description`)}</CardDescription>
               </CardHeader>
             </Card>
           ))}
@@ -94,24 +93,25 @@ export default function HomePage() {
       {/* Integrations */}
       <section className="flex flex-col items-center gap-10 px-4 py-16 md:px-6 md:py-24">
         <div className="flex max-w-2xl flex-col items-center gap-3 text-center">
-          <Badge variant="secondary">Extension points</Badge>
+          <Badge variant="secondary">{t("extensionsBadge")}</Badge>
           <h2 className="text-xl font-bold tracking-tight text-pretty md:text-2xl">
-            Where to plug in your own logic
+            {t("extensionsTitle")}
           </h2>
-          <p className="text-muted-foreground text-sm">
-            Placeholder ideas — replace with integrations, partners, or workflows your users care
-            about.
-          </p>
+          <p className="text-muted-foreground text-sm">{t("extensionsDescription")}</p>
         </div>
 
         <div className="grid w-full max-w-4xl gap-4 md:grid-cols-3">
           {templateExtensionPointBlocks.map((item) => (
-            <Card key={item.title}>
+            <Card key={item.id}>
               <CardContent className="flex flex-col gap-3">
                 <item.icon aria-hidden="true" className="text-foreground size-5" />
                 <div className="flex flex-col gap-1">
-                  <span className="text-sm font-medium">{item.title}</span>
-                  <span className="text-muted-foreground text-xs">{item.description}</span>
+                  <span className="text-sm font-medium">
+                    {t(`extensionBlocks.${item.id}.title`)}
+                  </span>
+                  <span className="text-muted-foreground text-xs">
+                    {t(`extensionBlocks.${item.id}.description`)}
+                  </span>
                 </div>
               </CardContent>
             </Card>
@@ -123,7 +123,9 @@ export default function HomePage() {
 
       {/* Tech stack */}
       <section className="flex flex-col items-center gap-6 px-4 py-16 md:px-6 md:py-24">
-        <h2 className="text-xl font-bold tracking-tight text-pretty md:text-2xl">Built with</h2>
+        <h2 className="text-xl font-bold tracking-tight text-pretty md:text-2xl">
+          {t("stackTitle")}
+        </h2>
         <div className="flex flex-wrap items-center justify-center gap-3">
           {[
             "Next.js 16",
@@ -148,18 +150,16 @@ export default function HomePage() {
       <section className="flex flex-col items-center gap-6 px-4 py-16 text-center md:px-6 md:py-24">
         <Image
           src="/img/branding/template_logo_nb_s.png"
-          alt="Application template logo"
+          alt={t("logoAlt")}
           width={48}
           height={48}
           style={{ width: "auto", height: "auto" }}
           className="opacity-80"
         />
         <h2 className="text-xl font-bold tracking-tight text-pretty md:text-2xl">
-          Start from here
+          {t("ctaTitle")}
         </h2>
-        <p className="text-muted-foreground max-w-md text-sm">
-          Clone the template, create your first workspace, and shape the app around your domain.
-        </p>
+        <p className="text-muted-foreground max-w-md text-sm">{t("ctaDescription")}</p>
         <NavUserLogin
           loadCurrentUserIdPromise={loadCurrentUserIdPromise}
           getLastLoginPromise={getLastLoginPromise}
@@ -171,7 +171,7 @@ export default function HomePage() {
       {/* Footer */}
       <footer className="border-t px-4 py-8 md:px-6">
         <div className="text-muted-foreground mx-auto flex max-w-5xl flex-col items-center justify-between gap-4 text-xs md:flex-row">
-          <span>&copy; 2026 Application Template. All rights reserved.</span>
+          <span>{t("footer")}</span>
           <div className="flex items-center gap-4">
             <span>example.com</span>
           </div>

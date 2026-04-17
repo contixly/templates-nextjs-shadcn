@@ -1,0 +1,108 @@
+{
+  "pages": {
+    "home": {
+      "title": "Home",
+      "description": "A neutral starting point for the template application with shared UI, auth flows, and reusable layout patterns.",
+      "openGraph": {
+        "title": "Home",
+        "description": "A template application ready to be adapted into your own service."
+      },
+      "heroBadge": "Template application",
+      "heroTitlePrefix": "A neutral starting point for",
+      "heroTitleEmphasis": "your next service",
+      "heroDescription": "This template includes authentication, routing, persistence, and shared UI patterns so you can adapt it into a custom service without rebuilding the foundation.",
+      "heroSecurity": "Social login only, no passwords",
+      "featuresTitle": "What ships with this template",
+      "featuresDescription": "Opinionated defaults you can rename, extend, or remove — edit this section to describe your product.",
+      "extensionsBadge": "Extension points",
+      "extensionsTitle": "Where to plug in your own logic",
+      "extensionsDescription": "Placeholder ideas — replace with integrations, partners, or workflows your users care about.",
+      "stackTitle": "Built with",
+      "ctaTitle": "Start from here",
+      "ctaDescription": "Clone the template, create your first workspace, and shape the app around your domain.",
+      "footer": "© 2026 Application Template. All rights reserved.",
+      "logoAlt": "Application template logo",
+      "featureBlocks": {
+        "routing": {
+          "badge": "Included",
+          "title": "App Router & layouts",
+          "description": "Route groups, metadata, and shared shells you can reshape for marketing, auth, and authenticated areas."
+        },
+        "actions": {
+          "badge": "Included",
+          "title": "Server actions & validation",
+          "description": "Typed mutations with Zod, protected actions, and cache invalidation patterns ready to extend."
+        },
+        "database": {
+          "badge": "Included",
+          "title": "Prisma & PostgreSQL",
+          "description": "Schema, migrations, and a singleton data layer — point DATABASE_URL at your database and evolve the model."
+        },
+        "auth": {
+          "badge": "Included",
+          "title": "Better Auth & OAuth",
+          "description": "Session handling and social providers; configure secrets and callback URLs for your environments."
+        },
+        "features": {
+          "badge": "Included",
+          "title": "Feature-sliced modules",
+          "description": "Business logic grouped under features/ with repositories, actions, and routes to mirror your domain."
+        },
+        "ui": {
+          "badge": "Included",
+          "title": "shadcn/ui & Tailwind",
+          "description": "Accessible primitives and tokens — swap themes, add screens, and keep UI consistent as you grow."
+        }
+      },
+      "extensionBlocks": {
+        "clients": {
+          "title": "REST or GraphQL clients",
+          "description": "Add SDKs or fetch wrappers for the APIs your product depends on."
+        },
+        "webhooks": {
+          "title": "Inbound webhooks",
+          "description": "Expose routes that turn provider events into your own domain records."
+        },
+        "storage": {
+          "title": "File & object storage",
+          "description": "Optional S3-style storage hooks for uploads when your feature needs blobs."
+        }
+      }
+    },
+    "welcome": {
+      "title": "Welcome",
+      "description": "Your account has been created and a default workspace is ready. Here’s what this template includes.",
+      "includedTitle": "What is included",
+      "includedDescription": "Same overview as the public landing page — edit copy in template-landing-content.ts.",
+      "stepsTitle": "Get started in 3 steps",
+      "steps": {
+        "explore": {
+          "title": "Explore the default workspace",
+          "description": "A default workspace is ready. Find it in the sidebar."
+        },
+        "customize": {
+          "title": "Customize the codebase",
+          "description": "Add your domain models, routes under src/app/, and feature modules under src/features/."
+        },
+        "ship": {
+          "title": "Ship",
+          "description": "Deploy with your hosting provider and iterate — this template is only the foundation."
+        }
+      }
+    }
+  },
+  "ui": {
+    "homeCta": {
+      "primary": "Get Started",
+      "openDashboard": "Open dashboard",
+      "title": "Ready to continue?",
+      "description": "The template is ready. Open the dashboard and adapt it to your own service."
+    },
+    "navigation": {
+      "dashboard": "Dashboard",
+      "getHelp": "Get Help",
+      "goToDashboard": "Go to dashboard",
+      "getStarted": "Get Started"
+    }
+  }
+}

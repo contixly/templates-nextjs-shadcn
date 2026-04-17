@@ -1,4 +1,17 @@
 import type { NextConfig } from "next";
+import createNextIntlPlugin from "next-intl/plugin";
+
+const withNextIntl = createNextIntlPlugin({
+  experimental: {
+    createMessagesDeclaration: [
+      "./src/messages/common.en.json",
+      "./src/messages/features/accounts.en.json",
+      "./src/messages/features/workspaces.en.json",
+      "./src/messages/features/application.en.json",
+      "./src/messages/features/dashboard.en.json",
+    ],
+  },
+});
 
 const nextConfig: NextConfig = {
   cacheComponents: true,
@@ -39,4 +52,4 @@ const nextConfig: NextConfig = {
   output: "standalone",
 };
 
-export default nextConfig;
+export default withNextIntl(nextConfig);

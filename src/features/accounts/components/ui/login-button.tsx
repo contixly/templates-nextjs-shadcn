@@ -4,6 +4,7 @@ import { Button, buttonVariants } from "@components/ui/button";
 import type { VariantProps } from "class-variance-authority";
 import routes from "@features/routes";
 import { usePathname } from "next/navigation";
+import { useTranslations } from "next-intl";
 
 /**
  * A customizable login button component that redirects users to the login page.
@@ -23,11 +24,12 @@ export const LoginButton = (
       asChild?: boolean;
     }
 ) => {
+  const t = useTranslations("accounts.ui.loginButton");
   const path = usePathname();
 
   return (
     <Link href={routes.accounts.pages.login.path({ query: { redirect: path } })}>
-      <Button {...props}>Log in</Button>
+      <Button {...props}>{t("login")}</Button>
     </Link>
   );
 };

@@ -4,7 +4,7 @@ import { loadWorkspace } from "@features/workspaces/actions/load-workspace";
 import { Suspense } from "react";
 import { Spinner } from "@components/ui/spinner";
 import type { Metadata } from "next";
-import { buildMetadata } from "@lib/metadata";
+import { buildPageMetadata } from "@lib/metadata";
 import workspaceRoutes from "@features/workspaces/workspaces-routes";
 
 interface WorkspacePageProps {
@@ -12,7 +12,7 @@ interface WorkspacePageProps {
 }
 
 export const generateMetadata = async ({ params }: WorkspacePageProps): Promise<Metadata> =>
-  buildMetadata(workspaceRoutes.pages.workspace, await params);
+  buildPageMetadata(workspaceRoutes.pages.workspace, await params);
 
 export default async function WorkspacePage({ params }: WorkspacePageProps) {
   return (

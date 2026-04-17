@@ -10,6 +10,7 @@ import { VariantProps } from "class-variance-authority";
 import { socialsProviders } from "@typings/auth";
 import { ProviderButton } from "@features/accounts/components/ui/provider-button";
 import Link from "@components/ui/custom/animated-link";
+import { useTranslations } from "next-intl";
 
 type NavUserLoginProps = {
   loadCurrentUserIdPromise: Promise<string | null>;
@@ -32,6 +33,7 @@ const NavUserLoginComponent = ({
   showHomepageCTA,
   ...props
 }: NavUserLoginProps) => {
+  const t = useTranslations("application.ui.navigation");
   const userId = use(loadCurrentUserIdPromise);
   const lastMethod = use(getLastLoginPromise);
   const [isPending, setIsPending] = useState(false);
@@ -49,7 +51,7 @@ const NavUserLoginComponent = ({
               query: { redirect: routes.dashboard.pages.application_dashboard.path() },
             })}
           >
-            Get Started
+            {t("getStarted")}
             <IconArrowRight className="size-4" />
           </Link>
         </Button>
@@ -75,7 +77,7 @@ const NavUserLoginComponent = ({
       <div className="flex items-center gap-3">
         <Button asChild size="lg">
           <Link href={routes.dashboard.pages.application_dashboard.path()}>
-            Go to dashboard
+            {t("goToDashboard")}
             <IconArrowRight className="size-4" />
           </Link>
         </Button>

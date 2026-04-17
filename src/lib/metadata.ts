@@ -2,11 +2,12 @@ import { OpenGraph } from "next/dist/lib/metadata/types/opengraph-types";
 import { Twitter } from "next/dist/lib/metadata/types/twitter-types";
 import { Metadata } from "next";
 import { APP_BASE_URL } from "@lib/environment";
+import { getPageTranslations } from "@lib/page-translations";
 import { Page, PathMatchesRecord } from "@typings/pages";
 
 export const SITE_NAME = "Application Template";
 
-const openGraph: OpenGraph = {
+const baseOpenGraph: OpenGraph = {
   type: "website",
   locale: "en_US",
   siteName: SITE_NAME,
@@ -17,12 +18,12 @@ const openGraph: OpenGraph = {
     "A neutral Next.js application template for building custom services with authentication, shared UI, and reusable patterns.",
 };
 
-const twitter: Twitter = {
+const baseTwitter: Twitter = {
   card: "summary_large_image",
   creator: "@kroniak",
 
   title: SITE_NAME,
-  description: openGraph.description,
+  description: baseOpenGraph.description,
 };
 
 export const metadata: Metadata = {
@@ -31,7 +32,7 @@ export const metadata: Metadata = {
     default: SITE_NAME,
     template: "%s | Application Template",
   },
-  description: openGraph.description,
+  description: baseOpenGraph.description,
   keywords: [
     "next.js template",
     "application starter",
@@ -46,8 +47,8 @@ export const metadata: Metadata = {
   creator: "Template Maintainers",
   publisher: "Template Maintainers",
   applicationName: SITE_NAME,
-  openGraph,
-  twitter,
+  openGraph: baseOpenGraph,
+  twitter: baseTwitter,
   robots: {
     index: true,
     follow: true,
@@ -73,16 +74,44 @@ export const buildMetadata = (page: Page, params?: PathMatchesRecord): Metadata 
   title: page.title,
   description: page.description,
   openGraph: {
-    ...openGraph,
+    ...baseOpenGraph,
     title: page.openGraph?.title || page.title,
     description: page.openGraph?.description || page.description,
     url: page.path(params),
   },
   twitter: {
-    ...twitter,
+    ...baseTwitter,
     title: page.openGraph?.title || page.title,
     description: page.openGraph?.description || page.description,
   },
 });
 
-export { metadata as GlobalMetadata, twitter as GlobalTwitter, openGraph as GlobalOpenGraph };
+export const buildPageMetadata = async (
+  page: Page,
+  params?: PathMatchesRecord
+): Promise<Metadata> => {
+  const { title, description, openGraphTitle, openGraphDescription } =
+    await getPageTranslations(page);
+
+  return {
+    title,
+    description,
+    openGraph: {
+      ...baseOpenGraph,
+      title: openGraphTitle,
+      description: openGraphDescription,
+      url: page.path(params),
+    },
+    twitter: {
+      ...baseTwitter,
+      title: openGraphTitle,
+      description: openGraphDescription,
+    },
+  };
+};
+
+export {
+  metadata as GlobalMetadata,
+  baseTwitter as GlobalTwitter,
+  baseOpenGraph as GlobalOpenGraph,
+};

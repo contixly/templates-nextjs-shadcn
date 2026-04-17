@@ -8,6 +8,7 @@ import { auth } from "@server/auth";
 import { headers } from "next/headers";
 import { accountsLogger } from "@features/accounts/accounts-logger";
 import { loadCurrentUser } from "@features/accounts/accounts-actions";
+import { ACCOUNT_ERROR_KEYS } from "@features/accounts/accounts-errors";
 
 /**
  * Represents an action to delete the account of the currently authenticated user.
@@ -49,7 +50,7 @@ export const deleteAccount = createProtectedActionWithInput<DeleteAccountInput, 
       return {
         success: false,
         error: {
-          message: "Confirmation email does not match account email",
+          message: ACCOUNT_ERROR_KEYS.confirmationEmailMismatch,
           code: HttpCodes.BAD_REQUEST,
         },
       };

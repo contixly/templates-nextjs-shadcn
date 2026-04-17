@@ -1,7 +1,15 @@
 import { PartialRecord } from "@typings/common";
 import { Icon } from "@tabler/icons-react";
+import type { I18nMessages } from "@/src/i18n/messages";
 
 export type PathParametersType = "workspaceId" | "query";
+export type PageNamespace = {
+  [FeatureName in keyof I18nMessages]: I18nMessages[FeatureName] extends {
+    pages: infer Pages;
+  }
+    ? `${Extract<FeatureName, string>}.pages.${Extract<keyof Pages, string>}`
+    : never;
+}[keyof I18nMessages];
 
 /**
  * Represents the structure and metadata for the description of a page in an application.
@@ -11,7 +19,7 @@ export type PathParametersType = "workspaceId" | "query";
  *
  * Properties:
  * - `pathTemplate`: The template string defining the path for this page.
- * - `parent`: An optional reference to a parent PageDescription, establishing a hierarchical relationship.
+ * - `parent`: An optional reference to a parent page key, establishing a hierarchical relationship.
  * - `selfParent`: A boolean flag indicating whether this page is the parent of itself.
  * - `title`: The title of the page, which is required and intended for display purposes.
  * - `description`: An optional description providing additional context about the page.
@@ -26,12 +34,12 @@ export type PathParametersType = "workspaceId" | "query";
  *   - `title`: The title to be used for Open Graph metadata.
  *   - `description`: The description to be used for Open Graph metadata.
  */
-export type PageDescription = Readonly<{
+export type PageDescription<T extends string = string> = Readonly<{
   pathTemplate: string;
-  parent?: PageDescription;
+  parent?: T;
   selfParent?: boolean;
 
-  title: string;
+  title?: string;
   description?: string;
   icon?: Icon;
 
@@ -59,7 +67,7 @@ export type PageDescription = Readonly<{
  * @property {Record<T, PageDescription>} pages - A mapping of keys to page route configurations.
  */
 export type FeatureDescription<T extends string> = Readonly<{
-  pages: Record<T, PageDescription>;
+  pages: Record<T, PageDescription<T>>;
 }>;
 
 /**
@@ -88,9 +96,14 @@ export type PathMatchesRecord = PartialRecord<
  *
  * @property {string} featureName - The name of the feature associated with this page.
  */
-export interface Page extends PageDescription {
+export interface Page extends Omit<PageDescription, "parent"> {
   readonly path: (matches?: PathMatchesRecord) => string;
   readonly featureName: string;
+  readonly pageKey: string;
+  readonly i18n: {
+    readonly namespace: PageNamespace;
+  };
+  readonly parent?: Page;
 }
 
 /**

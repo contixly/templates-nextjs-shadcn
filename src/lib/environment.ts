@@ -7,7 +7,7 @@ export const APP_BASE_URL = `http${isProduction ? "s" : ""}://${APP_BASE_DOMAIN}
 export const APP_LS_PREFIX = "template-app";
 export const APP_COOKIE_PREFIX = "acc";
 
-export const YM_COUNTER_ID = 106941597;
+export const YM_COUNTER_ID = process.env.NEXT_PUBLIC_YM_COUNTER_ID;
 
 export const LAST_LOGIN_METHOD_KEY = `${APP_COOKIE_PREFIX}.last_login_method`;
 export const SIDEBAR_COOKIE_KEY = `sidebar_state`;

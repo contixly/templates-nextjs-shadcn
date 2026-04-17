@@ -1,4 +1,4 @@
-import { buildMetadata, GlobalMetadata } from "@lib/metadata";
+import { buildPageMetadata, GlobalMetadata } from "@lib/metadata";
 import routes from "@features/routes";
 import { buildMetadataOGImage } from "@lib/metadata-og";
 
@@ -12,6 +12,7 @@ export const size = {
 export const contentType = "image/png";
 
 const page = routes.workspaces.pages.workspace;
-const opengraphImage = async () => buildMetadataOGImage(buildMetadata(page), page.featureName);
+const opengraphImage = async ({ params }: { params: Promise<{ workspaceId: string }> }) =>
+  buildMetadataOGImage(await buildPageMetadata(page, await params), page.featureName);
 
 export default opengraphImage;

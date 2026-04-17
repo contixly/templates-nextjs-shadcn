@@ -2,10 +2,12 @@
 
 import React, { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
+import { useTranslations } from "next-intl";
 import { Button } from "@components/ui/button";
 import { IconMoon, IconSun } from "@tabler/icons-react";
 
 export const ThemeSwitcher = () => {
+  const t = useTranslations("common.ui.themeSwitcher");
   const { setTheme, resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
@@ -16,7 +18,7 @@ export const ThemeSwitcher = () => {
 
   if (!mounted || !resolvedTheme) {
     return (
-      <Button variant="outline" size="icon" aria-label="Toggle theme" title="Toggle theme" disabled>
+      <Button variant="outline" size="icon" aria-label={t("toggle")} title={t("toggle")} disabled>
         <IconSun
           aria-hidden="true"
           className="h-[1.2rem] w-[1.2rem] scale-100 rotate-0 transition-all dark:scale-0 dark:-rotate-90"
@@ -30,13 +32,14 @@ export const ThemeSwitcher = () => {
   }
 
   const nextTheme = resolvedTheme === "dark" ? "light" : "dark";
+  const nextThemeLabel = nextTheme === "light" ? t("switchToLight") : t("switchToDark");
 
   return (
     <Button
       variant="outline"
       size="icon"
-      aria-label={`Switch to ${nextTheme} theme`}
-      title={`Switch to ${nextTheme} theme`}
+      aria-label={nextThemeLabel}
+      title={nextThemeLabel}
       onClick={() => setTheme(nextTheme)}
     >
       <IconSun

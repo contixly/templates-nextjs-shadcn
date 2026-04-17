@@ -23,6 +23,7 @@ import { Skeleton } from "@components/ui/skeleton";
 import routes from "@features/routes";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { useLocale, useTranslations } from "next-intl";
 
 interface UserConnectionsProps {
   loadCurrentUserAccountsPromise: Promise<Account[] | undefined>;
@@ -33,6 +34,8 @@ const UserConnectionsComponent = ({
   loadCurrentUserAccountsPromise,
   getLastLoginPromise,
 }: UserConnectionsProps) => {
+  const t = useTranslations("accounts.ui.connections");
+  const locale = useLocale();
   const accounts = use(loadCurrentUserAccountsPromise);
   const lastMethod = use(getLastLoginPromise);
   const canUnlink = accounts && accounts.length > 1;
@@ -52,10 +55,10 @@ const UserConnectionsComponent = ({
       authClient
         .unlinkAccount({ providerId: provider.id })
         .then(router.refresh)
-        .then(() => toast.success("Unlink account successes"))
+        .then(() => toast.success(t("unlinkSuccess")))
         .catch((error) =>
-          toast.error("Failed to unlink account", {
-            description: error?.message ?? "Unknown error",
+          toast.error(t("unlinkErrorTitle"), {
+            description: error?.message ?? t("unknownError"),
           })
         )
         .finally(() => finallyCallback(1000));
@@ -81,8 +84,8 @@ const UserConnectionsComponent = ({
 
       action
         .catch((error) =>
-          toast.error("Failed to link account", {
-            description: error?.message ?? "Unknown error",
+          toast.error(t("linkErrorTitle"), {
+            description: error?.message ?? t("unknownError"),
           })
         )
         .finally(finallyCallback);
@@ -102,15 +105,15 @@ const UserConnectionsComponent = ({
             <ItemContent>
               <ItemTitle className="text-sm">
                 {provider?.name}
-                {isLastUsed && <Badge variant="secondary">Last used</Badge>}
+                {isLastUsed && <Badge variant="secondary">{t("lastUsed")}</Badge>}
               </ItemTitle>
               {account?.createdAt && (
                 <ItemDescription className="text-sm">
-                  Connected on {timeTools.formatDate(account.createdAt)}
+                  {t("connectedOn", { date: timeTools.formatDate(account.createdAt, locale) })}
                 </ItemDescription>
               )}
               {!account?.createdAt && (
-                <ItemDescription className="text-sm">Not connected</ItemDescription>
+                <ItemDescription className="text-sm">{t("notConnected")}</ItemDescription>
               )}
             </ItemContent>
             <ItemActions className="ml-auto">
@@ -123,7 +126,7 @@ const UserConnectionsComponent = ({
                   className="w-32"
                 >
                   <IconUnlink className="mr-2 size-4" />
-                  Disconnect
+                  {t("disconnect")}
                 </Button>
               )}
               {!account && (
@@ -135,7 +138,7 @@ const UserConnectionsComponent = ({
                   className="w-32"
                 >
                   <IconLink className="mr-2 size-4" />
-                  Connect
+                  {t("connect")}
                 </Button>
               )}
             </ItemActions>
@@ -165,30 +168,34 @@ const UserConnectionsFallback = () => (
   </ItemGroup>
 );
 
-export const UserConnections = (props: UserConnectionsProps) => (
-  <ErrorBoundary
-    fallbackRender={({ error }) => (
+export const UserConnections = (props: UserConnectionsProps) => {
+  const t = useTranslations("accounts.ui.connections");
+
+  return (
+    <ErrorBoundary
+      fallbackRender={({ error }) => (
+        <Card>
+          <CardContent className="p-6">
+            <p className="text-destructive">
+              {t("loadError", {
+                message: error instanceof Error ? error.message : t("unknownError"),
+              })}
+            </p>
+          </CardContent>
+        </Card>
+      )}
+    >
       <Card>
-        <CardContent className="p-6">
-          <p className="text-destructive">
-            Failed to load accounts: {error instanceof Error ? error.message : "Unknown error"}
-          </p>
+        <CardHeader>
+          <CardTitle>{t("title")}</CardTitle>
+          <CardDescription>{t("description")}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Suspense fallback={<UserConnectionsFallback />}>
+            <UserConnectionsComponent {...props} />
+          </Suspense>
         </CardContent>
       </Card>
-    )}
-  >
-    <Card>
-      <CardHeader>
-        <CardTitle>Connected Accounts</CardTitle>
-        <CardDescription>
-          Manage your connected social accounts. You can use any of these to sign in.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <Suspense fallback={<UserConnectionsFallback />}>
-          <UserConnectionsComponent {...props} />
-        </Suspense>
-      </CardContent>
-    </Card>
-  </ErrorBoundary>
-);
+    </ErrorBoundary>
+  );
+};

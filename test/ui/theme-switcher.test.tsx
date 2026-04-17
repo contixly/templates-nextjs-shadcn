@@ -14,6 +14,18 @@ jest.mock("next-themes", () => ({
   }),
 }));
 
+jest.mock("next-intl", () => ({
+  useTranslations: () => (key: "toggle" | "switchToLight" | "switchToDark") => {
+    const messages = {
+      toggle: "Toggle theme",
+      switchToLight: "Switch to light theme",
+      switchToDark: "Switch to dark theme",
+    } as const;
+
+    return messages[key];
+  },
+}));
+
 describe("ThemeSwitcher", () => {
   beforeEach(() => {
     mockSetTheme.mockReset();

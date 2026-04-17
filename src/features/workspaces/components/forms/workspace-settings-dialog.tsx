@@ -17,7 +17,9 @@ import type { WorkspaceWithCounts } from "@features/workspaces/workspaces-types"
 import { Modal, ModalProps } from "@components/ui/custom/modal";
 import { updateWorkspace } from "@features/workspaces/actions/update-workspace";
 import { Spinner } from "@components/ui/spinner";
-import common from "@messages/common.json";
+import { useTranslations } from "next-intl";
+import { useAnyTranslations } from "@/src/i18n/use-any-translations";
+import { translateWorkspaceErrorMessage } from "@features/workspaces/workspaces-errors";
 
 interface WorkspaceSettingsDialogProps {
   workspace: WorkspaceWithCounts | null;
@@ -31,6 +33,9 @@ export function WorkspaceSettingsDialog({
   canChangeDefault,
   ...props
 }: WorkspaceSettingsDialogProps & Partial<ModalProps>) {
+  const tCommon = useTranslations("common");
+  const tWorkspaces = useTranslations("workspaces.ui.settingsDialog");
+  const tAny = useAnyTranslations("workspaces");
   const [isPending, startTransition] = useTransition();
   const [open, onOpenChange] = useState(false);
   const defaultValues = useMemo(
@@ -43,8 +48,8 @@ export function WorkspaceSettingsDialog({
   );
 
   const formSchema = useMemo(
-    () => createUpdateWorkspaceFormSchema(workspace?.name ?? ""),
-    [workspace?.name]
+    () => createUpdateWorkspaceFormSchema(workspace?.name ?? "", tAny),
+    [workspace?.name, tAny]
   );
 
   const {
@@ -72,12 +77,14 @@ export function WorkspaceSettingsDialog({
       const result = await updateWorkspace(data);
 
       if (result.success) {
-        toast.success("Workspace updated successfully");
+        toast.success(tWorkspaces("success"));
         onOpenChange(false);
         onSuccess?.();
       } else {
-        toast.error("Update Workspace", {
-          description: result.error?.message ?? "Unknown error",
+        toast.error(tWorkspaces("errorTitle"), {
+          description:
+            translateWorkspaceErrorMessage(result.error?.message, tAny) ??
+            tWorkspaces("unknownError"),
         });
       }
     });
@@ -89,12 +96,12 @@ export function WorkspaceSettingsDialog({
     <Modal
       open={open}
       onOpenChange={onOpenChange}
-      title="Workspace Settings"
-      description="Modify the workspace settings or delete the workspace."
+      title={tWorkspaces("title")}
+      description={tWorkspaces("description")}
       trigger={
         <Button variant="ghost" size="icon">
           <IconSettings className="size-4" />
-          <span className="sr-only">Settings</span>
+          <span className="sr-only">{tWorkspaces("trigger")}</span>
         </Button>
       }
       {...props}
@@ -107,18 +114,18 @@ export function WorkspaceSettingsDialog({
               control={control}
               render={({ field, fieldState }) => (
                 <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor="edit-workspace-name">Workspace Name</FieldLabel>
+                  <FieldLabel htmlFor="edit-workspace-name">{tWorkspaces("nameLabel")}</FieldLabel>
                   <Input
                     {...field}
                     id="edit-workspace-name"
                     aria-invalid={fieldState.invalid}
-                    placeholder="e.g., Work, Personal, Projects"
+                    placeholder={tWorkspaces("namePlaceholder")}
                     maxLength={50}
                     disabled={isPending}
                     autoFocus
                     autoComplete="off"
                   />
-                  <FieldDescription className="text-xs">Maximum 50 characters</FieldDescription>
+                  <FieldDescription className="text-xs">{tWorkspaces("nameHint")}</FieldDescription>
                   {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                 </Field>
               )}
@@ -139,7 +146,7 @@ export function WorkspaceSettingsDialog({
                       htmlFor="edit-is-default"
                       className="cursor-pointer text-sm font-normal"
                     >
-                      Set as default workspace
+                      {tWorkspaces("defaultLabel")}
                     </FieldLabel>
                   </Field>
                   {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
@@ -155,11 +162,11 @@ export function WorkspaceSettingsDialog({
               onClick={() => onOpenChange(false)}
               disabled={isPending}
             >
-              {common.words.verbs.cancel}
+              {tCommon("words.verbs.cancel")}
             </Button>
             <Button type="submit" disabled={isPending || !isDirty || !isValid}>
               {isPending && <Spinner data-icon="inline-start" />}
-              {common.words.verbs.save}
+              {tCommon("words.verbs.save")}
             </Button>
           </Field>
         </FieldGroup>

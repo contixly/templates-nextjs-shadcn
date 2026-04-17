@@ -9,18 +9,24 @@ import { cn } from "@lib/utils";
 import DocumentSidebar from "@components/application/document/document-sidebar";
 import { getMenuItem } from "@lib/ui";
 import { MenuItem } from "@typings/ui";
-
-const navItems = [
-  getMenuItem(routes.accounts.pages.profile),
-  getMenuItem(routes.accounts.pages.connections),
-  getMenuItem(routes.accounts.pages.security),
-  { ...getMenuItem(routes.accounts.pages.danger), isDanger: true },
-] as (MenuItem & { isDanger?: boolean })[];
+import { usePageTranslations } from "@hooks/use-page-translations";
 
 export const NavUserSettings = ({ hideGroupLabel = false }: { hideGroupLabel?: boolean }) => {
   const path = usePathname();
   const searchQueryState = useState("");
   const [searchQuery] = searchQueryState;
+  const userTranslations = usePageTranslations(routes.accounts.pages.user);
+  const profileTranslations = usePageTranslations(routes.accounts.pages.profile);
+  const connectionsTranslations = usePageTranslations(routes.accounts.pages.connections);
+  const securityTranslations = usePageTranslations(routes.accounts.pages.security);
+  const dangerTranslations = usePageTranslations(routes.accounts.pages.danger);
+
+  const navItems = [
+    getMenuItem(routes.accounts.pages.profile, profileTranslations.title),
+    getMenuItem(routes.accounts.pages.connections, connectionsTranslations.title),
+    getMenuItem(routes.accounts.pages.security, securityTranslations.title),
+    { ...getMenuItem(routes.accounts.pages.danger, dangerTranslations.title), isDanger: true },
+  ] as (MenuItem & { isDanger?: boolean })[];
 
   const filteredNavItems = navItems.filter((item) =>
     item.label.toLowerCase().includes(searchQuery.toLowerCase())
@@ -29,7 +35,7 @@ export const NavUserSettings = ({ hideGroupLabel = false }: { hideGroupLabel?: b
   return (
     <DocumentSidebar
       className="w-full shrink-0 md:w-64"
-      headerName={!hideGroupLabel ? "Account Settings" : undefined}
+      headerName={!hideGroupLabel ? userTranslations.title : undefined}
       searchQueryState={searchQueryState}
     >
       <SidebarMenu>

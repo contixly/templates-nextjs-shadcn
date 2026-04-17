@@ -1,0 +1,165 @@
+{
+  "pages": {
+    "login": {
+      "title": "Sign In",
+      "description": "Sign in with Google or GitHub. Secure OAuth authentication without passwords.",
+      "openGraph": {
+        "title": "Sign In",
+        "description": "Access the template application securely with Google or GitHub OAuth."
+      }
+    },
+    "error": {
+      "title": "Error",
+      "description": "An error occurred. Please try again later.",
+      "openGraph": {
+        "title": "Error",
+        "description": "An error occurred during authentication. Please try again."
+      }
+    },
+    "welcome": {
+      "title": "Welcome",
+      "description": "Get started with the template — authentication, workspaces, and patterns you can adapt to your product.",
+      "openGraph": {
+        "title": "Welcome",
+        "description": "Your account is ready. Explore the template structure and start customizing."
+      }
+    },
+    "user": {
+      "title": "Account Settings"
+    },
+    "profile": {
+      "title": "Profile Settings",
+      "description": "Manage your profile settings including your display name, avatar, and preferences.",
+      "openGraph": {
+        "title": "Profile Settings",
+        "description": "Update your profile information and personal preferences."
+      }
+    },
+    "connections": {
+      "title": "Connected Accounts",
+      "description": "Manage your connected OAuth providers including Google and GitHub. Link or unlink accounts for seamless authentication.",
+      "openGraph": {
+        "title": "Connected Accounts",
+        "description": "Link and manage your Google and GitHub accounts for authentication."
+      }
+    },
+    "security": {
+      "title": "Security & Sessions",
+      "description": "Manage your active sessions, view login history, and control your account security settings.",
+      "openGraph": {
+        "title": "Security & Sessions",
+        "description": "Review and manage your active sessions and account security."
+      }
+    },
+    "danger": {
+      "title": "Danger Zone",
+      "description": "Account deletion and other dangerous operations. Proceed with caution — these actions cannot be undone.",
+      "openGraph": {
+        "title": "Danger Zone",
+        "description": "Manage irreversible account operations including account deletion."
+      }
+    }
+  },
+  "validation": {
+    "errors": {
+      "profileNameRequired": "Profile name is required",
+      "profileNameMustBeString": "Name must be a string",
+      "profileNameTooShort": "Name must be at least {min} characters",
+      "profileNameTooLong": "Name must be at most {max} characters",
+      "profileNameUnchanged": "New profile name must be different from current name",
+      "confirmationEmailInvalid": "Invalid email format",
+      "confirmationEmailMismatch": "Email must match account email"
+    }
+  },
+  "ui": {
+    "profileForm": {
+      "submit": "Save",
+      "namePlaceholder": "Enter your display name",
+      "nameHint": "Maximum 50 characters",
+      "success": "Profile updated successfully",
+      "errorTitle": "Update Profile",
+      "unknownError": "Unknown error"
+    },
+    "deleteDialog": {
+      "title": "Delete Account?",
+      "description": "This action cannot be undone. This will permanently delete your account and remove all associated data from our servers.",
+      "warningTitle": "Warning",
+      "warningData": "All your data will be permanently deleted",
+      "warningProviders": "Your connected accounts will be unlinked",
+      "warningSessions": "Your active sessions will be terminated",
+      "warningIrreversible": "This action cannot be reversed",
+      "confirmationLabel": "To confirm, please type “{email}” below in the box below",
+      "confirmationPlaceholder": "Type email to confirm deletion",
+      "success": "Account deleted successfully",
+      "errorTitle": "Delete Account",
+      "unknownError": "Unknown error"
+    },
+    "loginForm": {
+      "title": "Welcome back",
+      "description": "Login with your social account",
+      "noAccountTitle": "Don't have an account?",
+      "noAccountDescription": "Don't worry, just log in and an account will be created for you automatically.",
+      "termsPrefix": "By clicking continue, you agree to our",
+      "termsOfService": "Terms of Service",
+      "privacyPolicy": "Privacy Policy"
+    },
+    "providerButton": {
+      "loginWith": "Login with {provider}",
+      "lastUsed": "Last used"
+    },
+    "connections": {
+      "title": "Connected Accounts",
+      "description": "Manage your connected social accounts. You can use any of these to sign in.",
+      "lastUsed": "Last used",
+      "connectedOn": "Connected on {date}",
+      "notConnected": "Not connected",
+      "disconnect": "Disconnect",
+      "connect": "Connect",
+      "unlinkSuccess": "Account unlinked successfully",
+      "unlinkErrorTitle": "Failed to unlink account",
+      "linkErrorTitle": "Failed to link account",
+      "unknownError": "Unknown error",
+      "loadError": "Failed to load accounts: {message}"
+    },
+    "profile": {
+      "avatarTitle": "Avatar",
+      "avatarDescription": "Your avatar is synced from your connected social account.",
+      "avatarHintPrimary": "Avatar images are provided by your connected accounts.",
+      "avatarHintSecondary": "To change your avatar, update it on Google or GitHub.",
+      "displayNameTitle": "Display Name",
+      "displayNameDescription": "This is the name that will be displayed across the application.",
+      "emailTitle": "Email Address",
+      "emailDescription": "Your email address is used for notifications and account recovery.",
+      "emailHint": "Email cannot be changed. It is linked to your social account.",
+      "userIdTitle": "User ID",
+      "userIdDescription": "Your unique identifier in our system.",
+      "memberSinceTitle": "Member Since",
+      "memberSinceDescription": "The date you created your account."
+    },
+    "sessions": {
+      "title": "Active Sessions",
+      "description": "Manage your active sessions across devices. Your current session cannot be revoked.",
+      "revokeAll": "Revoke all other sessions",
+      "empty": "No active sessions found.",
+      "lastActive": "Last active: {time}",
+      "currentSession": "Current session",
+      "revokeSession": "Revoke session",
+      "revokeSuccess": "Session revoked successfully",
+      "revokeErrorTitle": "Failed to revoke session",
+      "unknownError": "Unknown error",
+      "loadError": "Failed to load sessions: {message}",
+      "unknownBrowser": "Unknown Browser",
+      "unknownOs": "Unknown OS",
+      "unknown": "Unknown",
+      "browserOnOs": "{browser} on {os}"
+    },
+    "navUser": {
+      "billing": "Billing",
+      "notifications": "Notifications",
+      "logout": "Log out"
+    },
+    "loginButton": {
+      "login": "Log in"
+    }
+  }
+}

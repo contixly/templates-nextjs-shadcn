@@ -18,6 +18,7 @@ import routes from "@features/routes";
 import { ActionResult } from "@typings/actions";
 import { WorkspaceWithCounts } from "@features/workspaces/workspaces-types";
 import { IconCheck, IconSelector, IconSettings } from "@tabler/icons-react";
+import { useTranslations } from "next-intl";
 
 interface WorkspaceSwitcherProps {
   loadUserWorkspacesPromise: Promise<ActionResult<WorkspaceWithCounts[]>>;
@@ -34,6 +35,7 @@ interface WorkspaceSwitcherProps {
  * - Links to workspaces management page
  */
 const WorkspaceSwitcherComponent = ({ loadUserWorkspacesPromise }: WorkspaceSwitcherProps) => {
+  const t = useTranslations("workspaces.ui.switcher");
   const router = useRouter();
   const [open, setOpen] = useState(false);
 
@@ -56,12 +58,12 @@ const WorkspaceSwitcherComponent = ({ loadUserWorkspacesPromise }: WorkspaceSwit
       <DropdownMenu open={open} onOpenChange={setOpen}>
         <DropdownMenuTrigger asChild>
           <BreadcrumbItem className="text-foreground cursor-pointer">
-            <span className="truncate">{activeWorkspace?.name || "Workspaces"}</span>
+            <span className="truncate">{activeWorkspace?.name || t("fallback")}</span>
             <IconSelector className="h-4 w-4 shrink-0 opacity-50" />
           </BreadcrumbItem>
         </DropdownMenuTrigger>
         <DropdownMenuContent className="w-75" align="start">
-          <DropdownMenuLabel>My Workspaces</DropdownMenuLabel>
+          <DropdownMenuLabel>{t("myWorkspaces")}</DropdownMenuLabel>
           <div className="max-h-125 overflow-y-auto">
             {workspaces?.map((workspace) => (
               <DropdownMenuItem
@@ -78,7 +80,7 @@ const WorkspaceSwitcherComponent = ({ loadUserWorkspacesPromise }: WorkspaceSwit
                 <span className="flex-1 truncate">{workspace.name}</span>
                 {workspace.isDefault && (
                   <Badge variant="secondary" className="ml-2 text-xs">
-                    Default
+                    {t("defaultBadge")}
                   </Badge>
                 )}
               </DropdownMenuItem>
@@ -93,7 +95,7 @@ const WorkspaceSwitcherComponent = ({ loadUserWorkspacesPromise }: WorkspaceSwit
             className="cursor-pointer"
           >
             <IconSettings className="mr-2 h-4 w-4" />
-            Manage Workspaces
+            {t("manageWorkspaces")}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

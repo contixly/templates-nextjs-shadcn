@@ -1,44 +1,34 @@
 "use client";
 import "client-only";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React from "react";
 import { useDocument } from "@components/application/document/document-provider";
 import { Page } from "@typings/pages";
 import { BreadcrumbItem, BreadcrumbPage, BreadcrumbSeparator } from "@components/ui/breadcrumb";
+import { usePageTranslations } from "@hooks/use-page-translations";
 
 interface AppBreadcrumbsPageProps {
   page: Page;
 }
 
 export const AppBreadcrumbsPage = ({ page }: AppBreadcrumbsPageProps) => {
-  const { title: documentTitle, category } = useDocument();
+  const { title: documentTitle } = useDocument();
+  const pageTranslations = usePageTranslations(page);
 
-  const [title, setTitle] = useState<string | null>(
-    page.breadcrumbs?.hideTemplateTitle || page.breadcrumbs?.hideBreadcrumbs ? null : page.title
-  );
-
-  useEffect(() => {
-    setTitle(documentTitle);
-  }, [documentTitle]);
-
-  const description = useMemo(() => {
-    if (page.breadcrumbs?.hideBreadcrumbs || page.breadcrumbs?.hideTemplateDescription) return null;
-    return page.description?.trim().replace(/\.$/, "");
-  }, [
-    page.breadcrumbs?.hideBreadcrumbs,
-    page.breadcrumbs?.hideTemplateDescription,
-    page.description,
-  ]);
+  const pageTitle =
+    page.breadcrumbs?.hideTemplateTitle || page.breadcrumbs?.hideBreadcrumbs
+      ? null
+      : pageTranslations.title;
+  const title = documentTitle ?? pageTitle;
+  const description =
+    page.breadcrumbs?.hideBreadcrumbs || page.breadcrumbs?.hideTemplateDescription
+      ? null
+      : pageTranslations.description?.trim().replace(/\.$/, "");
 
   return (
     <>
       <BreadcrumbItem className="max-w-2/3 truncate md:max-w-none">
-        <BreadcrumbPage className="flex items-center gap-1.5">
-          {title ??
-            (page.breadcrumbs?.hideTemplateTitle || page.breadcrumbs?.hideBreadcrumbs
-              ? undefined
-              : page.title)}
-        </BreadcrumbPage>
+        <BreadcrumbPage className="flex items-center gap-1.5">{title}</BreadcrumbPage>
       </BreadcrumbItem>
       {description && (
         <>

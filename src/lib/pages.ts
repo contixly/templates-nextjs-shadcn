@@ -3,6 +3,7 @@ import {
   FeatureDescription,
   Page,
   PageDescription,
+  PageNamespace,
   PathMatchesRecord,
 } from "@typings/pages";
 
@@ -51,20 +52,44 @@ const pathBuilder = (pathTemplate: string, matches?: PathMatchesRecord) => {
  * @returns {Record<T, Page>} A transformed record where each page now includes localization keys and a function to generate paths based on the specified path template.
  */
 const getPages = <T extends string>(
-  pages: Record<T, PageDescription>,
+  pages: Record<T, PageDescription<T>>,
   featureName: string
 ): Record<T, Page> =>
-  Object.fromEntries(
-    Object.entries(pages).map(([key, page]) => [
-      key,
-      {
-        ...(page as PageDescription),
-        path: (matches?: PathMatchesRecord) =>
-          pathBuilder((page as PageDescription).pathTemplate, matches),
+  (() => {
+    type AssembledPage = Omit<Page, "parent"> & { parent?: T };
+
+    const pageEntries = Object.entries(pages) as Array<[T, PageDescription<T>]>;
+    const assembled = {} as Record<T, AssembledPage>;
+    for (const [pageKey, page] of pageEntries) {
+      assembled[pageKey] = {
+        ...page,
+        path: (matches?: PathMatchesRecord) => pathBuilder(page.pathTemplate, matches),
         featureName,
-      } as Page,
-    ])
-  ) as Record<T, Page>;
+        pageKey,
+        i18n: {
+          namespace: `${featureName}.pages.${pageKey}` as PageNamespace,
+        },
+      } as AssembledPage;
+    }
+
+    const resolved = {} as Record<T, Page>;
+    for (const [pageKey, page] of Object.entries(assembled) as Array<[T, AssembledPage]>) {
+      if (!page.parent) {
+        resolved[pageKey] = page as Page;
+        continue;
+      }
+
+      const parent = assembled[page.parent];
+
+      if (!parent) {
+        throw new Error(`Unknown parent page "${page.parent}" for "${featureName}.${pageKey}"`);
+      }
+
+      resolved[pageKey] = { ...page, parent } as Page;
+    }
+
+    return resolved;
+  })();
 
 /**
  * Constructs a feature object by extending the provided feature description.

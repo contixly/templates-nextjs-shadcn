@@ -1,0 +1,110 @@
+{
+  "pages": {
+    "workspaces": {
+      "title": "Workspaces",
+      "description": "Manage workspaces for projects, teams, or other isolated contexts. Create, configure, and switch between them seamlessly.",
+      "openGraph": {
+        "title": "Workspaces",
+        "description": "Organize content across isolated contexts with flexible workspace management."
+      }
+    },
+    "workspace": {
+      "title": "Workspace",
+      "description": "Manage workspace settings and related content.",
+      "openGraph": {
+        "title": "Workspace",
+        "description": "Configure and manage workspace settings and related content."
+      }
+    }
+  },
+  "validation": {
+    "errors": {
+      "nameRequired": "Workspace name is required",
+      "nameTooLong": "Workspace name must be {max} characters or less",
+      "nameInvalidCharacters": "Workspace name can only contain letters, numbers, spaces, hyphens, and underscores",
+      "nameUnchanged": "New workspace name must be different from current name",
+      "duplicateName": "A workspace with this name already exists",
+      "confirmationRequired": "Confirmation text is required",
+      "confirmationMismatch": "Confirmation text does not match workspace name",
+      "atLeastOneWorkspace": "You must have at least one workspace",
+      "defaultWorkspaceDeletionForbidden": "Cannot delete default workspace. Set another workspace as default first."
+    }
+  },
+  "ui": {
+    "createDialog": {
+      "title": "Create New Workspace",
+      "description": "Create a workspace to isolate data or contexts for your product (teams, clients, environments).",
+      "trigger": "Create New Workspace",
+      "nameLabel": "Workspace Name",
+      "namePlaceholder": "e.g., Work, Personal, Projects",
+      "nameHint": "Maximum 50 characters",
+      "defaultLabel": "Set as default workspace",
+      "success": "Workspace created successfully",
+      "errorTitle": "Create New Workspace",
+      "unknownError": "Unknown error",
+      "submit": "Create"
+    },
+    "settingsDialog": {
+      "title": "Workspace Settings",
+      "description": "Modify the workspace settings or delete the workspace.",
+      "trigger": "Settings",
+      "nameLabel": "Workspace Name",
+      "namePlaceholder": "e.g., Work, Personal, Projects",
+      "nameHint": "Maximum 50 characters",
+      "defaultLabel": "Set as default workspace",
+      "success": "Workspace updated successfully",
+      "errorTitle": "Update Workspace",
+      "unknownError": "Unknown error"
+    },
+    "deleteDialog": {
+      "title": "Delete Workspace?",
+      "description": "This action cannot be undone. The workspace record will be permanently removed.",
+      "defaultWorkspaceNotice": "This is your default workspace. Another workspace will be set as default after deletion.",
+      "confirmationLabel": "To confirm, please type “{name}” below in the box below",
+      "confirmationPlaceholder": "Type name of workspace to confirm deletion",
+      "success": "Workspace deleted successfully",
+      "errorTitle": "Delete Workspace",
+      "unknownError": "Unknown error",
+      "submit": "Delete"
+    },
+    "emptyState": {
+      "title": "No Workspaces Yet",
+      "description": "Create your first workspace to get started.",
+      "steps": {
+        "create": {
+          "title": "Create a Workspace",
+          "description": "Start by creating a workspace for different aspects of your life like Work, Personal, or Projects."
+        },
+        "domain": {
+          "title": "Add your domain logic",
+          "description": "Extend src/features/ and Prisma models with the entities your app needs; keep each workspace as a boundary for that data."
+        },
+        "switch": {
+          "title": "Switch Between Workspaces",
+          "description": "Easily switch between workspaces using the dropdown in the header to focus on what matters."
+        }
+      }
+    },
+    "card": {
+      "default": "Default workspace",
+      "custom": "Custom workspace",
+      "summary": "Use this card to summarize what lives under this workspace once you add your own entities.",
+      "open": "Open workspace"
+    },
+    "switcher": {
+      "fallback": "Workspaces",
+      "myWorkspaces": "My Workspaces",
+      "defaultBadge": "Default",
+      "manageWorkspaces": "Manage Workspaces"
+    },
+    "navigation": {
+      "quickCreate": "Quick Create",
+      "quickCreateComingSoon": "Quick Create — Coming soon",
+      "otherWorkspaces": "Other Workspaces",
+      "createNewWorkspace": "Create New Workspace",
+      "createNewWorkspaceTooltip": "Create New Workspace",
+      "workspaceTooltip": "{name} Workspace",
+      "comingSoon": "{label} — Coming soon"
+    }
+  }
+}

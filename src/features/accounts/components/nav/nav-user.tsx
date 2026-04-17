@@ -29,16 +29,20 @@ import routes from "@features/routes";
 import { useRouter } from "next/navigation";
 import { useLogout } from "@features/accounts/components/ui/logout-button";
 import { UserContent } from "@features/accounts/components/ui/user-content";
+import { usePageTranslations } from "@hooks/use-page-translations";
+import { useTranslations } from "next-intl";
 
 interface NavUserProps extends React.ComponentPropsWithoutRef<typeof SidebarMenu> {
   loadCurrentUserPromise: Promise<User | undefined>;
 }
 
 const NavUserComponent = ({ loadCurrentUserPromise, ...props }: NavUserProps) => {
+  const tAccounts = useTranslations("accounts.ui.navUser");
   const { isMobile, toggleSidebar } = useSidebar();
   const router = useRouter();
   const user = use(loadCurrentUserPromise);
   const { logout } = useLogout();
+  const profileTranslations = usePageTranslations(routes.accounts.pages.profile);
 
   const menuClick = useCallback(
     (path: string) =>
@@ -78,21 +82,21 @@ const NavUserComponent = ({ loadCurrentUserPromise, ...props }: NavUserProps) =>
               <DropdownMenuGroup>
                 <DropdownMenuItem onClick={() => menuClick(routes.accounts.pages.profile.path())}>
                   {routes.accounts.pages.profile.icon && <routes.accounts.pages.profile.icon />}
-                  {routes.accounts.pages.profile.title}
+                  {profileTranslations.title}
                 </DropdownMenuItem>
                 <DropdownMenuItem>
                   <IconCreditCard />
-                  Billing
+                  {tAccounts("billing")}
                 </DropdownMenuItem>
                 <DropdownMenuItem>
                   <IconNotification />
-                  Notifications
+                  {tAccounts("notifications")}
                 </DropdownMenuItem>
               </DropdownMenuGroup>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={logout}>
                 <IconLogout />
-                Log out
+                {tAccounts("logout")}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

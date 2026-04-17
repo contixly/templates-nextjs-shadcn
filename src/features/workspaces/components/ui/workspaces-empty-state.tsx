@@ -8,12 +8,15 @@ import {
   EmptyTitle,
 } from "@components/ui/empty";
 import { WorkspaceCreateDialog } from "../forms/workspace-create-dialog";
+import { useTranslations } from "next-intl";
 
 interface WorkspacesEmptyStateProps {
   empty?: boolean;
 }
 
 export function WorkspacesEmptyState({ empty }: WorkspacesEmptyStateProps) {
+  const t = useTranslations("workspaces.ui.emptyState");
+
   return (
     <Empty className="w-full min-w-0 p-1 md:p-4">
       <EmptyHeader>
@@ -22,8 +25,8 @@ export function WorkspacesEmptyState({ empty }: WorkspacesEmptyStateProps) {
         </EmptyMedia>
         {empty && (
           <>
-            <EmptyTitle>No Workspaces Yet</EmptyTitle>
-            <EmptyDescription>Create your first workspace to get started.</EmptyDescription>
+            <EmptyTitle>{t("title")}</EmptyTitle>
+            <EmptyDescription>{t("description")}</EmptyDescription>
           </>
         )}
       </EmptyHeader>
@@ -35,11 +38,8 @@ export function WorkspacesEmptyState({ empty }: WorkspacesEmptyStateProps) {
               <span className="text-primary font-semibold">1</span>
             </div>
             <div>
-              <p className="text-foreground font-medium">Create a Workspace</p>
-              <p>
-                Start by creating a workspace for different aspects of your life like Work,
-                Personal, or Projects.
-              </p>
+              <p className="text-foreground font-medium">{t("steps.create.title")}</p>
+              <p>{t("steps.create.description")}</p>
             </div>
           </div>
 
@@ -48,12 +48,8 @@ export function WorkspacesEmptyState({ empty }: WorkspacesEmptyStateProps) {
               <span className="text-primary font-semibold">2</span>
             </div>
             <div>
-              <p className="text-foreground font-medium">Add your domain logic</p>
-              <p>
-                Extend <code className="bg-muted rounded px-1 py-0.5 text-xs">src/features/</code>{" "}
-                and Prisma models with the entities your app needs; keep each workspace as a
-                boundary for that data.
-              </p>
+              <p className="text-foreground font-medium">{t("steps.domain.title")}</p>
+              <p>{t("steps.domain.description")}</p>
             </div>
           </div>
 
@@ -62,11 +58,8 @@ export function WorkspacesEmptyState({ empty }: WorkspacesEmptyStateProps) {
               <span className="text-primary font-semibold">3</span>
             </div>
             <div>
-              <p className="text-foreground font-medium">Switch Between Workspaces</p>
-              <p>
-                Easily switch between workspaces using the dropdown in the header to focus on what
-                matters.
-              </p>
+              <p className="text-foreground font-medium">{t("steps.switch.title")}</p>
+              <p>{t("steps.switch.description")}</p>
             </div>
           </div>
         </div>

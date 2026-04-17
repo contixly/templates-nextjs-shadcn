@@ -8,6 +8,7 @@ import prisma from "@server/prisma";
 import { findFirstWorkspaceByIdAndUserId } from "../workspaces-repository";
 import { forbidden } from "next/navigation";
 import { updateWorkspaceCache } from "@features/workspaces/workspaces-types";
+import { WORKSPACE_ERROR_KEYS } from "@features/workspaces/workspaces-errors";
 
 /** Deletes a workspace row after ownership checks (see Prisma schema for cascade rules). */
 export const deleteWorkspace = createProtectedActionWithInput<DeleteWorkspaceInput, void>(
@@ -33,7 +34,10 @@ export const deleteWorkspace = createProtectedActionWithInput<DeleteWorkspaceInp
     if (workspaceCount <= 1) {
       return {
         success: false,
-        error: { message: "You must have at least one Workspace", code: HttpCodes.BAD_REQUEST },
+        error: {
+          message: WORKSPACE_ERROR_KEYS.atLeastOneWorkspace,
+          code: HttpCodes.BAD_REQUEST,
+        },
       };
     }
 
@@ -42,7 +46,7 @@ export const deleteWorkspace = createProtectedActionWithInput<DeleteWorkspaceInp
       return {
         success: false,
         error: {
-          message: "Cannot delete default Workspace. Set another Workspace as default first.",
+          message: WORKSPACE_ERROR_KEYS.defaultWorkspaceDeletionForbidden,
           code: HttpCodes.BAD_REQUEST,
         },
       };
@@ -53,7 +57,7 @@ export const deleteWorkspace = createProtectedActionWithInput<DeleteWorkspaceInp
       return {
         success: false,
         error: {
-          message: "Confirmation text does not match workspace name",
+          message: WORKSPACE_ERROR_KEYS.confirmationMismatch,
           code: HttpCodes.BAD_REQUEST,
         },
       };

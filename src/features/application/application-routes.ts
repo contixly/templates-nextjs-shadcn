@@ -10,14 +10,6 @@ const applicationRoutes: ApplicationRoutes = buildFeature("application", {
     home: {
       pathTemplate: "/",
       icon: IconHome,
-
-      title: "Home",
-      description:
-        "A neutral starting point for the template application with shared UI, auth flows, and reusable layout patterns.",
-      openGraph: {
-        title: "Home",
-        description: "A template application ready to be adapted into your own service.",
-      },
     },
   },
 });

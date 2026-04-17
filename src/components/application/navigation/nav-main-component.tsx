@@ -19,18 +19,26 @@ import { WorkspaceWithCounts } from "@features/workspaces/workspaces-types";
 import { Badge } from "@components/ui/badge";
 import { NavMainProps } from "@components/application/navigation/nav-main";
 import { MenuItem } from "@typings/ui";
+import { useTranslations } from "next-intl";
 
 /** Empty placeholder — add per-workspace nav items when your feature defines routes under a workspace. */
 const getWorkspaceMenuItems = cache((): (MenuItem & { count: number })[] => []);
 
-const renderWorkspaceMenu = (workspace: WorkspaceWithCounts, isActiveWorkspace = false) => (
+const renderWorkspaceMenu = (
+  workspace: WorkspaceWithCounts,
+  navigationMessages: {
+    workspaceTooltip: string;
+    comingSoon: (label: string) => string;
+  },
+  isActiveWorkspace = false
+) => (
   <Fragment key={workspace.id}>
     {!isActiveWorkspace && (
       <SidebarMenuItem>
         <SidebarMenuButton
           asChild
           className="mb-2 border-b group-data-[collapsible=icon]:border-none"
-          tooltip={`${workspace.name} Workspace`}
+          tooltip={navigationMessages.workspaceTooltip}
         >
           <Link
             href={routes.workspaces.pages.workspaces.path({ workspaceId: workspace.id })}
@@ -47,7 +55,7 @@ const renderWorkspaceMenu = (workspace: WorkspaceWithCounts, isActiveWorkspace =
         return (
           <SidebarMenuItem key={item.label}>
             <SidebarMenuButton
-              tooltip={`${item.label} — Coming soon`}
+              tooltip={navigationMessages.comingSoon(item.label)}
               className="text-muted-foreground/70 flex cursor-default items-center justify-between opacity-60"
               disabled
             >
@@ -94,6 +102,9 @@ const SidebarMenuButton = (props: ComponentProps<typeof SidebarMenuButtonLibrary
 };
 
 export const NavMainComponent = ({ loadUserWorkspacesPromise }: NavMainProps) => {
+  const tApplication = useTranslations("application.ui.navigation");
+  const tWorkspaces = useTranslations("workspaces.ui.navigation");
+  const tCommon = useTranslations("common.ui.accessibility");
   const { data: workspaces } = use(loadUserWorkspacesPromise);
   const defaultWorkspace = workspaces?.find((workspace) => workspace.isDefault);
   const nonDefaultWorkspaces = workspaces?.filter((workspace) => !workspace.isDefault);
@@ -106,12 +117,12 @@ export const NavMainComponent = ({ loadUserWorkspacesPromise }: NavMainProps) =>
             <SidebarMenuItem>
               <SidebarMenuButton
                 asChild
-                tooltip={routes.dashboard.pages.application_dashboard.title}
+                tooltip={tApplication("dashboard")}
                 className="bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground active:bg-primary/90 active:text-primary-foreground min-w-8 duration-200 ease-linear"
               >
                 <Link href={routes.dashboard.pages.application_dashboard.path()}>
                   <IconDashboard />
-                  <span>{routes.dashboard.pages.application_dashboard.title}</span>
+                  <span>{tApplication("dashboard")}</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -127,25 +138,34 @@ export const NavMainComponent = ({ loadUserWorkspacesPromise }: NavMainProps) =>
             <SidebarMenu>
               <SidebarMenuItem className="mb-4 flex items-center gap-2">
                 <SidebarMenuButton
-                  tooltip="Quick Create — Coming soon"
+                  tooltip={tWorkspaces("quickCreateComingSoon")}
                   className="bg-primary/50 text-primary-foreground min-w-8 cursor-default opacity-60 duration-200 ease-linear"
                   disabled
                 >
                   <IconCirclePlusFilled />
-                  <span>Quick Create</span>
+                  <span>{tWorkspaces("quickCreate")}</span>
                 </SidebarMenuButton>
                 <Button
                   size="icon"
                   className="size-8 cursor-default opacity-60 group-data-[collapsible=icon]:opacity-0"
                   variant="outline"
                   disabled
-                  title="Inbox — Coming soon"
+                  title={tCommon("inbox")}
                 >
                   <IconMail />
-                  <span className="sr-only">Inbox</span>
+                  <span className="sr-only">{tCommon("inbox")}</span>
                 </Button>
               </SidebarMenuItem>
-              {renderWorkspaceMenu(defaultWorkspace, true)}
+              {renderWorkspaceMenu(
+                defaultWorkspace,
+                {
+                  workspaceTooltip: tWorkspaces("workspaceTooltip", {
+                    name: defaultWorkspace.name,
+                  }),
+                  comingSoon: (label) => tWorkspaces("comingSoon", { label }),
+                },
+                true
+              )}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
@@ -153,11 +173,20 @@ export const NavMainComponent = ({ loadUserWorkspacesPromise }: NavMainProps) =>
       {nonDefaultWorkspaces && nonDefaultWorkspaces.length > 0 && (
         <SidebarGroup className="mt-2 group-data-[collapsible=icon]:hidden">
           <SidebarGroupLabel className="mb-2 justify-center text-lg">
-            Other Workspaces
+            {tWorkspaces("otherWorkspaces")}
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {nonDefaultWorkspaces?.map((workspace) => renderWorkspaceMenu(workspace, false))}
+              {nonDefaultWorkspaces?.map((workspace) =>
+                renderWorkspaceMenu(
+                  workspace,
+                  {
+                    workspaceTooltip: tWorkspaces("workspaceTooltip", { name: workspace.name }),
+                    comingSoon: (label) => tWorkspaces("comingSoon", { label }),
+                  },
+                  false
+                )
+              )}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
@@ -170,11 +199,11 @@ export const NavMainComponent = ({ loadUserWorkspacesPromise }: NavMainProps) =>
                 <WorkspaceCreateDialog
                   trigger={
                     <SidebarMenuButton
-                      tooltip="Create New Workspace"
+                      tooltip={tWorkspaces("createNewWorkspaceTooltip")}
                       className="bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground active:bg-primary/90 active:text-primary-foreground min-w-8 duration-200 ease-linear"
                     >
                       <IconCirclePlusFilled />
-                      <span>Create New Workspace</span>
+                      <span>{tWorkspaces("createNewWorkspace")}</span>
                     </SidebarMenuButton>
                   }
                 />

@@ -4,10 +4,11 @@ import { DataTable } from "@features/dashboard/ui/template/data-table";
 import { SectionCards } from "@features/dashboard/ui/template/section-cards";
 import data from "./data.json";
 import { Suspense } from "react";
-import { buildMetadata } from "@lib/metadata";
+import { buildPageMetadata } from "@lib/metadata";
 import dashboardRoutes from "@features/dashboard/dashboard-routes";
 
-export const metadata: Metadata = buildMetadata(dashboardRoutes.pages.application_dashboard);
+export const generateMetadata = async (): Promise<Metadata> =>
+  buildPageMetadata(dashboardRoutes.pages.application_dashboard);
 
 export default function GlobalDashboardPage() {
   return (

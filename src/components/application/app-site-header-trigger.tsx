@@ -6,6 +6,7 @@ import { SidebarTrigger } from "@components/ui/sidebar";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip";
 import { Button } from "@components/ui/button";
 import { IconLayoutSidebar } from "@tabler/icons-react";
+import { useTranslations } from "next-intl";
 
 interface AppSiteHeaderTriggerProps {
   hidden?: boolean;
@@ -17,6 +18,7 @@ interface AppSiteHeaderTriggerProps {
  * nested Suspense boundaries and Radix UI's SSR behavior.
  */
 export const AppSiteHeaderTrigger = ({ hidden }: AppSiteHeaderTriggerProps) => {
+  const t = useTranslations("common.ui.sidebar");
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -39,7 +41,7 @@ export const AppSiteHeaderTrigger = ({ hidden }: AppSiteHeaderTriggerProps) => {
         className="md:-ml-1"
         data-sidebar="trigger"
         data-slot="sidebar-trigger"
-        aria-label="Toggle sidebar"
+        aria-label={t("toggle")}
       >
         <IconLayoutSidebar aria-hidden="true" />
       </Button>
@@ -53,11 +55,11 @@ export const AppSiteHeaderTrigger = ({ hidden }: AppSiteHeaderTriggerProps) => {
           className="md:-ml-1"
           variant="outline"
           size="icon"
-          aria-label="Toggle sidebar"
+          aria-label={t("toggle")}
         />
       </TooltipTrigger>
       <TooltipContent>
-        Toggle Sidebar{" "}
+        {t("toggle")}{" "}
         <KbdGroup>
           <Kbd>⌘</Kbd>
           <Kbd>H</Kbd>

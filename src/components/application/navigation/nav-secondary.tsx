@@ -15,17 +15,8 @@ import {
 import routes from "@features/routes";
 import { APP_BASE_URL } from "@lib/environment";
 import { getMenuItem } from "@lib/ui";
-
-const items = [
-  getMenuItem(routes.application.pages.home),
-  getMenuItem(routes.workspaces.pages.workspaces),
-  getMenuItem(routes.accounts.pages.profile),
-  {
-    label: "Get Help",
-    url: APP_BASE_URL,
-    icon: IconHelp,
-  },
-];
+import { usePageTranslations } from "@hooks/use-page-translations";
+import { useTranslations } from "next-intl";
 
 const SidebarMenuButton = (props: ComponentProps<typeof SidebarMenuButtonLibrary>) => {
   const { isMobile, toggleSidebar } = useSidebar();
@@ -39,21 +30,39 @@ const SidebarMenuButton = (props: ComponentProps<typeof SidebarMenuButtonLibrary
   return <SidebarMenuButtonLibrary onClick={menuOnClickCallback} {...props} />;
 };
 
-export const NavSecondary = ({ ...props }: React.ComponentPropsWithoutRef<typeof SidebarGroup>) => (
-  <SidebarGroup {...props}>
-    <SidebarGroupContent>
-      <SidebarMenu>
-        {items.map((item) => (
-          <SidebarMenuItem key={item.label}>
-            <SidebarMenuButton asChild tooltip={item.label}>
-              <Link href={item.url}>
-                {item.icon && <item.icon />}
-                <span>{item.label}</span>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        ))}
-      </SidebarMenu>
-    </SidebarGroupContent>
-  </SidebarGroup>
-);
+export const NavSecondary = ({ ...props }: React.ComponentPropsWithoutRef<typeof SidebarGroup>) => {
+  const t = useTranslations("application.ui.navigation");
+  const homeTranslations = usePageTranslations(routes.application.pages.home);
+  const workspacesTranslations = usePageTranslations(routes.workspaces.pages.workspaces);
+  const profileTranslations = usePageTranslations(routes.accounts.pages.profile);
+
+  const items = [
+    getMenuItem(routes.application.pages.home, homeTranslations.title),
+    getMenuItem(routes.workspaces.pages.workspaces, workspacesTranslations.title),
+    getMenuItem(routes.accounts.pages.profile, profileTranslations.title),
+    {
+      label: t("getHelp"),
+      url: APP_BASE_URL,
+      icon: IconHelp,
+    },
+  ];
+
+  return (
+    <SidebarGroup {...props}>
+      <SidebarGroupContent>
+        <SidebarMenu>
+          {items.map((item) => (
+            <SidebarMenuItem key={item.label}>
+              <SidebarMenuButton asChild tooltip={item.label}>
+                <Link href={item.url}>
+                  {item.icon && <item.icon />}
+                  <span>{item.label}</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          ))}
+        </SidebarMenu>
+      </SidebarGroupContent>
+    </SidebarGroup>
+  );
+};

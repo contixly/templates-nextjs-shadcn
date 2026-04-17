@@ -1,9 +1,10 @@
 import { redirect } from "next/navigation";
 import accountsRoutes from "@features/accounts/accounts-routes";
-import type { Metadata } from "next";
-import { buildMetadata } from "@lib/metadata";
+import { buildPageMetadata } from "@lib/metadata";
+import { Metadata } from "next";
 
-export const metadata: Metadata = buildMetadata(accountsRoutes.pages.profile);
+export const generateMetadata = async (): Promise<Metadata> =>
+  buildPageMetadata(accountsRoutes.pages.profile);
 
 export default function ProfilePage() {
   redirect(accountsRoutes.pages.profile.path());

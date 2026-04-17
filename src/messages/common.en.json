@@ -64,5 +64,25 @@
       "description": "We apologize for the inconvenience. Please try again later."
     },
     "returnHome": "Return home"
+  },
+  "ui": {
+    "themeSwitcher": {
+      "toggle": "Toggle theme",
+      "switchToLight": "Switch to light theme",
+      "switchToDark": "Switch to dark theme"
+    },
+    "sidebar": {
+      "toggle": "Toggle sidebar"
+    },
+    "accessibility": {
+      "goHomePage": "Go to home page",
+      "loading": "Loading",
+      "inbox": "Inbox",
+      "more": "More",
+      "dragToReorder": "Drag to reorder",
+      "selectAll": "Select all",
+      "selectRow": "Select row",
+      "openMenu": "Open menu"
+    }
   }
 }

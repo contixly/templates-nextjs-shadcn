@@ -12,6 +12,7 @@ import { timeTools } from "@lib/time";
 import { toast } from "sonner";
 import { revokeSession } from "@features/accounts/actions/revoke-session";
 import { revokeAllSession } from "@features/accounts/actions/revoke-all-session";
+import { useLocale, useTranslations } from "next-intl";
 
 interface UserSessionsProps {
   loadCurrentUserSessionsPromise: Promise<Session[]>;
@@ -19,20 +20,28 @@ interface UserSessionsProps {
 }
 
 const parseUserAgent = (
-  userAgent?: string | null
+  userAgent?: string | null,
+  labels?: {
+    unknownBrowser: string;
+    unknownOs: string;
+  }
 ): {
   browser: string;
   os: string;
   isMobile: boolean;
 } => {
   if (!userAgent) {
-    return { browser: "Unknown", os: "Unknown", isMobile: false };
+    return {
+      browser: labels?.unknownBrowser ?? "Unknown Browser",
+      os: labels?.unknownOs ?? "Unknown OS",
+      isMobile: false,
+    };
   }
 
   const isMobile = /Mobile|Android|iPhone|iPad/i.test(userAgent);
 
   // Parse browser
-  let browser = "Unknown Browser";
+  let browser = labels?.unknownBrowser ?? "Unknown Browser";
   if (userAgent.includes("Firefox")) {
     browser = "Firefox";
   } else if (userAgent.includes("Edg/")) {
@@ -46,7 +55,7 @@ const parseUserAgent = (
   }
 
   // Parse OS
-  let os = "Unknown OS";
+  let os = labels?.unknownOs ?? "Unknown OS";
   if (userAgent.includes("Windows")) {
     os = "Windows";
   } else if (userAgent.includes("Mac OS")) {
@@ -66,6 +75,8 @@ export const UserSessionsComponent = ({
   loadCurrentUserSessionsPromise,
   loadCurrentSessionPromise,
 }: UserSessionsProps) => {
+  const t = useTranslations("accounts.ui.sessions");
+  const locale = useLocale();
   const rawSessions = use(loadCurrentUserSessionsPromise);
   const currentSession = use(loadCurrentSessionPromise);
   const [isPending, startTransition] = useTransition();
@@ -74,10 +85,10 @@ export const UserSessionsComponent = ({
     startTransition(async () => {
       const result = await revokeSession(token);
       if (result.success) {
-        toast.success("Session revoked successfully");
+        toast.success(t("revokeSuccess"));
       } else {
-        toast.error("Failed to revoke session", {
-          description: result.error?.message ?? "Unknown error",
+        toast.error(t("revokeErrorTitle"), {
+          description: result.error?.message ?? t("unknownError"),
         });
       }
     });
@@ -87,10 +98,10 @@ export const UserSessionsComponent = ({
     startTransition(async () => {
       const result = await revokeAllSession();
       if (result.success) {
-        toast.success("Session revoked successfully");
+        toast.success(t("revokeSuccess"));
       } else {
-        toast.error("Failed to revoke session", {
-          description: result.error?.message ?? "Unknown error",
+        toast.error(t("revokeErrorTitle"), {
+          description: result.error?.message ?? t("unknownError"),
         });
       }
     });
@@ -114,26 +125,25 @@ export const UserSessionsComponent = ({
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle>Active Sessions</CardTitle>
-            <CardDescription>
-              Manage your active sessions across devices. Your current session cannot be revoked.
-            </CardDescription>
+            <CardTitle>{t("title")}</CardTitle>
+            <CardDescription>{t("description")}</CardDescription>
           </div>
           {sessions?.filter((s) => s.id !== currentSession.id).length > 0 && (
             <Button variant="outline" size="sm" disabled={isPending} onClick={handleRevokeAll}>
-              Revoke all other sessions
+              {t("revokeAll")}
             </Button>
           )}
         </div>
       </CardHeader>
       <CardContent className="min-h-80">
-        {sessions.length === 0 && (
-          <p className="text-muted-foreground">No active sessions found.</p>
-        )}
+        {sessions.length === 0 && <p className="text-muted-foreground">{t("empty")}</p>}
         {sessions.length > 0 && (
           <div className="space-y-4">
             {sessions.map((session) => {
-              const parsed = parseUserAgent(session.userAgent);
+              const parsed = parseUserAgent(session.userAgent, {
+                unknownBrowser: t("unknownBrowser"),
+                unknownOs: t("unknownOs"),
+              });
               const DeviceIcon = parsed.isMobile ? IconDeviceMobile : IconDeviceDesktop;
 
               return (
@@ -153,17 +163,21 @@ export const UserSessionsComponent = ({
                     <div className="flex flex-col">
                       <div className="flex items-center gap-2">
                         <span className="font-medium">
-                          {parsed.browser} on {parsed.os}
+                          {t("browserOnOs", { browser: parsed.browser, os: parsed.os })}
                         </span>
                       </div>
                       <div className="text-muted-foreground flex flex-wrap items-center gap-x-3 gap-y-1 truncate text-xs text-wrap md:text-sm">
                         {session.ipAddress && <span>{session.ipAddress}</span>}
                       </div>
-                      <span>Last active: {timeTools.formatRelativeTime(session.updatedAt)}</span>
+                      <span>
+                        {t("lastActive", {
+                          time: timeTools.formatRelativeTime(session.updatedAt, locale),
+                        })}
+                      </span>
                     </div>
                   </div>
                   {session.isCurrent && (
-                    <Badge className="absolute top-2 right-2">Current session</Badge>
+                    <Badge className="absolute top-2 right-2">{t("currentSession")}</Badge>
                   )}
 
                   <div>
@@ -175,7 +189,7 @@ export const UserSessionsComponent = ({
                         onClick={() => handleRevokeSession(session.token)}
                       >
                         <IconX className="size-4" />
-                        <span className="sr-only">Revoke session</span>
+                        <span className="sr-only">{t("revokeSession")}</span>
                       </Button>
                     )}
                   </div>
@@ -190,13 +204,17 @@ export const UserSessionsComponent = ({
 };
 
 export const UserSessions = (props: UserSessionsProps) => {
+  const t = useTranslations("accounts.ui.sessions");
+
   return (
     <ErrorBoundary
       fallbackRender={({ error }) => (
         <Card>
           <CardContent className="p-6">
             <p className="text-destructive">
-              Failed to load sessions: {error instanceof Error ? error.message : "Unknown error"}
+              {t("loadError", {
+                message: error instanceof Error ? error.message : t("unknownError"),
+              })}
             </p>
           </CardContent>
         </Card>
@@ -208,14 +226,11 @@ export const UserSessions = (props: UserSessionsProps) => {
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle>Active Sessions</CardTitle>
-                  <CardDescription>
-                    Manage your active sessions across devices. Your current session cannot be
-                    revoked.
-                  </CardDescription>
+                  <CardTitle>{t("title")}</CardTitle>
+                  <CardDescription>{t("description")}</CardDescription>
                 </div>
                 <Button variant="outline" size="sm" disabled>
-                  Revoke all other sessions
+                  {t("revokeAll")}
                 </Button>
               </div>
             </CardHeader>

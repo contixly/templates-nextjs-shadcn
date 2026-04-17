@@ -99,6 +99,7 @@ import {
   TableRow,
 } from "@components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@components/ui/tabs";
+import { useTranslations } from "next-intl";
 
 export const schema = z.object({
   id: z.number(),
@@ -110,8 +111,82 @@ export const schema = z.object({
   reviewer: z.string(),
 });
 
-// Create a separate component for the drag handle
+const reviewerOptions = ["Eddie Lake", "Jamik Tashpulatov", "Emily Whalen"] as const;
+
+const viewOptions = [
+  { value: "outline", labelKey: "outline" },
+  { value: "past-performance", labelKey: "pastPerformance" },
+  { value: "key-personnel", labelKey: "keyPersonnel" },
+  { value: "focus-documents", labelKey: "focusDocuments" },
+] as const;
+
+const typeOptions = [
+  { value: "Table of contents", labelKey: "tableOfContents" },
+  { value: "Executive summary", labelKey: "executiveSummary" },
+  { value: "Technical approach", labelKey: "technicalApproach" },
+  { value: "Design", labelKey: "design" },
+  { value: "Capabilities", labelKey: "capabilities" },
+  { value: "Focus documents", labelKey: "focusDocuments" },
+  { value: "Narrative", labelKey: "narrative" },
+  { value: "Cover page", labelKey: "coverPage" },
+  { value: "Technical content", labelKey: "technicalContent" },
+  { value: "Plain language", labelKey: "plainLanguage" },
+  { value: "Legal", labelKey: "legal" },
+  { value: "Visual", labelKey: "visual" },
+  { value: "Financial", labelKey: "financial" },
+  { value: "Research", labelKey: "research" },
+  { value: "Planning", labelKey: "planning" },
+] as const;
+
+const statusOptions = [
+  { value: "Done", labelKey: "doneStatus" },
+  { value: "In Progress", labelKey: "inProgressStatus" },
+  { value: "In Process", labelKey: "inProcessStatus" },
+  { value: "Not Started", labelKey: "notStartedStatus" },
+] as const;
+
+type DataTableTranslationFn = ReturnType<typeof useTranslations>;
+
+const translateWithValues = (
+  t: DataTableTranslationFn,
+  key: "saving" | "rowsSelected" | "page",
+  values: Record<string, number | string>
+) => t(key as never, values as never);
+
+const translateDataTableType = (t: DataTableTranslationFn, value: string) =>
+  typeOptions.find((option) => option.value === value)?.labelKey
+    ? t(typeOptions.find((option) => option.value === value)!.labelKey)
+    : value;
+
+const translateDataTableStatus = (t: DataTableTranslationFn, value: string) =>
+  statusOptions.find((option) => option.value === value)?.labelKey
+    ? t(statusOptions.find((option) => option.value === value)!.labelKey)
+    : value;
+
+const translateRowHeader = (t: DataTableTranslationFn, id: number, fallback: string) =>
+  t(`rows.${id}` as never) || fallback;
+
+const getColumnLabel = (id: string, t: DataTableTranslationFn) => {
+  switch (id) {
+    case "header":
+      return t("header");
+    case "type":
+      return t("sectionType");
+    case "status":
+      return t("status");
+    case "target":
+      return t("target");
+    case "limit":
+      return t("limit");
+    case "reviewer":
+      return t("reviewer");
+    default:
+      return id;
+  }
+};
+
 function DragHandle({ id }: { id: number }) {
+  const t = useTranslations("dashboard.ui.dataTable");
   const { attributes, listeners } = useSortable({
     id,
   });
@@ -125,12 +200,12 @@ function DragHandle({ id }: { id: number }) {
       className="text-muted-foreground size-7 hover:bg-transparent"
     >
       <IconGripVertical className="text-muted-foreground size-3" />
-      <span className="sr-only">Drag to reorder</span>
+      <span className="sr-only">{t("dragToReorder")}</span>
     </Button>
   );
 }
 
-const columns: ColumnDef<z.infer<typeof schema>>[] = [
+const getColumns = (t: DataTableTranslationFn): ColumnDef<z.infer<typeof schema>>[] => [
   {
     id: "drag",
     header: () => null,
@@ -146,7 +221,7 @@ const columns: ColumnDef<z.infer<typeof schema>>[] = [
             (table.getIsSomePageRowsSelected() && "indeterminate")
           }
           onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-          aria-label="Select all"
+          aria-label={t("selectAll")}
         />
       </div>
     ),
@@ -155,7 +230,7 @@ const columns: ColumnDef<z.infer<typeof schema>>[] = [
         <Checkbox
           checked={row.getIsSelected()}
           onCheckedChange={(value) => row.toggleSelected(!!value)}
-          aria-label="Select row"
+          aria-label={t("selectRow")}
         />
       </div>
     ),
@@ -164,26 +239,24 @@ const columns: ColumnDef<z.infer<typeof schema>>[] = [
   },
   {
     accessorKey: "header",
-    header: "Header",
-    cell: ({ row }) => {
-      return <TableCellViewer item={row.original} />;
-    },
+    header: t("header"),
+    cell: ({ row }) => <TableCellViewer item={row.original} />,
     enableHiding: false,
   },
   {
     accessorKey: "type",
-    header: "Section Type",
+    header: t("sectionType"),
     cell: ({ row }) => (
       <div className="w-32">
         <Badge variant="outline" className="text-muted-foreground px-1.5">
-          {row.original.type}
+          {translateDataTableType(t, row.original.type)}
         </Badge>
       </div>
     ),
   },
   {
     accessorKey: "status",
-    header: "Status",
+    header: t("status"),
     cell: ({ row }) => (
       <Badge variant="outline" className="text-muted-foreground px-1.5">
         {row.original.status === "Done" ? (
@@ -191,63 +264,71 @@ const columns: ColumnDef<z.infer<typeof schema>>[] = [
         ) : (
           <IconLoader />
         )}
-        {row.original.status}
+        {translateDataTableStatus(t, row.original.status)}
       </Badge>
     ),
   },
   {
     accessorKey: "target",
-    header: () => <div className="w-full text-right">Target</div>,
-    cell: ({ row }) => (
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          toast.promise(new Promise((resolve) => setTimeout(resolve, 1000)), {
-            loading: `Saving ${row.original.header}`,
-            success: "Done",
-            error: "Error",
-          });
-        }}
-      >
-        <Label htmlFor={`${row.original.id}-target`} className="sr-only">
-          Target
-        </Label>
-        <Input
-          className="hover:bg-input/30 focus-visible:bg-background dark:hover:bg-input/30 dark:focus-visible:bg-input/30 h-8 w-16 border-transparent bg-transparent text-right shadow-none focus-visible:border dark:bg-transparent"
-          defaultValue={row.original.target}
-          id={`${row.original.id}-target`}
-        />
-      </form>
-    ),
+    header: () => <div className="w-full text-right">{t("target")}</div>,
+    cell: ({ row }) => {
+      const header = translateRowHeader(t, row.original.id, row.original.header);
+
+      return (
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            toast.promise(new Promise((resolve) => setTimeout(resolve, 1000)), {
+              loading: translateWithValues(t, "saving", { header }),
+              success: t("done"),
+              error: t("error"),
+            });
+          }}
+        >
+          <Label htmlFor={`${row.original.id}-target`} className="sr-only">
+            {t("target")}
+          </Label>
+          <Input
+            className="hover:bg-input/30 focus-visible:bg-background dark:hover:bg-input/30 dark:focus-visible:bg-input/30 h-8 w-16 border-transparent bg-transparent text-right shadow-none focus-visible:border dark:bg-transparent"
+            defaultValue={row.original.target}
+            id={`${row.original.id}-target`}
+          />
+        </form>
+      );
+    },
   },
   {
     accessorKey: "limit",
-    header: () => <div className="w-full text-right">Limit</div>,
-    cell: ({ row }) => (
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          toast.promise(new Promise((resolve) => setTimeout(resolve, 1000)), {
-            loading: `Saving ${row.original.header}`,
-            success: "Done",
-            error: "Error",
-          });
-        }}
-      >
-        <Label htmlFor={`${row.original.id}-limit`} className="sr-only">
-          Limit
-        </Label>
-        <Input
-          className="hover:bg-input/30 focus-visible:bg-background dark:hover:bg-input/30 dark:focus-visible:bg-input/30 h-8 w-16 border-transparent bg-transparent text-right shadow-none focus-visible:border dark:bg-transparent"
-          defaultValue={row.original.limit}
-          id={`${row.original.id}-limit`}
-        />
-      </form>
-    ),
+    header: () => <div className="w-full text-right">{t("limit")}</div>,
+    cell: ({ row }) => {
+      const header = translateRowHeader(t, row.original.id, row.original.header);
+
+      return (
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            toast.promise(new Promise((resolve) => setTimeout(resolve, 1000)), {
+              loading: translateWithValues(t, "saving", { header }),
+              success: t("done"),
+              error: t("error"),
+            });
+          }}
+        >
+          <Label htmlFor={`${row.original.id}-limit`} className="sr-only">
+            {t("limit")}
+          </Label>
+          <Input
+            className="hover:bg-input/30 focus-visible:bg-background dark:hover:bg-input/30 dark:focus-visible:bg-input/30 h-8 w-16 border-transparent bg-transparent text-right shadow-none focus-visible:border dark:bg-transparent"
+            defaultValue={row.original.limit}
+            id={`${row.original.id}-limit`}
+          />
+        </form>
+      );
+    },
   },
   {
     accessorKey: "reviewer",
-    header: "Reviewer",
+    header: t("reviewer"),
     cell: ({ row }) => {
       const isAssigned = row.original.reviewer !== "Assign reviewer";
 
@@ -258,7 +339,7 @@ const columns: ColumnDef<z.infer<typeof schema>>[] = [
       return (
         <>
           <Label htmlFor={`${row.original.id}-reviewer`} className="sr-only">
-            Reviewer
+            {t("reviewer")}
           </Label>
           <Select>
             <SelectTrigger
@@ -266,11 +347,14 @@ const columns: ColumnDef<z.infer<typeof schema>>[] = [
               size="sm"
               id={`${row.original.id}-reviewer`}
             >
-              <SelectValue placeholder="Assign reviewer" />
+              <SelectValue placeholder={t("assignReviewer")} />
             </SelectTrigger>
             <SelectContent align="end">
-              <SelectItem value="Eddie Lake">Eddie Lake</SelectItem>
-              <SelectItem value="Jamik Tashpulatov">Jamik Tashpulatov</SelectItem>
+              {reviewerOptions.map((reviewer) => (
+                <SelectItem key={reviewer} value={reviewer}>
+                  {reviewer}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </>
@@ -288,15 +372,15 @@ const columns: ColumnDef<z.infer<typeof schema>>[] = [
             size="icon"
           >
             <IconDotsVertical />
-            <span className="sr-only">Open menu</span>
+            <span className="sr-only">{t("openMenu")}</span>
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-32">
-          <DropdownMenuItem>Edit</DropdownMenuItem>
-          <DropdownMenuItem>Make a copy</DropdownMenuItem>
-          <DropdownMenuItem>Favorite</DropdownMenuItem>
+          <DropdownMenuItem>{t("edit")}</DropdownMenuItem>
+          <DropdownMenuItem>{t("makeCopy")}</DropdownMenuItem>
+          <DropdownMenuItem>{t("favorite")}</DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem variant="destructive">Delete</DropdownMenuItem>
+          <DropdownMenuItem variant="destructive">{t("delete")}</DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
     ),
@@ -329,6 +413,7 @@ function DraggableRow({ row }: { row: Row<z.infer<typeof schema>> }) {
 }
 
 export function DataTable({ data: initialData }: { data: z.infer<typeof schema>[] }) {
+  const t = useTranslations("dashboard.ui.dataTable");
   const [data, setData] = React.useState(() => initialData);
   const [rowSelection, setRowSelection] = React.useState({});
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
@@ -346,6 +431,7 @@ export function DataTable({ data: initialData }: { data: z.infer<typeof schema>[
   );
 
   const dataIds = React.useMemo<UniqueIdentifier[]>(() => data?.map(({ id }) => id) || [], [data]);
+  const columns = getColumns(t);
 
   const table = useReactTable({
     data,
@@ -387,36 +473,37 @@ export function DataTable({ data: initialData }: { data: z.infer<typeof schema>[
     <Tabs defaultValue="outline" className="w-full flex-col justify-start gap-6">
       <div className="flex items-center justify-between px-4 lg:px-6">
         <Label htmlFor="view-selector" className="sr-only">
-          View
+          {t("view")}
         </Label>
         <Select defaultValue="outline">
           <SelectTrigger className="flex w-fit @4xl/main:hidden" size="sm" id="view-selector">
-            <SelectValue placeholder="Select a view" />
+            <SelectValue placeholder={t("selectView")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="outline">Outline</SelectItem>
-            <SelectItem value="past-performance">Past Performance</SelectItem>
-            <SelectItem value="key-personnel">Key Personnel</SelectItem>
-            <SelectItem value="focus-documents">Focus Documents</SelectItem>
+            {viewOptions.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {t(option.labelKey)}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
         <TabsList className="**:data-[slot=badge]:bg-muted-foreground/30 hidden **:data-[slot=badge]:size-5 **:data-[slot=badge]:rounded-full **:data-[slot=badge]:px-1 @4xl/main:flex">
-          <TabsTrigger value="outline">Outline</TabsTrigger>
+          <TabsTrigger value="outline">{t("outline")}</TabsTrigger>
           <TabsTrigger value="past-performance">
-            Past Performance <Badge variant="secondary">3</Badge>
+            {t("pastPerformance")} <Badge variant="secondary">3</Badge>
           </TabsTrigger>
           <TabsTrigger value="key-personnel">
-            Key Personnel <Badge variant="secondary">2</Badge>
+            {t("keyPersonnel")} <Badge variant="secondary">2</Badge>
           </TabsTrigger>
-          <TabsTrigger value="focus-documents">Focus Documents</TabsTrigger>
+          <TabsTrigger value="focus-documents">{t("focusDocuments")}</TabsTrigger>
         </TabsList>
         <div className="flex items-center gap-2">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="sm">
                 <IconLayoutColumns />
-                <span className="hidden lg:inline">Customize Columns</span>
-                <span className="lg:hidden">Columns</span>
+                <span className="hidden lg:inline">{t("customizeColumns")}</span>
+                <span className="lg:hidden">{t("columns")}</span>
                 <IconChevronDown />
               </Button>
             </DropdownMenuTrigger>
@@ -432,7 +519,7 @@ export function DataTable({ data: initialData }: { data: z.infer<typeof schema>[
                       checked={column.getIsVisible()}
                       onCheckedChange={(value) => column.toggleVisibility(!!value)}
                     >
-                      {column.id}
+                      {getColumnLabel(column.id, t)}
                     </DropdownMenuCheckboxItem>
                   );
                 })}
@@ -440,7 +527,7 @@ export function DataTable({ data: initialData }: { data: z.infer<typeof schema>[
           </DropdownMenu>
           <Button variant="outline" size="sm">
             <IconPlus />
-            <span className="hidden lg:inline">Add Section</span>
+            <span className="hidden lg:inline">{t("addSection")}</span>
           </Button>
         </div>
       </div>
@@ -482,7 +569,7 @@ export function DataTable({ data: initialData }: { data: z.infer<typeof schema>[
                 ) : (
                   <TableRow>
                     <TableCell colSpan={columns.length} className="h-24 text-center">
-                      No results.
+                      {t("noResults")}
                     </TableCell>
                   </TableRow>
                 )}
@@ -492,13 +579,15 @@ export function DataTable({ data: initialData }: { data: z.infer<typeof schema>[
         </div>
         <div className="flex items-center justify-between px-4">
           <div className="text-muted-foreground hidden flex-1 text-sm lg:flex">
-            {table.getFilteredSelectedRowModel().rows.length} of{" "}
-            {table.getFilteredRowModel().rows.length} row(s) selected.
+            {translateWithValues(t, "rowsSelected", {
+              selected: table.getFilteredSelectedRowModel().rows.length,
+              total: table.getFilteredRowModel().rows.length,
+            })}
           </div>
           <div className="flex w-full items-center gap-8 lg:w-fit">
             <div className="hidden items-center gap-2 lg:flex">
               <Label htmlFor="rows-per-page" className="text-sm font-medium">
-                Rows per page
+                {t("rowsPerPage")}
               </Label>
               <Select
                 value={`${table.getState().pagination.pageSize}`}
@@ -519,7 +608,10 @@ export function DataTable({ data: initialData }: { data: z.infer<typeof schema>[
               </Select>
             </div>
             <div className="flex w-fit items-center justify-center text-sm font-medium">
-              Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
+              {translateWithValues(t, "page", {
+                current: table.getState().pagination.pageIndex + 1,
+                total: table.getPageCount(),
+              })}
             </div>
             <div className="ml-auto flex items-center gap-2 lg:ml-0">
               <Button
@@ -528,7 +620,7 @@ export function DataTable({ data: initialData }: { data: z.infer<typeof schema>[
                 onClick={() => table.setPageIndex(0)}
                 disabled={!table.getCanPreviousPage()}
               >
-                <span className="sr-only">Go to first page</span>
+                <span className="sr-only">{t("goToFirstPage")}</span>
                 <IconChevronsLeft />
               </Button>
               <Button
@@ -538,7 +630,7 @@ export function DataTable({ data: initialData }: { data: z.infer<typeof schema>[
                 onClick={() => table.previousPage()}
                 disabled={!table.getCanPreviousPage()}
               >
-                <span className="sr-only">Go to previous page</span>
+                <span className="sr-only">{t("goToPreviousPage")}</span>
                 <IconChevronLeft />
               </Button>
               <Button
@@ -548,7 +640,7 @@ export function DataTable({ data: initialData }: { data: z.infer<typeof schema>[
                 onClick={() => table.nextPage()}
                 disabled={!table.getCanNextPage()}
               >
-                <span className="sr-only">Go to next page</span>
+                <span className="sr-only">{t("goToNextPage")}</span>
                 <IconChevronRight />
               </Button>
               <Button
@@ -558,7 +650,7 @@ export function DataTable({ data: initialData }: { data: z.infer<typeof schema>[
                 onClick={() => table.setPageIndex(table.getPageCount() - 1)}
                 disabled={!table.getCanNextPage()}
               >
-                <span className="sr-only">Go to last page</span>
+                <span className="sr-only">{t("goToLastPage")}</span>
                 <IconChevronsRight />
               </Button>
             </div>
@@ -587,31 +679,36 @@ const chartData = [
   { month: "June", desktop: 214, mobile: 140 },
 ];
 
-const chartConfig = {
-  desktop: {
-    label: "Desktop",
-    color: "var(--primary)",
-  },
-  mobile: {
-    label: "Mobile",
-    color: "var(--primary)",
-  },
-} satisfies ChartConfig;
-
 function TableCellViewer({ item }: { item: z.infer<typeof schema> }) {
+  const t = useTranslations("dashboard.ui.dataTable");
   const isMobile = useIsMobile();
+  const localizedHeader = translateRowHeader(t, item.id, item.header);
+  const chartConfig = React.useMemo(
+    () =>
+      ({
+        desktop: {
+          label: t("desktop"),
+          color: "var(--primary)",
+        },
+        mobile: {
+          label: t("mobile"),
+          color: "var(--primary)",
+        },
+      }) satisfies ChartConfig,
+    [t]
+  );
 
   return (
     <Drawer direction={isMobile ? "bottom" : "right"}>
       <DrawerTrigger asChild>
         <Button variant="link" className="text-foreground w-fit px-0 text-left">
-          {item.header}
+          {localizedHeader}
         </Button>
       </DrawerTrigger>
       <DrawerContent>
         <DrawerHeader className="gap-1">
-          <DrawerTitle>{item.header}</DrawerTitle>
-          <DrawerDescription>Showing total visitors for the last 6 months</DrawerDescription>
+          <DrawerTitle>{localizedHeader}</DrawerTitle>
+          <DrawerDescription>{t("viewerDescription")}</DrawerDescription>
         </DrawerHeader>
         <div className="flex flex-col gap-4 overflow-y-auto px-4 text-sm">
           {!isMobile && (
@@ -656,83 +753,81 @@ function TableCellViewer({ item }: { item: z.infer<typeof schema> }) {
               <Separator />
               <div className="grid gap-2">
                 <div className="flex gap-2 leading-none font-medium">
-                  Trending up by 5.2% this month <IconTrendingUp className="size-4" />
+                  {t("viewerTrend")} <IconTrendingUp className="size-4" />
                 </div>
-                <div className="text-muted-foreground">
-                  Showing total visitors for the last 6 months. This is just some random text to
-                  test the layout. It spans multiple lines and should wrap around.
-                </div>
+                <div className="text-muted-foreground">{t("viewerText")}</div>
               </div>
               <Separator />
             </>
           )}
           <form className="flex flex-col gap-4">
             <div className="flex flex-col gap-3">
-              <Label htmlFor="header">Header</Label>
-              <Input id="header" defaultValue={item.header} />
+              <Label htmlFor="header">{t("header")}</Label>
+              <Input id="header" defaultValue={localizedHeader} />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="flex flex-col gap-3">
-                <Label htmlFor="type">Type</Label>
+                <Label htmlFor="type">{t("type")}</Label>
                 <Select defaultValue={item.type}>
                   <SelectTrigger id="type" className="w-full">
-                    <SelectValue placeholder="Select a type" />
+                    <SelectValue placeholder={t("selectType")} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Table of Contents">Table of Contents</SelectItem>
-                    <SelectItem value="Executive Summary">Executive Summary</SelectItem>
-                    <SelectItem value="Technical Approach">Technical Approach</SelectItem>
-                    <SelectItem value="Design">Design</SelectItem>
-                    <SelectItem value="Capabilities">Capabilities</SelectItem>
-                    <SelectItem value="Focus Documents">Focus Documents</SelectItem>
-                    <SelectItem value="Narrative">Narrative</SelectItem>
-                    <SelectItem value="Cover Page">Cover Page</SelectItem>
+                    {typeOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {t(option.labelKey)}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
               <div className="flex flex-col gap-3">
-                <Label htmlFor="status">Status</Label>
+                <Label htmlFor="status">{t("status")}</Label>
                 <Select defaultValue={item.status}>
                   <SelectTrigger id="status" className="w-full">
-                    <SelectValue placeholder="Select a status" />
+                    <SelectValue placeholder={t("selectStatus")} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Done">Done</SelectItem>
-                    <SelectItem value="In Progress">In Progress</SelectItem>
-                    <SelectItem value="Not Started">Not Started</SelectItem>
+                    {statusOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {t(option.labelKey)}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="flex flex-col gap-3">
-                <Label htmlFor="target">Target</Label>
+                <Label htmlFor="target">{t("target")}</Label>
                 <Input id="target" defaultValue={item.target} />
               </div>
               <div className="flex flex-col gap-3">
-                <Label htmlFor="limit">Limit</Label>
+                <Label htmlFor="limit">{t("limit")}</Label>
                 <Input id="limit" defaultValue={item.limit} />
               </div>
             </div>
             <div className="flex flex-col gap-3">
-              <Label htmlFor="reviewer">Reviewer</Label>
+              <Label htmlFor="reviewer">{t("reviewer")}</Label>
               <Select defaultValue={item.reviewer}>
                 <SelectTrigger id="reviewer" className="w-full">
-                  <SelectValue placeholder="Select a reviewer" />
+                  <SelectValue placeholder={t("selectReviewer")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Eddie Lake">Eddie Lake</SelectItem>
-                  <SelectItem value="Jamik Tashpulatov">Jamik Tashpulatov</SelectItem>
-                  <SelectItem value="Emily Whalen">Emily Whalen</SelectItem>
+                  {reviewerOptions.map((reviewer) => (
+                    <SelectItem key={reviewer} value={reviewer}>
+                      {reviewer}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
           </form>
         </div>
         <DrawerFooter>
-          <Button>Submit</Button>
+          <Button>{t("submit")}</Button>
           <DrawerClose asChild>
-            <Button variant="outline">Done</Button>
+            <Button variant="outline">{t("done")}</Button>
           </DrawerClose>
         </DrawerFooter>
       </DrawerContent>

@@ -8,14 +8,16 @@ import { Button } from "@components/ui/button";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@components/ui/field";
 import { Input } from "@components/ui/input";
 import {
+  createDeleteWorkspaceFormSchema,
   DeleteWorkspaceInput,
-  deleteWorkspaceSchema,
 } from "@features/workspaces/workspaces-schemas";
 import type { WorkspaceWithCounts } from "@features/workspaces/workspaces-types";
 import { Modal, ModalProps } from "@components/ui/custom/modal";
 import { deleteWorkspace } from "@features/workspaces/actions/delete-workspace";
 import { Spinner } from "@components/ui/spinner";
-import common from "@messages/common.json";
+import { useTranslations } from "next-intl";
+import { useAnyTranslations } from "@/src/i18n/use-any-translations";
+import { translateWorkspaceErrorMessage } from "@features/workspaces/workspaces-errors";
 
 interface WorkspaceDeleteDialogProps {
   workspace: WorkspaceWithCounts | null;
@@ -27,6 +29,9 @@ export const WorkspaceDeleteDialog = ({
   onSuccess,
   ...props
 }: WorkspaceDeleteDialogProps & Partial<ModalProps>) => {
+  const tCommon = useTranslations("common");
+  const tWorkspaces = useTranslations("workspaces.ui.deleteDialog");
+  const tAny = useAnyTranslations("workspaces");
   const [isPending, startTransition] = useTransition();
   const [open, onOpenChange] = useState(false);
   const defaultValues = useMemo(
@@ -44,7 +49,7 @@ export const WorkspaceDeleteDialog = ({
     reset,
     formState: { isDirty, isValid },
   } = useForm<DeleteWorkspaceInput>({
-    resolver: zodResolver(deleteWorkspaceSchema),
+    resolver: zodResolver(createDeleteWorkspaceFormSchema(tAny)),
     mode: "all",
     defaultValues,
   });
@@ -62,12 +67,14 @@ export const WorkspaceDeleteDialog = ({
       const result = await deleteWorkspace(data);
 
       if (result.success) {
-        toast.success("Workspace deleted successfully");
+        toast.success(tWorkspaces("success"));
         onOpenChange(false);
         onSuccess?.();
       } else {
-        toast.error("Delete Workspace", {
-          description: result.error?.message ?? "Unknown error",
+        toast.error(tWorkspaces("errorTitle"), {
+          description:
+            translateWorkspaceErrorMessage(result.error?.message, tAny) ??
+            tWorkspaces("unknownError"),
         });
       }
     });
@@ -79,11 +86,11 @@ export const WorkspaceDeleteDialog = ({
     <Modal
       open={open}
       onOpenChange={onOpenChange}
-      title="Delete Workspace?"
-      description="This action cannot be undone. The workspace record will be permanently removed."
+      title={tWorkspaces("title")}
+      description={tWorkspaces("description")}
       trigger={
         <Button type="button" variant="destructive">
-          {common.words.verbs.delete}
+          {tCommon("words.verbs.delete")}
         </Button>
       }
       {...props}
@@ -94,8 +101,7 @@ export const WorkspaceDeleteDialog = ({
             <div className="border-destructive/50 bg-destructive/10 rounded-lg border p-4">
               <p className="text-sm font-medium">{workspace.name}</p>
               <p className="text-muted-foreground mt-2 text-sm">
-                This is your default workspace. Another workspace will be set as default after
-                deletion.
+                {tWorkspaces("defaultWorkspaceNotice")}
               </p>
             </div>
           ) : null}
@@ -106,13 +112,13 @@ export const WorkspaceDeleteDialog = ({
             render={({ field, fieldState }) => (
               <Field data-invalid={fieldState.invalid}>
                 <FieldLabel htmlFor="delete-workspace-confirmation">
-                  To confirm, please type “{workspace.name}” below in the box below
+                  {tWorkspaces("confirmationLabel", { name: workspace.name })}
                 </FieldLabel>
                 <Input
                   {...field}
                   id="delete-workspace-confirmation"
                   aria-invalid={fieldState.invalid}
-                  placeholder="Type name of workspace to confirm deletion"
+                  placeholder={tWorkspaces("confirmationPlaceholder")}
                   maxLength={50}
                   disabled={isPending}
                   autoFocus
@@ -130,7 +136,7 @@ export const WorkspaceDeleteDialog = ({
               onClick={() => onOpenChange(false)}
               disabled={isPending}
             >
-              {common.words.verbs.cancel}
+              {tCommon("words.verbs.cancel")}
             </Button>
             <Button
               type="submit"
@@ -138,7 +144,7 @@ export const WorkspaceDeleteDialog = ({
               disabled={isPending || !isDirty || !isValid}
             >
               {isPending && <Spinner data-icon="inline-start" />}
-              {common.words.verbs.delete}
+              {tCommon("words.verbs.delete")}
             </Button>
           </Field>
         </FieldGroup>

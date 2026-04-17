@@ -13,6 +13,7 @@ import type { WorkspaceWithCounts } from "@features/workspaces/workspaces-types"
 import { Skeleton } from "@components/ui/skeleton";
 import { WorkspaceDeleteDialog } from "@features/workspaces/components/forms/workspace-delete-dialog";
 import { WorkspaceSettingsDialog } from "@features/workspaces/components/forms/workspace-settings-dialog";
+import { useTranslations } from "next-intl";
 
 interface WorkspaceCardProps {
   workspace: WorkspaceWithCounts;
@@ -21,6 +22,8 @@ interface WorkspaceCardProps {
 }
 
 export function WorkspaceCard({ workspace, canDelete, canChangeDefault }: WorkspaceCardProps) {
+  const t = useTranslations("workspaces.ui.card");
+
   return (
     <Card className="bg-card flex h-full w-full max-w-md min-w-0 flex-col shadow-none transition-shadow">
       <CardHeader>
@@ -30,9 +33,7 @@ export function WorkspaceCard({ workspace, canDelete, canChangeDefault }: Worksp
               {workspace.name}
               {workspace.isDefault && <IconStarFilled className="size-4 text-yellow-500" />}
             </CardTitle>
-            <CardDescription>
-              {workspace.isDefault ? "Default workspace" : "Custom workspace"}
-            </CardDescription>
+            <CardDescription>{workspace.isDefault ? t("default") : t("custom")}</CardDescription>
           </div>
           <WorkspaceSettingsDialog workspace={workspace} canChangeDefault={canChangeDefault} />
         </div>
@@ -40,12 +41,12 @@ export function WorkspaceCard({ workspace, canDelete, canChangeDefault }: Worksp
       <CardContent className="flex-1">
         <p className="text-muted-foreground text-sm">
           {/* Template placeholder — add domain-specific metrics or links when you model relations in Prisma. */}
-          Use this card to summarize what lives under this workspace once you add your own entities.
+          {t("summary")}
         </p>
       </CardContent>
       <CardFooter className="flex flex-col gap-2">
         <Button asChild variant="outline" className="w-full">
-          <Link href={`/${workspace.id}`}>Open workspace</Link>
+          <Link href={`/${workspace.id}`}>{t("open")}</Link>
         </Button>
         {canDelete && <WorkspaceDeleteDialog workspace={workspace} triggerClassName="w-full" />}
       </CardFooter>

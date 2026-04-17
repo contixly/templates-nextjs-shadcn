@@ -13,17 +13,21 @@ interface YandexMetrikaContainerProps {
 export const YandexMetrikaContainer: React.FC<YandexMetrikaContainerProps> = ({ enabled }) => {
   const pathname = usePathname();
   const search = useSearchParams();
-  const { hit } = useYandexMetrika(YM_COUNTER_ID);
+  const counterId = YM_COUNTER_ID ? Number(YM_COUNTER_ID) : undefined;
+  const metrikaId = Number.isFinite(counterId) ? counterId : undefined;
+  const { hit } = useYandexMetrika(metrikaId);
 
   useEffect(() => {
-    hit(`${pathname}${search.size ? `?${search}` : ""}${window.location.hash}`);
-  }, [hit, pathname, search]);
+    if (!enabled || metrikaId === undefined) return;
 
-  if (!enabled) return null;
+    hit(`${pathname}${search.size ? `?${search}` : ""}${window.location.hash}`);
+  }, [enabled, hit, metrikaId, pathname, search]);
+
+  if (!enabled || metrikaId === undefined) return null;
 
   return (
     <YandexMetrika
-      id={YM_COUNTER_ID}
+      id={metrikaId}
       initParameters={{
         ssr: true,
         webvisor: true,

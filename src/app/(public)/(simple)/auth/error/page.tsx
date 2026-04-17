@@ -1,10 +1,11 @@
-import { buildMetadata } from "@lib/metadata";
+import { buildPageMetadata } from "@lib/metadata";
 import accountsRoutes from "@features/accounts/accounts-routes";
-import { Metadata } from "next";
 import { AccountErrorPage } from "@features/accounts/components/account-error-page";
 import { Suspense } from "react";
+import { Metadata } from "next";
 
-export const metadata: Metadata = buildMetadata(accountsRoutes.pages.error);
+export const generateMetadata = async (): Promise<Metadata> =>
+  buildPageMetadata(accountsRoutes.pages.error);
 
 export default function ErrorPage() {
   return (

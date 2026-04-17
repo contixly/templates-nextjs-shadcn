@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import { loadUserWorkspaces } from "@features/workspaces/actions/load-user-workspaces";
 import { UserWorkspaces } from "@features/workspaces/components/user-workspaces";
-import { buildMetadata } from "@lib/metadata";
+import { buildPageMetadata } from "@lib/metadata";
 import workspaceRoutes from "@features/workspaces/workspaces-routes";
 
-export const metadata: Metadata = buildMetadata(workspaceRoutes.pages.workspaces);
+export const generateMetadata = async (): Promise<Metadata> =>
+  buildPageMetadata(workspaceRoutes.pages.workspaces);
 
 /**
  * Workspaces Management Page

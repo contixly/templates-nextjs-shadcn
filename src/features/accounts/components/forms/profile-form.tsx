@@ -9,18 +9,23 @@ import {
 } from "@features/accounts/accounts-schemas";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 import { Field, FieldDescription, FieldError } from "@components/ui/field";
 import { Button } from "@components/ui/button";
 import { Input } from "@components/ui/input";
-import common from "@messages/common.json";
 import { updateProfile } from "@features/accounts/actions/update-profile";
+import { useAnyTranslations } from "@/src/i18n/use-any-translations";
+import { translateAccountErrorMessage } from "@features/accounts/accounts-errors";
 
 export const ProfileForm = ({ loadCurrentUserPromise }: UserProfileProps) => {
   const profile = use(loadCurrentUserPromise);
+  const tCommon = useTranslations("common");
+  const tAccounts = useTranslations("accounts.ui.profileForm");
+  const tAny = useAnyTranslations("accounts");
 
   const formSchema = useMemo(
-    () => createUpdateProfileFormSchema(profile?.name ?? ""),
-    [profile?.name]
+    () => createUpdateProfileFormSchema(profile?.name ?? "", tAny),
+    [profile?.name, tAny]
   );
 
   const [isPending, startTransition] = useTransition();
@@ -42,13 +47,14 @@ export const ProfileForm = ({ loadCurrentUserPromise }: UserProfileProps) => {
       const result = await updateProfile(data);
 
       if (result.success) {
-        toast.success("Profile updated successfully");
+        toast.success(tAccounts("success"));
         if (result.data) {
           reset({ name: result.data.name });
         }
       } else {
-        toast.error("Update Profile", {
-          description: result.error?.message ?? "Unknown error",
+        toast.error(tAccounts("errorTitle"), {
+          description:
+            translateAccountErrorMessage(result.error?.message, tAny) ?? tAccounts("unknownError"),
         });
       }
     });
@@ -65,18 +71,18 @@ export const ProfileForm = ({ loadCurrentUserPromise }: UserProfileProps) => {
               {...field}
               id="edit-profile-name"
               aria-invalid={fieldState.invalid}
-              placeholder="Enter your display name"
+              placeholder={tAccounts("namePlaceholder")}
               maxLength={50}
               disabled={isPending}
               autoComplete="off"
             />
-            <FieldDescription className="text-xs">Maximum 50 characters</FieldDescription>
+            <FieldDescription className="text-xs">{tAccounts("nameHint")}</FieldDescription>
             {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
           </Field>
         )}
       />
-      <Button type="submit" disabled={isPending || !isDirty || !isValid} className="w-14">
-        {common.words.verbs.save}
+      <Button type="submit" disabled={isPending || !isDirty || !isValid} className="min-w-fit px-4">
+        {tCommon("words.verbs.save")}
       </Button>
     </form>
   );

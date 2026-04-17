@@ -7,6 +7,7 @@ import { YandexMetrikaContainer } from "@components/application/metrics/yandex-m
 import { YandexMetrikaNoscript } from "@components/application/metrics/yandex-metrika-noscript";
 import { GlobalMetadata } from "@lib/metadata";
 import { YM_COUNTER_ID } from "@lib/environment";
+import { resolveAppLocale } from "@/src/i18n/config";
 
 const jetbrainsMono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -25,7 +26,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning className={jetbrainsMono.variable}>
+    <html lang={resolveAppLocale()} suppressHydrationWarning className={jetbrainsMono.variable}>
       <body className="min-h-svh antialiased">
         <a
           href="#main-content"
@@ -46,7 +47,7 @@ export default function RootLayout({
         <Suspense>
           <YandexMetrikaContainer enabled />
         </Suspense>
-        <YandexMetrikaNoscript id={YM_COUNTER_ID} />
+        <YandexMetrikaNoscript id={Number(YM_COUNTER_ID)} />
       </body>
     </html>
   );

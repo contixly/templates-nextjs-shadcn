@@ -8,6 +8,7 @@ import { headers } from "next/headers";
 import prisma from "@server/prisma";
 import { errors } from "@components/errors/common-error";
 import { accountsLogger } from "@features/accounts/accounts-logger";
+import { ACCOUNT_ERROR_KEYS } from "@features/accounts/accounts-errors";
 
 /**
  * Represents an action to update a user's profile details.
@@ -63,7 +64,7 @@ export const updateProfile = createProtectedActionWithInput<UpdateProfileInput, 
   },
   {
     actionName: "updateProfile",
-    validationErrorMessage: "Profile name is required",
+    validationErrorMessage: ACCOUNT_ERROR_KEYS.profileNameRequired,
     logger: accountsLogger,
   }
 );

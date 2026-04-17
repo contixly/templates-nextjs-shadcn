@@ -8,6 +8,7 @@ import { findFirstWorkspaceByIdAndUserId } from "@features/workspaces/workspaces
 import { forbidden } from "next/navigation";
 import prisma from "@server/prisma";
 import { workspacesLogger } from "@features/workspaces/workspaces-logger";
+import { WORKSPACE_ERROR_KEYS } from "@features/workspaces/workspaces-errors";
 
 export const updateWorkspace = createProtectedActionWithInput<
   UpdateWorkspaceInput,
@@ -40,7 +41,7 @@ export const updateWorkspace = createProtectedActionWithInput<
         return {
           success: false,
           error: {
-            message: "A Workspace with this name already exists",
+            message: WORKSPACE_ERROR_KEYS.duplicateName,
             code: HttpCodes.CONFLICT,
           },
         };

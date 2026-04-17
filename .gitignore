@@ -42,3 +42,4 @@ next-env.d.ts
 .idea
 
 /prisma/generated
+src/messages/**/*.d.json.ts

@@ -14,6 +14,7 @@ import React, { Suspense, use, useState } from "react";
 import { Spinner } from "@components/ui/spinner";
 import { socialsProviders } from "@typings/auth";
 import { ProviderButton } from "@features/accounts/components/ui/provider-button";
+import { useTranslations } from "next-intl";
 
 interface LoginFormProps extends React.ComponentProps<"div"> {
   getLastLoginPromise: Promise<string | undefined | null>;
@@ -47,30 +48,34 @@ const LoginFormComponent = ({ getLastLoginPromise }: LoginFormProps) => {
   );
 };
 
-export const LoginForm = ({ className, ...props }: LoginFormProps) => (
-  <div className={cn("flex flex-col gap-6", className)}>
-    <Card className="min-h-96">
-      <CardHeader className="text-center">
-        <CardTitle className="text-xl">Welcome back</CardTitle>
-        <CardDescription>Login with your Social account</CardDescription>
-      </CardHeader>
-      <CardContent className="flex flex-1 flex-col">
-        <Suspense>
-          <LoginFormComponent {...props} />
-        </Suspense>
-      </CardContent>
-      <CardFooter className="mt-auto">
-        <Field>
-          <FieldDescription className="grid gap-2 text-center">
-            <span>Don&#39;t have an account?</span>
-            <span>Don&#39;t worry, just login and account will be created for you.</span>
-          </FieldDescription>
-        </Field>
-      </CardFooter>
-    </Card>
-    <FieldDescription className="px-6 text-center">
-      By clicking continue, you agree to our <a href="#">Terms of Service</a> and{" "}
-      <a href="#">Privacy Policy</a>.
-    </FieldDescription>
-  </div>
-);
+export const LoginForm = ({ className, ...props }: LoginFormProps) => {
+  const t = useTranslations("accounts.ui.loginForm");
+
+  return (
+    <div className={cn("flex flex-col gap-6", className)}>
+      <Card className="min-h-96">
+        <CardHeader className="text-center">
+          <CardTitle className="text-xl">{t("title")}</CardTitle>
+          <CardDescription>{t("description")}</CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-1 flex-col">
+          <Suspense>
+            <LoginFormComponent {...props} />
+          </Suspense>
+        </CardContent>
+        <CardFooter className="mt-auto">
+          <Field>
+            <FieldDescription className="grid gap-2 text-center">
+              <span>{t("noAccountTitle")}</span>
+              <span>{t("noAccountDescription")}</span>
+            </FieldDescription>
+          </Field>
+        </CardFooter>
+      </Card>
+      <FieldDescription className="px-6 text-center">
+        {t("termsPrefix")} <a href="#">{t("termsOfService")}</a> and{" "}
+        <a href="#">{t("privacyPolicy")}</a>.
+      </FieldDescription>
+    </div>
+  );
+};
