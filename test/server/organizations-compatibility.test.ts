@@ -5,9 +5,11 @@ import {
   type OrganizationWorkspaceRecord,
 } from "@features/organizations/organizations-dto";
 import {
+  findOrganizationByRouteKey,
+  getOrganizationRouteKey,
   getActiveOrganizationId,
   resolveDefaultOrganizationId,
-  resolveUrlOrganizationId,
+  resolveUrlOrganizationKey,
 } from "@features/organizations/organizations-context";
 
 describe("organization workspace compatibility", () => {
@@ -35,9 +37,23 @@ describe("organization workspace compatibility", () => {
     });
   });
 
-  it("resolves the current url organization id from the organization route param", () => {
-    expect(resolveUrlOrganizationId({ organizationId: "org_123" })).toBe("org_123");
-    expect(resolveUrlOrganizationId({})).toBeNull();
+  it("resolves the current url organization key from the organization route param", () => {
+    expect(resolveUrlOrganizationKey({ organizationKey: "acme" })).toBe("acme");
+    expect(resolveUrlOrganizationKey({ organizationId: "org_123" })).toBe("org_123");
+    expect(resolveUrlOrganizationKey({})).toBeNull();
+  });
+
+  it("prefers an organization slug when generating route keys and resolves route context by slug or id", () => {
+    const organizations = [
+      { id: "org_1", slug: "acme" },
+      { id: "org_2", slug: null },
+    ];
+
+    expect(getOrganizationRouteKey(organizations[0])).toBe("acme");
+    expect(getOrganizationRouteKey(organizations[1])).toBe("org_2");
+    expect(findOrganizationByRouteKey(organizations, "acme")).toEqual(organizations[0]);
+    expect(findOrganizationByRouteKey(organizations, "org_2")).toEqual(organizations[1]);
+    expect(findOrganizationByRouteKey(organizations, "missing")).toBeNull();
   });
 
   it("prefers active organization, then default, then deterministic fallback", () => {

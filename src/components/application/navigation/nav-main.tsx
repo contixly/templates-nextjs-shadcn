@@ -17,9 +17,9 @@ import { useTranslations } from "next-intl";
 export const NavMain = () => {
   const tApplication = useTranslations("application.ui.navigation");
   const tWorkspaces = useTranslations("workspaces.ui.navigation");
-  const { organizationId } = useParams<{ organizationId?: string }>();
-  const dashboardHref = organizationId
-    ? routes.dashboard.pages.organization_dashboard.path({ organizationId })
+  const { organizationKey } = useParams<{ organizationKey?: string }>();
+  const dashboardHref = organizationKey
+    ? routes.dashboard.pages.organization_dashboard.path({ organizationKey })
     : routes.dashboard.pages.application_dashboard.path();
 
   return (

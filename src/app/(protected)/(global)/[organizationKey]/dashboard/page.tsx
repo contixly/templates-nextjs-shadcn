@@ -9,7 +9,7 @@ import { DataTable } from "@features/dashboard/ui/template/data-table";
 import data from "../../dashboard/data.json";
 
 interface OrganizationDashboardPageProps {
-  params: Promise<{ organizationId: string }>;
+  params: Promise<{ organizationKey: string }>;
 }
 
 export const generateMetadata = async ({
@@ -20,10 +20,10 @@ export const generateMetadata = async ({
 export default async function OrganizationDashboardPage({
   params,
 }: OrganizationDashboardPageProps) {
-  const { organizationId } = await params;
+  const { organizationKey } = await params;
 
   return (
-    <OrganizationRouteGuard organizationId={organizationId}>
+    <OrganizationRouteGuard organizationKey={organizationKey}>
       <div className="flex flex-col gap-6 py-6">
         <SectionCards />
         <div className="px-4 lg:px-6">

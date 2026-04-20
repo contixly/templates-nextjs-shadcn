@@ -8,9 +8,24 @@ import { OrganizationRouteGuard } from "../../src/features/organizations/compone
 
 jest.mock("../../src/features/organizations/components/organization-route-guard", () => ({
   OrganizationRouteGuard: jest.fn(
-    ({ organizationId, children }: { organizationId: string; children: React.ReactNode }) => {
-      if (organizationId === "workspace-404") {
+    ({
+      organizationKey,
+      children,
+    }: {
+      organizationKey: string;
+      children:
+        | React.ReactNode
+        | ((organization: { id: string; slug?: string | null }) => React.ReactNode);
+    }) => {
+      if (organizationKey === "workspace-404") {
         throw new Error("forbidden");
+      }
+
+      if (typeof children === "function") {
+        return children({
+          id: "workspace-123",
+          slug: "client-workspace",
+        });
       }
 
       return children;
@@ -33,25 +48,38 @@ describe("workspace page route", () => {
     (OrganizationRouteGuard as jest.Mock).mockClear();
   });
 
-  it("redirects to the dashboard when the workspace belongs to the current user", async () => {
-    const pageModule = await import("../../src/app/(protected)/(global)/[organizationId]/page");
+  it("redirects slug-based links to the dashboard when the workspace belongs to the current user", async () => {
+    const pageModule = await import("../../src/app/(protected)/(global)/[organizationKey]/page");
     const element = await pageModule.default({
-      params: Promise.resolve({ organizationId: "workspace-123" }),
+      params: Promise.resolve({ organizationKey: "client-workspace" }),
     });
 
     expect(() => render(element)).toThrow(
       `redirect:${routes.dashboard.pages.organization_dashboard.path({
-        organizationId: "workspace-123",
+        organizationKey: "client-workspace",
       })}`
     );
 
     expect(OrganizationRouteGuard).toHaveBeenCalled();
   });
 
-  it("renders the forbidden route state when the workspace is not accessible", async () => {
-    const pageModule = await import("../../src/app/(protected)/(global)/[organizationId]/page");
+  it("redirects existing id-based links to the slug-preferred dashboard url", async () => {
+    const pageModule = await import("../../src/app/(protected)/(global)/[organizationKey]/page");
     const element = await pageModule.default({
-      params: Promise.resolve({ organizationId: "workspace-404" }),
+      params: Promise.resolve({ organizationKey: "workspace-123" }),
+    });
+
+    expect(() => render(element)).toThrow(
+      `redirect:${routes.dashboard.pages.organization_dashboard.path({
+        organizationKey: "client-workspace",
+      })}`
+    );
+  });
+
+  it("renders the forbidden route state when the workspace is not accessible", async () => {
+    const pageModule = await import("../../src/app/(protected)/(global)/[organizationKey]/page");
+    const element = await pageModule.default({
+      params: Promise.resolve({ organizationKey: "workspace-404" }),
     });
 
     expect(() => render(element)).toThrow("forbidden");
@@ -60,7 +88,7 @@ describe("workspace page route", () => {
 
 describe("workspace page loading route", () => {
   it("renders a loading spinner from loading.tsx", async () => {
-    const pageModule = await import("../../src/app/(protected)/(global)/[organizationId]/loading");
+    const pageModule = await import("../../src/app/(protected)/(global)/[organizationKey]/loading");
 
     render(<pageModule.default />);
 
@@ -69,7 +97,7 @@ describe("workspace page loading route", () => {
 
   it("keeps the full-route fallback in loading.tsx instead of defining page-level Suspense in page.tsx", () => {
     const pageSource = fs.readFileSync(
-      path.join(process.cwd(), "src/app/(protected)/(global)/[organizationId]/page.tsx"),
+      path.join(process.cwd(), "src/app/(protected)/(global)/[organizationKey]/page.tsx"),
       "utf8"
     );
 

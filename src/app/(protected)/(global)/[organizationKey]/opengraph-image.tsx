@@ -12,7 +12,7 @@ export const size = {
 export const contentType = "image/png";
 
 const page = routes.workspaces.pages.workspace;
-const opengraphImage = async ({ params }: { params: Promise<{ organizationId: string }> }) =>
+const opengraphImage = async ({ params }: { params: Promise<{ organizationKey: string }> }) =>
   buildMetadataOGImage(await buildPageMetadata(page, await params), page.featureName);
 
 export default opengraphImage;

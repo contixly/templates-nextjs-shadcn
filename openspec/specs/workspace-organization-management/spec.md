@@ -33,7 +33,7 @@ The system MUST create workspaces by creating Better Auth organizations from a u
 #### Scenario: Creating a workspace updates active context
 - **WHEN** an authenticated user successfully creates a workspace
 - **THEN** the system updates `session.activeOrganizationId` to that organization
-- **AND** redirects the user to `/:organizationId/dashboard`
+- **AND** redirects the user to `/:organizationKey/dashboard` using the generated workspace slug when available
 
 ### Requirement: Workspace Settings Support Name, Slug, and Default Context
 The system MUST allow users to manage organization-backed workspace settings, including renaming, slug updates, and default workspace selection.
@@ -47,6 +47,7 @@ The system MUST allow users to manage organization-backed workspace settings, in
 - **WHEN** an authenticated user updates the slug of an accessible workspace
 - **AND** the slug is not already in use
 - **THEN** the system updates the underlying organization slug
+- **AND** subsequent generated workspace URLs use the updated slug
 
 #### Scenario: Rejecting an unavailable slug
 - **WHEN** an authenticated user updates a workspace slug to one that is already in use
@@ -64,10 +65,10 @@ The system MUST update active workspace context only through explicit user actio
 #### Scenario: Sidebar switcher changes active workspace and navigates
 - **WHEN** an authenticated user selects a workspace in the sidebar switcher
 - **THEN** the system updates `session.activeOrganizationId` to that workspace's organization id
-- **AND** navigates the user to `/:organizationId/dashboard`
+- **AND** navigates the user to `/:organizationKey/dashboard` using the workspace slug when available
 
 #### Scenario: Current workspace label follows URL context
-- **WHEN** an authenticated user is viewing `/:organizationId/...`
-- **THEN** workspace switching controls label the current workspace using that `organizationId`
+- **WHEN** an authenticated user is viewing `/:organizationKey/...`
+- **THEN** workspace switching controls label the current workspace using the accessible organization whose slug or ID matches that route key
 - **AND** do not label a different workspace just because `session.activeOrganizationId` points elsewhere
 

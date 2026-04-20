@@ -3,16 +3,22 @@ export interface OrganizationSessionContext {
 }
 
 export interface OrganizationRouteParams {
+  organizationKey?: string | null;
   organizationId?: string | null;
 }
 
-export interface OrganizationWorkspaceDto {
+export interface OrganizationRouteIdentity {
+  id: string;
+  slug?: string | null;
+}
+
+export interface OrganizationWorkspaceDto extends OrganizationRouteIdentity {
   id: string;
   name: string;
   isDefault: boolean;
   createdAt: Date;
   updatedAt: Date;
-  slug?: string;
+  slug?: string | null;
   logo?: string | null;
   metadata?: Record<string, unknown> | null;
 }

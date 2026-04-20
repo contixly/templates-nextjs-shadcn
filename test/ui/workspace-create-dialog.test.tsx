@@ -200,6 +200,7 @@ describe("WorkspaceCreateDialog", () => {
       success: true,
       data: {
         id: "d6qzollaqro6y66v7j52bhqo",
+        slug: "acme-team",
       },
     });
 
@@ -215,7 +216,7 @@ describe("WorkspaceCreateDialog", () => {
     });
 
     await waitFor(() => {
-      expect(mockPush).toHaveBeenCalledWith("/d6qzollaqro6y66v7j52bhqo/dashboard");
+      expect(mockPush).toHaveBeenCalledWith("/acme-team/dashboard");
       expect(mockRefresh).toHaveBeenCalled();
     });
   });

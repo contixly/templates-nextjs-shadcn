@@ -44,17 +44,23 @@ describe("global dashboard redirect route", () => {
     (loadCurrentUserId as jest.Mock).mockResolvedValue("user-123");
     (loadCurrentSession as jest.Mock).mockResolvedValue({ activeOrganizationId: "org-2" });
     (findManyAccessibleOrganizationsByUserId as jest.Mock).mockResolvedValue([
-      { id: "org-1" },
-      { id: "org-2" },
+      { id: "org-1", slug: "default-workspace" },
+      { id: "org-2", slug: "client-workspace" },
     ]);
-    (findDefaultOrganizationByUserId as jest.Mock).mockResolvedValue({ id: "org-1" });
-    (findFirstAccessibleOrganizationForUser as jest.Mock).mockResolvedValue({ id: "org-1" });
+    (findDefaultOrganizationByUserId as jest.Mock).mockResolvedValue({
+      id: "org-1",
+      slug: "default-workspace",
+    });
+    (findFirstAccessibleOrganizationForUser as jest.Mock).mockResolvedValue({
+      id: "org-1",
+      slug: "default-workspace",
+    });
 
     const pageModule = await import("../../src/app/(protected)/(global)/dashboard/page");
 
     await expect(pageModule.default()).rejects.toThrow(
       `redirect:${routes.dashboard.pages.organization_dashboard.path({
-        organizationId: "org-2",
+        organizationKey: "client-workspace",
       })}`
     );
   });
@@ -63,17 +69,23 @@ describe("global dashboard redirect route", () => {
     (loadCurrentUserId as jest.Mock).mockResolvedValue("user-123");
     (loadCurrentSession as jest.Mock).mockResolvedValue({ activeOrganizationId: "missing-org" });
     (findManyAccessibleOrganizationsByUserId as jest.Mock).mockResolvedValue([
-      { id: "org-1" },
-      { id: "org-2" },
+      { id: "org-1", slug: "default-workspace" },
+      { id: "org-2", slug: "client-workspace" },
     ]);
-    (findDefaultOrganizationByUserId as jest.Mock).mockResolvedValue({ id: "org-1" });
-    (findFirstAccessibleOrganizationForUser as jest.Mock).mockResolvedValue({ id: "org-2" });
+    (findDefaultOrganizationByUserId as jest.Mock).mockResolvedValue({
+      id: "org-1",
+      slug: "default-workspace",
+    });
+    (findFirstAccessibleOrganizationForUser as jest.Mock).mockResolvedValue({
+      id: "org-2",
+      slug: "client-workspace",
+    });
 
     const pageModule = await import("../../src/app/(protected)/(global)/dashboard/page");
 
     await expect(pageModule.default()).rejects.toThrow(
       `redirect:${routes.dashboard.pages.organization_dashboard.path({
-        organizationId: "org-1",
+        organizationKey: "default-workspace",
       })}`
     );
   });
@@ -82,17 +94,20 @@ describe("global dashboard redirect route", () => {
     (loadCurrentUserId as jest.Mock).mockResolvedValue("user-123");
     (loadCurrentSession as jest.Mock).mockResolvedValue({ activeOrganizationId: null });
     (findManyAccessibleOrganizationsByUserId as jest.Mock).mockResolvedValue([
-      { id: "org-2" },
-      { id: "org-3" },
+      { id: "org-2", slug: "client-workspace" },
+      { id: "org-3", slug: null },
     ]);
     (findDefaultOrganizationByUserId as jest.Mock).mockResolvedValue(null);
-    (findFirstAccessibleOrganizationForUser as jest.Mock).mockResolvedValue({ id: "org-2" });
+    (findFirstAccessibleOrganizationForUser as jest.Mock).mockResolvedValue({
+      id: "org-2",
+      slug: "client-workspace",
+    });
 
     const pageModule = await import("../../src/app/(protected)/(global)/dashboard/page");
 
     await expect(pageModule.default()).rejects.toThrow(
       `redirect:${routes.dashboard.pages.organization_dashboard.path({
-        organizationId: "org-2",
+        organizationKey: "client-workspace",
       })}`
     );
   });

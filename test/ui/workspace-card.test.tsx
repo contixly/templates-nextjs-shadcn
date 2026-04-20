@@ -72,6 +72,9 @@ describe("WorkspaceCard", () => {
     expect(screen.getByText("Client Workspace")).toBeInTheDocument();
     expect(screen.getByText("Slug")).toBeInTheDocument();
     expect(screen.getByText("client-workspace")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Open workspace" })).toHaveAttribute("href", "/org-42");
+    expect(screen.getByRole("link", { name: "Open workspace" })).toHaveAttribute(
+      "href",
+      "/client-workspace"
+    );
   });
 });

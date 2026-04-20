@@ -4,24 +4,33 @@ import type { Metadata } from "next";
 import { buildPageMetadata } from "@lib/metadata";
 import workspaceRoutes from "@features/workspaces/workspaces-routes";
 import { OrganizationRouteGuard } from "@features/organizations/components/organization-route-guard";
+import { getOrganizationRouteKey } from "@features/organizations/organizations-context";
 
 interface WorkspacePageProps {
-  params: Promise<{ organizationId: string }>;
+  params: Promise<{ organizationKey: string }>;
 }
 
-const OrganizationDashboardRedirect = ({ organizationId }: { organizationId: string }) => {
-  redirect(routes.dashboard.pages.organization_dashboard.path({ organizationId }));
+const OrganizationDashboardRedirect = ({
+  organization,
+}: {
+  organization: { id: string; slug?: string | null };
+}) => {
+  redirect(
+    routes.dashboard.pages.organization_dashboard.path({
+      organizationKey: getOrganizationRouteKey(organization),
+    })
+  );
 };
 
 export const generateMetadata = async ({ params }: WorkspacePageProps): Promise<Metadata> =>
   buildPageMetadata(workspaceRoutes.pages.workspace, await params);
 
 export default async function WorkspacePage({ params }: WorkspacePageProps) {
-  const { organizationId } = await params;
+  const { organizationKey } = await params;
 
   return (
-    <OrganizationRouteGuard organizationId={organizationId}>
-      <OrganizationDashboardRedirect organizationId={organizationId} />
+    <OrganizationRouteGuard organizationKey={organizationKey}>
+      {(organization) => <OrganizationDashboardRedirect organization={organization} />}
     </OrganizationRouteGuard>
   );
 }

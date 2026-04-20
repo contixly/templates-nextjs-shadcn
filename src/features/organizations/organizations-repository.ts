@@ -89,6 +89,40 @@ export const findFirstAccessibleOrganizationByIdAndUserId = async (
   });
 };
 
+export const findFirstAccessibleOrganizationByKeyAndUserId = async (
+  organizationKey: string,
+  userId: string,
+  select?: Prisma.OrganizationSelect
+) => {
+  "use cache";
+  cacheLife("hours");
+  cacheTag(CACHE_OrganizationsByUserIdTag(userId));
+
+  logger
+    .child({
+      function: "findFirstAccessibleOrganizationByKeyAndUserId",
+      organizationKey,
+      userId,
+    })
+    .debug("Fetching accessible organization by route key");
+
+  return prisma.organization.findFirst({
+    where: {
+      OR: [{ id: organizationKey }, { slug: organizationKey }],
+      members: {
+        some: {
+          userId,
+        },
+      },
+    },
+    select: {
+      id: true,
+      slug: true,
+      ...(select ?? {}),
+    },
+  });
+};
+
 export const findDefaultOrganizationByUserId = async (userId: string) => {
   "use cache";
   cacheLife("hours");
@@ -183,6 +217,25 @@ export const findWorkspaceDtoByIdAndUserId = async (
   const organization = await prisma.organization.findFirst({
     where: {
       id: organizationId,
+      members: {
+        some: {
+          userId,
+        },
+      },
+    },
+    select: workspaceSelect,
+  });
+
+  return organization ? toWorkspaceDto(organization) : null;
+};
+
+export const findWorkspaceDtoByKeyAndUserId = async (
+  organizationKey: string,
+  userId: string
+): Promise<OrganizationWorkspaceDto | null> => {
+  const organization = await prisma.organization.findFirst({
+    where: {
+      OR: [{ id: organizationKey }, { slug: organizationKey }],
       members: {
         some: {
           userId,

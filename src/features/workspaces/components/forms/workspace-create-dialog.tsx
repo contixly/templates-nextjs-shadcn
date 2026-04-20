@@ -9,8 +9,8 @@ import { Checkbox } from "@components/ui/checkbox";
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@components/ui/field";
 import { Input } from "@components/ui/input";
 import {
-  CreateWorkspaceInput,
   createWorkspaceFormSchema,
+  CreateWorkspaceInput,
 } from "@features/workspaces/workspaces-schemas";
 import { Modal, ModalProps } from "@components/ui/custom/modal";
 import { IconPlus } from "@tabler/icons-react";
@@ -22,6 +22,7 @@ import { useAnyTranslations } from "@/src/i18n/use-any-translations";
 import { translateWorkspaceErrorMessage } from "@features/workspaces/workspaces-errors";
 import { useRouter } from "next/navigation";
 import routes from "@features/routes";
+import { getOrganizationRouteKey } from "@features/organizations/organizations-context";
 
 interface CreateWorkspaceDialogProps {
   onSuccess?: DispatchWithoutAction;
@@ -70,9 +71,13 @@ export const WorkspaceCreateDialog = ({
         toast.success(tWorkspaces("success"));
         onOpenChange(false);
         onSuccess?.();
-        router.push(
-          routes.dashboard.pages.organization_dashboard.path({ organizationId: result.data.id })
-        );
+        if (result.data?.slug || result.data?.id) {
+          router.push(
+            routes.dashboard.pages.organization_dashboard.path({
+              organizationKey: getOrganizationRouteKey(result.data),
+            })
+          );
+        }
         router.refresh();
       } else {
         toast.error(tWorkspaces("errorTitle"), {

@@ -66,7 +66,7 @@ describe("WorkspaceSwitcher", () => {
   });
 
   it("uses the workspace from the current URL context in the breadcrumb label", async () => {
-    mockUseParams.mockReturnValue({ organizationId: "workspace-2" });
+    mockUseParams.mockReturnValue({ organizationKey: "client-workspace" });
 
     await act(async () => {
       render(
@@ -105,7 +105,7 @@ describe("WorkspaceSwitcher", () => {
   });
 
   it("does not rewrite the active organization while rendering a deep link", async () => {
-    mockUseParams.mockReturnValue({ organizationId: "workspace-2" });
+    mockUseParams.mockReturnValue({ organizationKey: "client-workspace" });
 
     await act(async () => {
       render(

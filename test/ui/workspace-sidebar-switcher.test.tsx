@@ -90,7 +90,7 @@ describe("WorkspaceSidebarSwitcher", () => {
   });
 
   it("uses the workspace from the current URL context instead of the default workspace", async () => {
-    mockUseParams.mockReturnValue({ organizationId: "workspace-2" });
+    mockUseParams.mockReturnValue({ organizationKey: "client-workspace" });
 
     await act(async () => {
       render(
@@ -131,7 +131,7 @@ describe("WorkspaceSidebarSwitcher", () => {
   });
 
   it("changes the active workspace and navigates to its dashboard when the user selects another workspace", async () => {
-    mockUseParams.mockReturnValue({ organizationId: "workspace-1" });
+    mockUseParams.mockReturnValue({ organizationKey: "default-workspace" });
     (setActiveOrganization as jest.Mock).mockResolvedValue({
       success: true,
       data: { organizationId: "workspace-2" },
@@ -179,7 +179,7 @@ describe("WorkspaceSidebarSwitcher", () => {
 
     await waitFor(() => {
       expect(setActiveOrganization).toHaveBeenCalledWith({ organizationId: "workspace-2" });
-      expect(mockPush).toHaveBeenCalledWith("/workspace-2/dashboard");
+      expect(mockPush).toHaveBeenCalledWith("/client-workspace/dashboard");
       expect(mockRefresh).toHaveBeenCalled();
     });
   });

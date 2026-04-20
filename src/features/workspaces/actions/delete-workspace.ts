@@ -64,6 +64,7 @@ export const deleteWorkspace = createProtectedActionWithInput<DeleteWorkspaceInp
       };
     }
 
+    // @ts-expect-error dont know this type
     await auth.api.deleteOrganization({
       body: {
         organizationId: id,

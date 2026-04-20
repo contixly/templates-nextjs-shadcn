@@ -20,6 +20,7 @@ import { Spinner } from "@components/ui/spinner";
 import { useTranslations } from "next-intl";
 import { useAnyTranslations } from "@/src/i18n/use-any-translations";
 import { translateWorkspaceErrorMessage } from "@features/workspaces/workspaces-errors";
+import { useRouter } from "next/navigation";
 
 interface WorkspaceSettingsDialogProps {
   workspace: WorkspaceWithCounts | null;
@@ -36,6 +37,7 @@ export function WorkspaceSettingsDialog({
   const tCommon = useTranslations("common");
   const tWorkspaces = useTranslations("workspaces.ui.settingsDialog");
   const tAny = useAnyTranslations("workspaces");
+  const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [open, onOpenChange] = useState(false);
   const defaultValues = useMemo(
@@ -81,6 +83,7 @@ export function WorkspaceSettingsDialog({
         toast.success(tWorkspaces("success"));
         onOpenChange(false);
         onSuccess?.();
+        router.refresh();
       } else {
         toast.error(tWorkspaces("errorTitle"), {
           description:

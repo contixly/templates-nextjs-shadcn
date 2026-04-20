@@ -1,12 +1,31 @@
 import type {
+  OrganizationRouteIdentity,
   OrganizationRouteParams,
   OrganizationSessionContext,
   ResolveDefaultOrganizationIdOptions,
 } from "@features/organizations/organizations-types";
 
-export const resolveUrlOrganizationId = ({
+export const resolveUrlOrganizationKey = ({
+  organizationKey,
   organizationId,
-}: OrganizationRouteParams): string | null => organizationId ?? null;
+}: OrganizationRouteParams): string | null => organizationKey ?? organizationId ?? null;
+
+export const getOrganizationRouteKey = ({ id, slug }: OrganizationRouteIdentity): string =>
+  slug ?? id;
+
+export const organizationMatchesRouteKey = (
+  organization: OrganizationRouteIdentity,
+  organizationKey: string | null | undefined
+): boolean =>
+  Boolean(organizationKey) && [organization.id, organization.slug].includes(organizationKey);
+
+export const findOrganizationByRouteKey = <T extends OrganizationRouteIdentity>(
+  organizations: readonly T[],
+  organizationKey: string | null | undefined
+): T | null =>
+  organizations.find((organization) =>
+    organizationMatchesRouteKey(organization, organizationKey)
+  ) ?? null;
 
 export const getActiveOrganizationId = (
   session: OrganizationSessionContext | null | undefined

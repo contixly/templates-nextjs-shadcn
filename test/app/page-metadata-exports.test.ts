@@ -38,15 +38,15 @@ describe("login page metadata export", () => {
 describe("workspace og image export", () => {
   it("forwards workspace params to buildPageMetadata", async () => {
     const pageModule =
-      await import("../../src/app/(protected)/(global)/[organizationId]/opengraph-image");
+      await import("../../src/app/(protected)/(global)/[organizationKey]/opengraph-image");
     const mockedBuildPageMetadata = buildPageMetadata as jest.MockedFunction<
       typeof buildPageMetadata
     >;
 
-    await pageModule.default({ params: Promise.resolve({ organizationId: "workspace-123" }) });
+    await pageModule.default({ params: Promise.resolve({ organizationKey: "workspace-123" }) });
 
     expect(mockedBuildPageMetadata).toHaveBeenCalledWith(workspaceRoutes.pages.workspace, {
-      organizationId: "workspace-123",
+      organizationKey: "workspace-123",
     });
   });
 });

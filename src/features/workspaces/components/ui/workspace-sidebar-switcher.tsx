@@ -27,6 +27,10 @@ import routes from "@features/routes";
 import { setActiveOrganization } from "@features/organizations/actions/set-active-organization";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
+import {
+  findOrganizationByRouteKey,
+  getOrganizationRouteKey,
+} from "@features/organizations/organizations-context";
 
 interface WorkspaceSidebarSwitcherProps {
   loadUserWorkspacesPromise: Promise<ActionResult<WorkspaceWithCounts[]>>;
@@ -49,11 +53,11 @@ const WorkspaceSidebarSwitcherComponent = ({
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
-  const { organizationId } = useParams<{ organizationId?: string }>();
+  const { organizationKey } = useParams<{ organizationKey?: string }>();
   const { data } = use(loadUserWorkspacesPromise);
   const workspaces = data ?? [];
   const currentWorkspace =
-    workspaces.find((workspace) => workspace.id === organizationId) ??
+    findOrganizationByRouteKey(workspaces, organizationKey) ??
     workspaces.find((workspace) => workspace.isDefault) ??
     workspaces[0] ??
     null;
@@ -69,7 +73,7 @@ const WorkspaceSidebarSwitcherComponent = ({
   };
 
   const handleSelectWorkspace = (workspaceId: string) => {
-    if (workspaceId === currentWorkspace?.id && organizationId === workspaceId) {
+    if (workspaceId === currentWorkspace?.id) {
       setOpen(false);
       return;
     }
@@ -83,7 +87,11 @@ const WorkspaceSidebarSwitcherComponent = ({
       }
 
       navigateTo(
-        routes.dashboard.pages.organization_dashboard.path({ organizationId: workspaceId })
+        routes.dashboard.pages.organization_dashboard.path({
+          organizationKey: getOrganizationRouteKey(
+            workspaces.find((workspace) => workspace.id === workspaceId) ?? { id: workspaceId }
+          ),
+        })
       );
     });
   };
@@ -173,9 +181,7 @@ const WorkspaceSidebarSwitcherComponent = ({
                 <IconCheck
                   className={cn(
                     "size-4",
-                    workspace.id === currentWorkspace.id && organizationId === workspace.id
-                      ? "opacity-100"
-                      : "opacity-0"
+                    workspace.id === currentWorkspace.id ? "opacity-100" : "opacity-0"
                   )}
                 />
               </DropdownMenuItem>

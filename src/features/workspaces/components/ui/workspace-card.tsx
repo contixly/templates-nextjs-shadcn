@@ -15,6 +15,7 @@ import { WorkspaceDeleteDialog } from "@features/workspaces/components/forms/wor
 import { WorkspaceSettingsDialog } from "@features/workspaces/components/forms/workspace-settings-dialog";
 import { useTranslations } from "next-intl";
 import routes from "@features/routes";
+import { getOrganizationRouteKey } from "@features/organizations/organizations-context";
 
 interface WorkspaceCardProps {
   workspace: WorkspaceWithCounts;
@@ -51,7 +52,11 @@ export function WorkspaceCard({ workspace, canDelete, canChangeDefault }: Worksp
       </CardContent>
       <CardFooter className="flex flex-col gap-2">
         <Button asChild variant="outline" className="w-full">
-          <Link href={routes.workspaces.pages.workspace.path({ organizationId: workspace.id })}>
+          <Link
+            href={routes.workspaces.pages.workspace.path({
+              organizationKey: getOrganizationRouteKey(workspace),
+            })}
+          >
             {t("open")}
           </Link>
         </Button>

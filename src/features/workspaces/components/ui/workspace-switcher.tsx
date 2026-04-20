@@ -21,6 +21,10 @@ import { IconCheck, IconSelector, IconSettings } from "@tabler/icons-react";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { setActiveOrganization } from "@features/organizations/actions/set-active-organization";
+import {
+  findOrganizationByRouteKey,
+  getOrganizationRouteKey,
+} from "@features/organizations/organizations-context";
 
 interface WorkspaceSwitcherProps {
   loadUserWorkspacesPromise: Promise<ActionResult<WorkspaceWithCounts[]>>;
@@ -42,9 +46,11 @@ const WorkspaceSwitcherComponent = ({ loadUserWorkspacesPromise }: WorkspaceSwit
   const [open, setOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
 
-  const { organizationId: currentWorkspaceId } = useParams<{ organizationId?: string }>();
+  const { organizationKey } = useParams<{ organizationKey?: string }>();
   const { data: workspaces } = use(loadUserWorkspacesPromise);
-  const activeWorkspace = workspaces?.find((workspace) => workspace.id === currentWorkspaceId);
+  const activeWorkspace = workspaces
+    ? findOrganizationByRouteKey(workspaces, organizationKey)
+    : null;
 
   const handleSelectWorkspace = (workspaceId: string) => {
     if (workspaceId === activeWorkspace?.id) return;
@@ -58,13 +64,17 @@ const WorkspaceSwitcherComponent = ({ loadUserWorkspacesPromise }: WorkspaceSwit
 
       setOpen(false);
       router.push(
-        routes.dashboard.pages.organization_dashboard.path({ organizationId: workspaceId })
+        routes.dashboard.pages.organization_dashboard.path({
+          organizationKey: getOrganizationRouteKey(
+            workspaces?.find((workspace) => workspace.id === workspaceId) ?? { id: workspaceId }
+          ),
+        })
       );
       router.refresh();
     });
   };
 
-  if (!currentWorkspaceId) {
+  if (!organizationKey) {
     return null;
   }
 

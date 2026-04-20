@@ -10,10 +10,12 @@ import {
 } from "@features/organizations/organizations-repository";
 import {
   getActiveOrganizationId,
+  getOrganizationRouteKey,
   resolveDefaultOrganizationId,
 } from "@features/organizations/organizations-context";
 import routes from "@features/routes";
 import accountsRoutes from "@features/accounts/accounts-routes";
+import type { OrganizationSessionContext } from "@features/organizations/organizations-types";
 
 export const generateMetadata = async (): Promise<Metadata> =>
   buildPageMetadata(dashboardRoutes.pages.application_dashboard);
@@ -34,7 +36,7 @@ export default async function GlobalDashboardPage() {
 
   const organizationId = resolveDefaultOrganizationId({
     accessibleOrganizationIds: accessibleOrganizations.map((organization) => organization.id),
-    activeOrganizationId: getActiveOrganizationId(session),
+    activeOrganizationId: getActiveOrganizationId(session as OrganizationSessionContext),
     defaultOrganizationId: defaultOrganization?.id,
     fallbackOrganizationId: fallbackOrganization?.id,
   });
@@ -43,5 +45,17 @@ export default async function GlobalDashboardPage() {
     redirect(accountsRoutes.pages.welcome.path());
   }
 
-  redirect(routes.dashboard.pages.organization_dashboard.path({ organizationId }));
+  const organization = accessibleOrganizations.find(
+    (accessibleOrganization) => accessibleOrganization.id === organizationId
+  );
+
+  if (!organization) {
+    redirect(accountsRoutes.pages.welcome.path());
+  }
+
+  redirect(
+    routes.dashboard.pages.organization_dashboard.path({
+      organizationKey: getOrganizationRouteKey(organization),
+    })
+  );
 }

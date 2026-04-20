@@ -16,7 +16,7 @@ const workspaceRoutes: WorkspaceRoutes = buildFeature("workspaces", {
       },
     },
     workspace: {
-      pathTemplate: "/[organizationId]",
+      pathTemplate: "/[organizationKey]",
     },
   },
 });

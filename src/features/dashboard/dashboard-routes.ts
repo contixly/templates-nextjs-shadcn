@@ -12,7 +12,7 @@ const dashboardRoutes: DashboardRoutes = buildFeature("dashboard", {
       hidePageHeaderOnMobile: true,
     },
     organization_dashboard: {
-      pathTemplate: "/[organizationId]/dashboard",
+      pathTemplate: "/[organizationKey]/dashboard",
       hidePageHeader: true,
       hidePageHeaderOnMobile: true,
     },
