@@ -63,6 +63,13 @@ export const createWorkspace = createProtectedActionWithInput<
       });
     }
 
+    await auth.api.setActiveOrganization({
+      body: {
+        organizationId: organization.id,
+      },
+      headers: await headers(),
+    });
+
     logger.debug("Created new Workspace for user");
 
     updateWorkspaceCache({ workspaceId: organization.id, userId });

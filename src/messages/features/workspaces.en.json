@@ -52,6 +52,9 @@
       "nameLabel": "Workspace Name",
       "namePlaceholder": "e.g., Work, Personal, Projects",
       "nameHint": "Maximum 50 characters",
+      "slugLabel": "Workspace Slug",
+      "slugPlaceholder": "e.g., work-personal-projects",
+      "slugHint": "Lowercase letters, numbers, and hyphens only",
       "defaultLabel": "Set as default workspace",
       "success": "Workspace updated successfully",
       "errorTitle": "Update Workspace",
@@ -60,7 +63,7 @@
     "deleteDialog": {
       "title": "Delete Workspace?",
       "description": "This action cannot be undone. The workspace record will be permanently removed.",
-      "defaultWorkspaceNotice": "This is your default workspace. Another workspace will be set as default after deletion.",
+      "defaultWorkspaceNotice": "Default workspaces cannot be deleted. Set another workspace as default first.",
       "confirmationLabel": "To confirm, please type “{name}” below in the box below",
       "confirmationPlaceholder": "Type name of workspace to confirm deletion",
       "success": "Workspace deleted successfully",
@@ -82,13 +85,14 @@
         },
         "switch": {
           "title": "Switch Between Workspaces",
-          "description": "Easily switch between workspaces using the dropdown in the header to focus on what matters."
+          "description": "Use the workspace switcher in the sidebar to move between contexts without losing your place."
         }
       }
     },
     "card": {
       "default": "Default workspace",
       "custom": "Custom workspace",
+      "slugLabel": "Slug",
       "summary": "Use this card to summarize what lives under this workspace once you add your own entities.",
       "open": "Open workspace"
     },

@@ -6,8 +6,7 @@ import type {
 
 export const resolveUrlOrganizationId = ({
   organizationId,
-  workspaceId,
-}: OrganizationRouteParams): string | null => organizationId ?? workspaceId ?? null;
+}: OrganizationRouteParams): string | null => organizationId ?? null;
 
 export const getActiveOrganizationId = (
   session: OrganizationSessionContext | null | undefined

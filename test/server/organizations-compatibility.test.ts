@@ -35,9 +35,8 @@ describe("organization workspace compatibility", () => {
     });
   });
 
-  it("resolves the current url organization id from either the new or legacy route param", () => {
+  it("resolves the current url organization id from the organization route param", () => {
     expect(resolveUrlOrganizationId({ organizationId: "org_123" })).toBe("org_123");
-    expect(resolveUrlOrganizationId({ workspaceId: "org_456" })).toBe("org_456");
     expect(resolveUrlOrganizationId({})).toBeNull();
   });
 

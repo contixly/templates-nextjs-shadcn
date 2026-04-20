@@ -19,13 +19,13 @@
 
 ## 4. Workspace UX on Top of Organizations
 
-- [ ] 4.1 Rebuild the sidebar workspace switcher in the target `org-switcher` style while keeping workspace terminology in the UI
+- [x] 4.1 Rebuild the sidebar workspace switcher in the target `org-switcher` style while keeping workspace terminology in the UI
 - [x] 4.2 Update breadcrumb workspace selection to reflect the workspace from URL context instead of session active context
-- [ ] 4.3 Rebuild `/workspaces` to manage Better Auth organizations through the existing workspace UX, including create and settings flows
+- [x] 4.3 Rebuild `/workspaces` to manage Better Auth organizations through the existing workspace UX, including create and settings flows
 - [x] 4.4 Add the reusable onboarding block to the welcome page with create-workspace and invitation entry actions
 
 ## 5. Cleanup and Verification
 
-- [ ] 5.1 Remove or retire legacy workspace repositories/actions/components that depend on the deleted Prisma `Workspace` model
-- [ ] 5.2 Update route helpers, metadata, translations, and tests from `workspaceId` assumptions to organization-backed workspace behavior
-- [ ] 5.3 Run lint/tests relevant to routing, auth, and workspace management, then verify the new OpenSpec requirements are covered by implementation
+- [x] 5.1 Remove or retire legacy workspace repositories/actions/components that depend on the deleted Prisma `Workspace` model
+- [x] 5.2 Update route helpers, metadata, translations, and tests from `workspaceId` assumptions to organization-backed workspace behavior
+- [x] 5.3 Run lint/tests relevant to routing, auth, and workspace management, then verify the new OpenSpec requirements are covered by implementation

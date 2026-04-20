@@ -20,6 +20,8 @@ import { useTranslations } from "next-intl";
 import { cn } from "@lib/utils";
 import { useAnyTranslations } from "@/src/i18n/use-any-translations";
 import { translateWorkspaceErrorMessage } from "@features/workspaces/workspaces-errors";
+import { useRouter } from "next/navigation";
+import routes from "@features/routes";
 
 interface CreateWorkspaceDialogProps {
   onSuccess?: DispatchWithoutAction;
@@ -33,6 +35,7 @@ export const WorkspaceCreateDialog = ({
   const tCommon = useTranslations("common");
   const tWorkspaces = useTranslations("workspaces.ui.createDialog");
   const tAny = useAnyTranslations("workspaces");
+  const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [open, onOpenChange] = useState(false);
   const localizedTrigger =
@@ -67,6 +70,10 @@ export const WorkspaceCreateDialog = ({
         toast.success(tWorkspaces("success"));
         onOpenChange(false);
         onSuccess?.();
+        router.push(
+          routes.dashboard.pages.organization_dashboard.path({ organizationId: result.data.id })
+        );
+        router.refresh();
       } else {
         toast.error(tWorkspaces("errorTitle"), {
           description:

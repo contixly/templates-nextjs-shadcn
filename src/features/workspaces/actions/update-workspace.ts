@@ -4,7 +4,6 @@ import { HttpCodes } from "@typings/network";
 import { type UpdateWorkspaceInput, updateWorkspaceSchema } from "../workspaces-schemas";
 import { updateWorkspaceCache, WorkspaceWithCounts } from "../workspaces-types";
 import { createProtectedActionWithInput } from "@lib/actions";
-import { findFirstWorkspaceByIdAndUserId } from "@features/workspaces/workspaces-repository";
 import { forbidden } from "next/navigation";
 import { auth } from "@server/auth";
 import { headers } from "next/headers";
@@ -12,6 +11,7 @@ import prisma from "@server/prisma";
 import { workspacesLogger } from "@features/workspaces/workspaces-logger";
 import { WORKSPACE_ERROR_KEYS } from "@features/workspaces/workspaces-errors";
 import {
+  findFirstAccessibleOrganizationByIdAndUserId,
   findManyAccessibleOrganizationsByUserId,
   findWorkspaceDtoByIdAndUserId,
   generateOrganizationSlug,
@@ -24,7 +24,7 @@ export const updateWorkspace = createProtectedActionWithInput<
   updateWorkspaceSchema,
   async (input: UpdateWorkspaceInput, { userId, logger }) => {
     const { id, name, slug, isDefault } = input;
-    const existingWorkspace = await findFirstWorkspaceByIdAndUserId(id, userId, {
+    const existingWorkspace = await findFirstAccessibleOrganizationByIdAndUserId(id, userId, {
       name: true,
       isDefault: true,
       slug: true,

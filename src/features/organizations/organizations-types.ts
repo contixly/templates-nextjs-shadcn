@@ -4,7 +4,6 @@ export interface OrganizationSessionContext {
 
 export interface OrganizationRouteParams {
   organizationId?: string | null;
-  workspaceId?: string | null;
 }
 
 export interface OrganizationWorkspaceDto {

@@ -2,6 +2,9 @@ import "@testing-library/jest-dom";
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import React from "react";
 
+const mockPush = jest.fn();
+const mockRefresh = jest.fn();
+
 jest.mock("next-intl", () => ({
   useLocale: () => "ru",
   useTranslations: (namespace: string) => (key: string) => {
@@ -55,6 +58,13 @@ jest.mock("next-intl", () => ({
   },
 }));
 
+jest.mock("next/navigation", () => ({
+  useRouter: () => ({
+    push: mockPush,
+    refresh: mockRefresh,
+  }),
+}));
+
 jest.mock("../../src/components/ui/custom/modal", () => ({
   Modal: ({ children, trigger }: { children?: React.ReactNode; trigger?: React.ReactNode }) => (
     <div>
@@ -92,7 +102,10 @@ describe("WorkspaceCreateDialog", () => {
 
   beforeEach(() => {
     (toast.error as jest.Mock).mockReset();
+    (toast.success as jest.Mock).mockReset();
     (createWorkspace as jest.Mock).mockReset();
+    mockPush.mockReset();
+    mockRefresh.mockReset();
   });
 
   it("renders localized validation errors for invalid workspace names", async () => {
@@ -180,6 +193,31 @@ describe("WorkspaceCreateDialog", () => {
       expect(toast.error).toHaveBeenCalledWith("Создание рабочего пространства", {
         description: "500",
       });
+    });
+  });
+
+  it("redirects to the created workspace dashboard after success", async () => {
+    (createWorkspace as jest.Mock).mockResolvedValue({
+      success: true,
+      data: {
+        id: "d6qzollaqro6y66v7j52bhqo",
+      },
+    });
+
+    render(<WorkspaceCreateDialog />);
+
+    const input = screen.getByLabelText("Название рабочего пространства");
+    fireEvent.change(input, {
+      target: { value: "Работа" },
+    });
+
+    await act(async () => {
+      fireEvent.submit(input.closest("form")!);
+    });
+
+    await waitFor(() => {
+      expect(mockPush).toHaveBeenCalledWith("/d6qzollaqro6y66v7j52bhqo/dashboard");
+      expect(mockRefresh).toHaveBeenCalled();
     });
   });
 });

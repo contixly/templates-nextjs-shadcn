@@ -40,6 +40,10 @@ export function WorkspaceCard({ workspace, canDelete, canChangeDefault }: Worksp
         </div>
       </CardHeader>
       <CardContent className="flex-1">
+        <div className="mb-4 flex items-center justify-between gap-3 text-sm">
+          <span className="text-muted-foreground">{t("slugLabel")}</span>
+          <code className="bg-muted rounded px-2 py-1 text-xs">{workspace.slug ?? "n/a"}</code>
+        </div>
         <p className="text-muted-foreground text-sm">
           {/* Template placeholder — add domain-specific metrics or links when you model relations in Prisma. */}
           {t("summary")}

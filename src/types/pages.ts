@@ -2,7 +2,7 @@ import { PartialRecord } from "@typings/common";
 import { Icon } from "@tabler/icons-react";
 import type { I18nMessages } from "@/src/i18n/messages";
 
-export type PathParametersType = "organizationId" | "workspaceId" | "query";
+export type PathParametersType = "organizationId" | "query";
 export type PageNamespace = {
   [FeatureName in keyof I18nMessages]: I18nMessages[FeatureName] extends {
     pages: infer Pages;

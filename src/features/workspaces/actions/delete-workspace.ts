@@ -6,11 +6,13 @@ import { createProtectedActionWithInput } from "@lib/actions";
 import { workspacesLogger } from "@features/workspaces/workspaces-logger";
 import { auth } from "@server/auth";
 import { headers } from "next/headers";
-import { findFirstWorkspaceByIdAndUserId } from "../workspaces-repository";
 import { forbidden } from "next/navigation";
 import { updateWorkspaceCache } from "@features/workspaces/workspaces-types";
 import { WORKSPACE_ERROR_KEYS } from "@features/workspaces/workspaces-errors";
-import { countAccessibleOrganizationsByUserId } from "@features/organizations/organizations-repository";
+import {
+  countAccessibleOrganizationsByUserId,
+  findFirstAccessibleOrganizationByIdAndUserId,
+} from "@features/organizations/organizations-repository";
 
 /** Deletes a workspace row after ownership checks (see Prisma schema for cascade rules). */
 export const deleteWorkspace = createProtectedActionWithInput<DeleteWorkspaceInput, void>(
@@ -19,7 +21,7 @@ export const deleteWorkspace = createProtectedActionWithInput<DeleteWorkspaceInp
     const { id, confirmationText } = input;
 
     // 3. Verify Workspace ownership and get Workspace data
-    const workspaceToDelete = await findFirstWorkspaceByIdAndUserId(id, userId, {
+    const workspaceToDelete = await findFirstAccessibleOrganizationByIdAndUserId(id, userId, {
       name: true,
       isDefault: true,
     });

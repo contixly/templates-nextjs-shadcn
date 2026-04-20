@@ -1,15 +1,15 @@
 "use server";
 
-import { findManyWorkspacesByUserId } from "@features/workspaces/workspaces-repository";
+import { findManyAccessibleOrganizationsByUserId } from "@features/organizations/organizations-repository";
 import type { WorkspaceWithCounts } from "@features/workspaces/workspaces-types";
 import { createProtectedAction } from "@lib/actions";
 import { workspacesLogger } from "@features/workspaces/workspaces-logger";
 
-/** Loads all workspaces for the authenticated user (see `findManyWorkspacesByUserId`). */
+/** Loads all organization-backed workspaces for the authenticated user. */
 export const loadUserWorkspaces = createProtectedAction<WorkspaceWithCounts[]>(
   async ({ userId, logger }) => {
     logger.debug("Fetching all workspaces for authenticated user");
-    const workspaces = await findManyWorkspacesByUserId(userId);
+    const workspaces = await findManyAccessibleOrganizationsByUserId(userId);
 
     // 4. Return success with data
     return {

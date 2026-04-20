@@ -42,9 +42,10 @@ export function WorkspaceSettingsDialog({
     () => ({
       id: workspace?.id,
       name: workspace?.name ?? "",
+      slug: workspace?.slug ?? "",
       isDefault: workspace?.isDefault ?? false,
     }),
-    [workspace?.id, workspace?.isDefault, workspace?.name]
+    [workspace?.id, workspace?.isDefault, workspace?.name, workspace?.slug]
   );
 
   const formSchema = useMemo(
@@ -126,6 +127,27 @@ export function WorkspaceSettingsDialog({
                     autoComplete="off"
                   />
                   <FieldDescription className="text-xs">{tWorkspaces("nameHint")}</FieldDescription>
+                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                </Field>
+              )}
+            />
+            <Controller
+              name="slug"
+              control={control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor="edit-workspace-slug">{tWorkspaces("slugLabel")}</FieldLabel>
+                  <Input
+                    {...field}
+                    value={field.value ?? ""}
+                    id="edit-workspace-slug"
+                    aria-invalid={fieldState.invalid}
+                    placeholder={tWorkspaces("slugPlaceholder")}
+                    maxLength={50}
+                    disabled={isPending}
+                    autoComplete="off"
+                  />
+                  <FieldDescription className="text-xs">{tWorkspaces("slugHint")}</FieldDescription>
                   {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                 </Field>
               )}
