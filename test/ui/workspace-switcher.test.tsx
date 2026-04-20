@@ -1,12 +1,10 @@
 import "@testing-library/jest-dom";
-import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { act, render, screen } from "@testing-library/react";
 import React from "react";
-import { WorkspaceSidebarSwitcher } from "@features/workspaces/components/ui/workspace-sidebar-switcher";
+import { WorkspaceSwitcher } from "@features/workspaces/components/ui/workspace-switcher";
 import { setActiveOrganization } from "@features/organizations/actions/set-active-organization";
 
 const mockUseParams = jest.fn();
-const mockPush = jest.fn();
-const mockRefresh = jest.fn();
 
 jest.mock("next-intl", () => ({
   useTranslations: (namespace: string) => (key: string) => {
@@ -18,9 +16,6 @@ jest.mock("next-intl", () => ({
         manageWorkspaces: "Manage Workspaces",
         switchError: "Unable to switch workspaces right now.",
       },
-      "workspaces.ui.createDialog": {
-        trigger: "Create New Workspace",
-      },
     };
 
     return messages[namespace]?.[key] ?? key;
@@ -30,8 +25,8 @@ jest.mock("next-intl", () => ({
 jest.mock("next/navigation", () => ({
   useParams: () => mockUseParams(),
   useRouter: () => ({
-    push: mockPush,
-    refresh: mockRefresh,
+    push: jest.fn(),
+    refresh: jest.fn(),
   }),
 }));
 
@@ -45,27 +40,12 @@ jest.mock("sonner", () => ({
   },
 }));
 
-jest.mock("../../src/components/ui/sidebar", () => ({
-  SidebarMenu: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>,
-  SidebarMenuButton: ({ children }: { children?: React.ReactNode }) => <button>{children}</button>,
-  SidebarMenuItem: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>,
-  useSidebar: () => ({ isMobile: false, toggleSidebar: jest.fn() }),
-}));
-
 jest.mock("../../src/components/ui/dropdown-menu", () => ({
   DropdownMenu: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>,
   DropdownMenuTrigger: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>,
-  DropdownMenuContent: ({ children }: { children?: React.ReactNode }) => (
-    <div data-testid="workspace-switcher-menu">{children}</div>
-  ),
+  DropdownMenuContent: () => null,
   DropdownMenuLabel: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>,
-  DropdownMenuItem: ({
-    children,
-    onSelect,
-  }: {
-    children?: React.ReactNode;
-    onSelect?: () => void;
-  }) => <button onClick={onSelect}>{children}</button>,
+  DropdownMenuItem: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>,
   DropdownMenuSeparator: () => <div />,
 }));
 
@@ -73,28 +53,24 @@ jest.mock("../../src/components/ui/badge", () => ({
   Badge: ({ children }: { children?: React.ReactNode }) => <span>{children}</span>,
 }));
 
-jest.mock("../../src/components/ui/skeleton", () => ({
-  Skeleton: () => <div />,
+jest.mock("../../src/components/ui/breadcrumb", () => ({
+  BreadcrumbItem: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>,
+  BreadcrumbSeparator: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>,
+  BreadcrumbEllipsis: () => <div>...</div>,
 }));
 
-jest.mock("../../src/features/workspaces/components/forms/workspace-create-dialog", () => ({
-  WorkspaceCreateDialog: ({ trigger }: { trigger?: React.ReactNode }) => <div>{trigger}</div>,
-}));
-
-describe("WorkspaceSidebarSwitcher", () => {
+describe("WorkspaceSwitcher", () => {
   beforeEach(() => {
     mockUseParams.mockReset();
-    mockPush.mockReset();
-    mockRefresh.mockReset();
     (setActiveOrganization as jest.Mock).mockReset();
   });
 
-  it("uses the workspace from the current URL context instead of the default workspace", async () => {
+  it("uses the workspace from the current URL context in the breadcrumb label", async () => {
     mockUseParams.mockReturnValue({ organizationId: "workspace-2" });
 
     await act(async () => {
       render(
-        <WorkspaceSidebarSwitcher
+        <WorkspaceSwitcher
           loadUserWorkspacesPromise={Promise.resolve({
             success: true,
             data: [
@@ -124,22 +100,16 @@ describe("WorkspaceSidebarSwitcher", () => {
       );
     });
 
-    const trigger = screen.getAllByRole("button")[0];
-
-    expect(within(trigger).getByText("Client Workspace")).toBeInTheDocument();
-    expect(within(trigger).queryByText("Default Workspace")).not.toBeInTheDocument();
+    expect(screen.getByText("Client Workspace")).toBeInTheDocument();
+    expect(screen.queryByText("Default Workspace")).not.toBeInTheDocument();
   });
 
-  it("changes the active workspace and navigates to its dashboard when the user selects another workspace", async () => {
-    mockUseParams.mockReturnValue({ organizationId: "workspace-1" });
-    (setActiveOrganization as jest.Mock).mockResolvedValue({
-      success: true,
-      data: { organizationId: "workspace-2" },
-    });
+  it("does not rewrite the active organization while rendering a deep link", async () => {
+    mockUseParams.mockReturnValue({ organizationId: "workspace-2" });
 
     await act(async () => {
       render(
-        <WorkspaceSidebarSwitcher
+        <WorkspaceSwitcher
           loadUserWorkspacesPromise={Promise.resolve({
             success: true,
             data: [
@@ -169,18 +139,6 @@ describe("WorkspaceSidebarSwitcher", () => {
       );
     });
 
-    const menu = screen.getByTestId("workspace-switcher-menu");
-    const menuItem = within(menu).getByText("Client Workspace").closest("button");
-    expect(menuItem).not.toBeNull();
-
-    await act(async () => {
-      fireEvent.click(menuItem!);
-    });
-
-    await waitFor(() => {
-      expect(setActiveOrganization).toHaveBeenCalledWith({ organizationId: "workspace-2" });
-      expect(mockPush).toHaveBeenCalledWith("/workspace-2/dashboard");
-      expect(mockRefresh).toHaveBeenCalled();
-    });
+    expect(setActiveOrganization).not.toHaveBeenCalled();
   });
 });

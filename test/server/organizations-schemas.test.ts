@@ -1,4 +1,4 @@
-import { organizationIdSchema } from "../../src/features/organizations/organizations-schemas";
+import { organizationIdSchema } from "@features/organizations/organizations-schemas";
 
 describe("organizationIdSchema", () => {
   it("accepts Better Auth mixed-case organization ids", () => {

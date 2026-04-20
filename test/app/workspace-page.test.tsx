@@ -1,6 +1,8 @@
 import "@testing-library/jest-dom";
 import { render, screen } from "@testing-library/react";
 import React from "react";
+import fs from "node:fs";
+import path from "node:path";
 import routes from "../../src/features/routes";
 import { OrganizationRouteGuard } from "../../src/features/organizations/components/organization-route-guard";
 
@@ -63,5 +65,15 @@ describe("workspace page loading route", () => {
     render(<pageModule.default />);
 
     expect(screen.getByRole("status", { name: "Loading" })).toBeInTheDocument();
+  });
+
+  it("keeps the full-route fallback in loading.tsx instead of defining page-level Suspense in page.tsx", () => {
+    const pageSource = fs.readFileSync(
+      path.join(process.cwd(), "src/app/(protected)/(global)/[organizationId]/page.tsx"),
+      "utf8"
+    );
+
+    expect(pageSource).not.toContain("Suspense");
+    expect(pageSource).not.toContain("fallback=");
   });
 });

@@ -1,6 +1,9 @@
 import "@testing-library/jest-dom";
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import React from "react";
+import { WorkspaceCreateDialog } from "@features/workspaces/components/forms/workspace-create-dialog";
+import { createWorkspace } from "@features/workspaces/actions/create-workspace";
+import { toast } from "sonner";
 
 const mockPush = jest.fn();
 const mockRefresh = jest.fn();
@@ -84,10 +87,6 @@ jest.mock("sonner", () => ({
     success: jest.fn(),
   },
 }));
-
-import { WorkspaceCreateDialog } from "../../src/features/workspaces/components/forms/workspace-create-dialog";
-import { createWorkspace } from "../../src/features/workspaces/actions/create-workspace";
-import { toast } from "sonner";
 
 describe("WorkspaceCreateDialog", () => {
   beforeAll(() => {

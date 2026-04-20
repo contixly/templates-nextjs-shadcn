@@ -3,12 +3,12 @@
 import {
   toWorkspaceDto,
   type OrganizationWorkspaceRecord,
-} from "../../src/features/organizations/organizations-dto";
+} from "@features/organizations/organizations-dto";
 import {
   getActiveOrganizationId,
   resolveDefaultOrganizationId,
   resolveUrlOrganizationId,
-} from "../../src/features/organizations/organizations-context";
+} from "@features/organizations/organizations-context";
 
 describe("organization workspace compatibility", () => {
   it("maps an organization record into the legacy workspace dto shape", () => {

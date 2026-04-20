@@ -1,4 +1,4 @@
-import { buildPageMetadata } from "../../src/lib/metadata";
+import { buildPageMetadata } from "@lib/metadata";
 import accountsRoutes from "../../src/features/accounts/accounts-routes";
 import workspaceRoutes from "../../src/features/workspaces/workspaces-routes";
 
