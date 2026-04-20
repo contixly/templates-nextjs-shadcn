@@ -5,9 +5,10 @@ import { auth } from "@server/auth";
 import { headers } from "next/headers";
 import { createProtectedActionWithInput } from "@lib/actions";
 import { organizationsLogger } from "@features/organizations/organizations-logger";
+import { organizationIdSchema } from "@features/organizations/organizations-schemas";
 
 const setActiveOrganizationSchema = z.object({
-  organizationId: z.string().cuid2(),
+  organizationId: organizationIdSchema,
 });
 
 export const setActiveOrganization = createProtectedActionWithInput<
@@ -16,6 +17,7 @@ export const setActiveOrganization = createProtectedActionWithInput<
 >(
   setActiveOrganizationSchema,
   async ({ organizationId }, { logger }) => {
+    // @ts-expect-error no types for this
     await auth.api.setActiveOrganization({
       body: {
         organizationId,

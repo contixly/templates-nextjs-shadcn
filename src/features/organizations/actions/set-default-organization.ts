@@ -5,13 +5,14 @@ import prisma from "@server/prisma";
 import { createProtectedActionWithInput } from "@lib/actions";
 import { organizationsLogger } from "@features/organizations/organizations-logger";
 import { findWorkspaceDtoByIdAndUserId } from "@features/organizations/organizations-repository";
+import { organizationIdSchema } from "@features/organizations/organizations-schemas";
 import {
   updateWorkspaceCache,
   type WorkspaceWithCounts,
 } from "@features/workspaces/workspaces-types";
 
 const setDefaultOrganizationSchema = z.object({
-  organizationId: z.string().cuid2(),
+  organizationId: organizationIdSchema,
 });
 
 export const setDefaultOrganization = createProtectedActionWithInput<
