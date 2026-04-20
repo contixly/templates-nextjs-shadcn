@@ -4,9 +4,16 @@ import { HttpCodes } from "@typings/network";
 import { type CreateWorkspaceInput, createWorkspaceSchema } from "../workspaces-schemas";
 import { updateWorkspaceCache, WorkspaceWithCounts } from "../workspaces-types";
 import { createProtectedActionWithInput } from "@lib/actions";
+import { auth } from "@server/auth";
+import { headers } from "next/headers";
 import prisma from "@server/prisma";
 import { workspacesLogger } from "@features/workspaces/workspaces-logger";
 import { WORKSPACE_ERROR_KEYS } from "@features/workspaces/workspaces-errors";
+import {
+  findManyAccessibleOrganizationsByUserId,
+  findWorkspaceDtoByIdAndUserId,
+  generateOrganizationSlug,
+} from "@features/organizations/organizations-repository";
 
 export const createWorkspace = createProtectedActionWithInput<
   CreateWorkspaceInput,
@@ -16,13 +23,9 @@ export const createWorkspace = createProtectedActionWithInput<
   async (input, { userId, logger }) => {
     const { name, isDefault } = input;
 
-    const existingWorkspace = await prisma.workspace.findFirst({
-      where: {
-        userId,
-        name: { mode: "insensitive", equals: name },
-      },
-      select: { id: true },
-    });
+    const existingWorkspace = (await findManyAccessibleOrganizationsByUserId(userId)).find(
+      (workspace) => workspace.name.trim().toLowerCase() === name.trim().toLowerCase()
+    );
 
     if (existingWorkspace) {
       return {
@@ -31,40 +34,53 @@ export const createWorkspace = createProtectedActionWithInput<
       };
     }
 
-    // 4. Create a Workspace with transaction for default handling
-    const newWorkspace = await prisma.$transaction(async (tx) => {
-      // If setting as default, unset previous default
-      if (isDefault) {
-        await tx.workspace.updateMany({
-          where: {
-            userId,
-            isDefault: true,
-          },
-          data: {
-            isDefault: false,
-          },
-        });
-      }
+    const slug = await generateOrganizationSlug(name);
+    const organization = await auth.api.createOrganization({
+      body: {
+        name,
+        slug,
+        isDefault: isDefault || false,
+      },
+      headers: await headers(),
+    });
 
-      // Create a new Workspace
-      return tx.workspace.create({
+    if (isDefault) {
+      await prisma.organization.updateMany({
+        where: {
+          id: {
+            not: organization.id,
+          },
+          isDefault: true,
+          members: {
+            some: {
+              userId,
+            },
+          },
+        },
         data: {
-          name,
-          userId,
-          isDefault: isDefault || false,
+          isDefault: false,
         },
       });
-    });
+    }
 
     logger.debug("Created new Workspace for user");
 
-    // 5. Revalidate cache
-    updateWorkspaceCache({ workspaceId: newWorkspace.id, userId });
+    updateWorkspaceCache({ workspaceId: organization.id, userId });
 
-    // 6. Return success with data
+    const workspace = await findWorkspaceDtoByIdAndUserId(organization.id, userId);
+    if (!workspace) {
+      return {
+        success: false,
+        error: {
+          message: "500",
+          code: HttpCodes.SERVER_ERROR,
+        },
+      };
+    }
+
     return {
       success: true,
-      data: newWorkspace,
+      data: workspace as WorkspaceWithCounts,
     };
   },
   {

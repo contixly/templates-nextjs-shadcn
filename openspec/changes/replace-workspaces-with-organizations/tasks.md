@@ -1,13 +1,13 @@
 ## 1. Auth and Schema Baseline
 
-- [ ] 1.1 Add Better Auth `organization()` server plugin and `organizationClient()` client plugin, including organization schema extensions for `isDefault`
-- [ ] 1.2 Remove the Prisma `Workspace` model and delete legacy Prisma migration history from the repository
-- [ ] 1.3 Regenerate Prisma schema/types and create a fresh initial migration that includes Better Auth organization/session fields
+- [x] 1.1 Add Better Auth `organization()` server plugin and `organizationClient()` client plugin, including organization schema extensions for `isDefault`
+- [x] 1.2 Remove the Prisma `Workspace` model and delete legacy Prisma migration history from the repository
+- [x] 1.3 Regenerate Prisma schema/types and create a fresh initial migration that includes Better Auth organization/session fields
 
 ## 2. Organization Domain Slice
 
-- [ ] 2.1 Create `features/organizations` with organization types, DTO adapters, and context helpers for URL, active session, and default organization resolution
-- [ ] 2.2 Implement organization-backed loaders/repositories for accessible organizations, default organization lookup, and membership validation
+- [x] 2.1 Create `features/organizations` with organization types, DTO adapters, and context helpers for URL, active session, and default organization resolution
+- [x] 2.2 Implement organization-backed loaders/repositories for accessible organizations, default organization lookup, and membership validation
 - [ ] 2.3 Implement organization actions for create workspace, update workspace name/slug, set default workspace, and set active organization explicitly
 
 ## 3. Routing and Guard Flow

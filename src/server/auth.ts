@@ -1,14 +1,11 @@
 import "server-only";
 
 import { betterAuth } from "better-auth/minimal";
-import { genericOAuth, lastLoginMethod } from "better-auth/plugins";
+import { genericOAuth, lastLoginMethod, organization } from "better-auth/plugins";
 import prisma from "@server/prisma";
 import { APP_BASE_DOMAIN, APP_COOKIE_PREFIX, LAST_LOGIN_METHOD_KEY } from "@lib/environment";
 import { nextCookies } from "better-auth/next-js";
 import { BetterAuthOptions } from "@better-auth/core";
-import { workspacesLogger } from "@features/workspaces/workspaces-logger";
-import { createDefaultWorkspaceForUser } from "@features/workspaces/actions/create-default-workspace-for-user";
-import { createAuthMiddleware } from "better-auth/api";
 import { prismaAdapter } from "@better-auth/prisma-adapter";
 import { BetterAuthAdvancedOptions, isProduction } from "better-auth";
 import { socialsProviders } from "@typings/auth";
@@ -18,16 +15,6 @@ export const auth = betterAuth({
   database: prismaAdapter(prisma, {
     provider: "postgresql",
   }),
-  hooks: {
-    after: createAuthMiddleware(async (ctx) => {
-      if (ctx.path.startsWith("/callback/:id")) {
-        const { user: { id: userId } = {} } = ctx.context.newSession ?? {};
-        if (userId) {
-          await createDefaultWorkspaceForUser(userId, workspacesLogger.child({ userId }));
-        }
-      }
-    }),
-  },
   emailAndPassword: {
     enabled: false,
   },
@@ -73,6 +60,24 @@ export const auth = betterAuth({
     nextCookies(),
     lastLoginMethod({
       cookieName: LAST_LOGIN_METHOD_KEY,
+    }),
+    organization({
+      schema: {
+        session: {
+          fields: {
+            activeOrganizationId: "activeOrganizationId",
+          },
+        },
+        organization: {
+          additionalFields: {
+            isDefault: {
+              type: "boolean",
+              required: false,
+              defaultValue: false,
+            },
+          },
+        },
+      },
     }),
     genericOAuth({
       config: [YandexOAuth2ClientConfig],

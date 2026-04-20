@@ -23,24 +23,26 @@ model User {
   updatedAt     DateTime @updatedAt
 
   // Relations
-  sessions   Session[]
-  accounts   Account[]
-  workspaces Workspace[]
+  sessions        Session[]
+  accounts        Account[]
+  members         Member[]
+  invitationsSent Invitation[] @relation("InvitationInviter")
 
   @@unique([email])
   @@map("users")
 }
 
 model Session {
-  id        String   @id @default(cuid(2))
-  expiresAt DateTime
-  token     String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  ipAddress String?
-  userAgent String?
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                   String   @id @default(cuid(2))
+  expiresAt            DateTime
+  token                String
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  ipAddress            String?
+  userAgent            String?
+  activeOrganizationId String?
+  userId               String
+  user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([token])
   @@index([userId])
@@ -79,19 +81,56 @@ model Verification {
   @@map("verifications")
 }
 
-model Workspace {
-  id        String  @id @default(cuid(2))
+model Organization {
+  id        String    @id @default(cuid(2))
   name      String
-  userId    String
-  isDefault Boolean @default(false)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  slug      String    @unique
+  logo      String?
+  metadata  String?
+  isDefault Boolean   @default(false)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime? @updatedAt
 
   // Relations
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  members     Member[]
+  invitations Invitation[]
 
-  @@unique([userId, name])
+  @@index([slug])
+  @@map("organizations")
+}
+
+model Member {
+  id             String       @id @default(cuid(2))
+  organizationId String
+  userId         String
+  role           String       @default("member")
+  createdAt      DateTime     @default(now())
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
   @@index([userId])
-  @@map("workspaces")
+  @@map("members")
+}
+
+model Invitation {
+  id             String       @id @default(cuid(2))
+  organizationId String
+  email          String
+  role           String
+  status         String       @default("pending")
+  expiresAt      DateTime
+  createdAt      DateTime     @default(now())
+  inviterId      String
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  inviter      User         @relation("InvitationInviter", fields: [inviterId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([email])
+  @@index([inviterId])
+  @@map("invitations")
 }

@@ -4,7 +4,7 @@ import { id } from "@lib/z";
 import type { WorkspaceWithCounts } from "@features/workspaces/workspaces-types";
 import { createProtectedActionWithInput } from "@lib/actions";
 import { workspacesLogger } from "@features/workspaces/workspaces-logger";
-import { findFirstWorkspaceByIdAndUserId } from "@features/workspaces/workspaces-repository";
+import { findWorkspaceDtoByIdAndUserId } from "@features/organizations/organizations-repository";
 import { forbidden } from "next/navigation";
 
 /**
@@ -13,10 +13,7 @@ import { forbidden } from "next/navigation";
 export const loadWorkspace = createProtectedActionWithInput<string, WorkspaceWithCounts>(
   id,
   async (workspaceId, { userId }) => {
-    const workspace = await findFirstWorkspaceByIdAndUserId(workspaceId, userId, {
-      name: true,
-      isDefault: true,
-    });
+    const workspace = await findWorkspaceDtoByIdAndUserId(workspaceId, userId);
 
     if (!workspace) {
       forbidden();

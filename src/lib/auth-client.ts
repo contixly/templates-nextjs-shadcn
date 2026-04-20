@@ -1,11 +1,17 @@
 import "client-only";
 
-import { genericOAuthClient, lastLoginMethodClient } from "better-auth/client/plugins";
+import {
+  genericOAuthClient,
+  inferOrgAdditionalFields,
+  lastLoginMethodClient,
+  organizationClient,
+} from "better-auth/client/plugins";
 import { LAST_LOGIN_METHOD_KEY } from "@lib/environment";
 import routes from "@features/routes";
 import { BetterAuthClientOptions } from "@better-auth/core";
 import { SocialProviderType } from "@typings/auth";
 import { createAuthClient } from "better-auth/client";
+import type { auth } from "@server/auth";
 
 /**
  * An authentication client instance for handling user authentication and authorization.
@@ -24,6 +30,9 @@ export const authClient = createAuthClient({
   plugins: [
     lastLoginMethodClient({
       cookieName: LAST_LOGIN_METHOD_KEY,
+    }),
+    organizationClient({
+      schema: inferOrgAdditionalFields<typeof auth>(),
     }),
     genericOAuthClient(),
   ],

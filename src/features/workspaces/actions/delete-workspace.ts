@@ -4,11 +4,13 @@ import { HttpCodes } from "@typings/network";
 import { type DeleteWorkspaceInput, deleteWorkspaceSchema } from "../workspaces-schemas";
 import { createProtectedActionWithInput } from "@lib/actions";
 import { workspacesLogger } from "@features/workspaces/workspaces-logger";
-import prisma from "@server/prisma";
+import { auth } from "@server/auth";
+import { headers } from "next/headers";
 import { findFirstWorkspaceByIdAndUserId } from "../workspaces-repository";
 import { forbidden } from "next/navigation";
 import { updateWorkspaceCache } from "@features/workspaces/workspaces-types";
 import { WORKSPACE_ERROR_KEYS } from "@features/workspaces/workspaces-errors";
+import { countAccessibleOrganizationsByUserId } from "@features/organizations/organizations-repository";
 
 /** Deletes a workspace row after ownership checks (see Prisma schema for cascade rules). */
 export const deleteWorkspace = createProtectedActionWithInput<DeleteWorkspaceInput, void>(
@@ -26,10 +28,7 @@ export const deleteWorkspace = createProtectedActionWithInput<DeleteWorkspaceInp
       forbidden();
     }
 
-    // 4. Check if last Workspace
-    const workspaceCount = await prisma.workspace.count({
-      where: { userId },
-    });
+    const workspaceCount = await countAccessibleOrganizationsByUserId(userId);
 
     if (workspaceCount <= 1) {
       return {
@@ -63,17 +62,17 @@ export const deleteWorkspace = createProtectedActionWithInput<DeleteWorkspaceInp
       };
     }
 
-    // 7. Delete Workspace (cascade handled by Prisma)
-    await prisma.workspace.delete({
-      where: { id },
+    await auth.api.deleteOrganization({
+      body: {
+        organizationId: id,
+      },
+      headers: await headers(),
     });
 
-    // 10. Revalidate cache
     updateWorkspaceCache({ workspaceId: id, userId });
 
     logger.warn("Deleted Workspace");
 
-    // 11. Return success
     return {
       success: true,
       data: undefined,
