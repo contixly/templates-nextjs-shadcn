@@ -25,27 +25,28 @@ jest.mock("../../src/lib/environment", () => ({
 
 describe("login page metadata export", () => {
   it("delegates to buildPageMetadata through generateMetadata", async () => {
-    const module = await import("../../src/app/(public)/(simple)/auth/login/page");
+    const pageModule = await import("../../src/app/(public)/(simple)/auth/login/page");
     const mockedBuildPageMetadata = buildPageMetadata as jest.MockedFunction<
       typeof buildPageMetadata
     >;
 
-    expect(await module.generateMetadata()).toEqual({ title: "Sign In" });
+    expect(await pageModule.generateMetadata()).toEqual({ title: "Sign In" });
     expect(mockedBuildPageMetadata).toHaveBeenCalledWith(accountsRoutes.pages.login);
   });
 });
 
 describe("workspace og image export", () => {
   it("forwards workspace params to buildPageMetadata", async () => {
-    const module = await import("../../src/app/(protected)/(global)/[workspaceId]/opengraph-image");
+    const pageModule =
+      await import("../../src/app/(protected)/(global)/[organizationId]/opengraph-image");
     const mockedBuildPageMetadata = buildPageMetadata as jest.MockedFunction<
       typeof buildPageMetadata
     >;
 
-    await module.default({ params: Promise.resolve({ workspaceId: "workspace-123" }) });
+    await pageModule.default({ params: Promise.resolve({ organizationId: "workspace-123" }) });
 
     expect(mockedBuildPageMetadata).toHaveBeenCalledWith(workspaceRoutes.pages.workspace, {
-      workspaceId: "workspace-123",
+      organizationId: "workspace-123",
     });
   });
 });

@@ -41,7 +41,7 @@ const renderWorkspaceMenu = (
           tooltip={navigationMessages.workspaceTooltip}
         >
           <Link
-            href={routes.workspaces.pages.workspaces.path({ workspaceId: workspace.id })}
+            href={routes.workspaces.pages.workspace.path({ organizationId: workspace.id })}
             className="flex items-center justify-between font-medium"
           >
             <IconCodeDots />

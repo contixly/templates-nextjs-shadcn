@@ -4,6 +4,7 @@ export const WORKSPACE_ERROR_KEYS = {
   nameInvalidCharacters: "validation.errors.nameInvalidCharacters",
   nameUnchanged: "validation.errors.nameUnchanged",
   duplicateName: "validation.errors.duplicateName",
+  duplicateSlug: "validation.errors.duplicateSlug",
   confirmationRequired: "validation.errors.confirmationRequired",
   confirmationMismatch: "validation.errors.confirmationMismatch",
   atLeastOneWorkspace: "validation.errors.atLeastOneWorkspace",

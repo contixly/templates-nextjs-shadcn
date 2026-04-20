@@ -23,10 +23,11 @@ export const updateWorkspace = createProtectedActionWithInput<
 >(
   updateWorkspaceSchema,
   async (input: UpdateWorkspaceInput, { userId, logger }) => {
-    const { id, name, isDefault } = input;
+    const { id, name, slug, isDefault } = input;
     const existingWorkspace = await findFirstWorkspaceByIdAndUserId(id, userId, {
       name: true,
       isDefault: true,
+      slug: true,
     });
 
     if (!existingWorkspace) {
@@ -44,6 +45,22 @@ export const updateWorkspace = createProtectedActionWithInput<
           success: false,
           error: {
             message: WORKSPACE_ERROR_KEYS.duplicateName,
+            code: HttpCodes.CONFLICT,
+          },
+        };
+      }
+    }
+
+    if (slug && slug !== existingWorkspace.slug) {
+      const duplicateSlugWorkspace = (await findManyAccessibleOrganizationsByUserId(userId)).find(
+        (workspace) => workspace.id !== id && workspace.slug === slug
+      );
+
+      if (duplicateSlugWorkspace) {
+        return {
+          success: false,
+          error: {
+            message: WORKSPACE_ERROR_KEYS.duplicateSlug,
             code: HttpCodes.CONFLICT,
           },
         };
@@ -76,11 +93,15 @@ export const updateWorkspace = createProtectedActionWithInput<
           ...(name
             ? {
                 name,
-                slug: await generateOrganizationSlug(name, {
-                  excludeOrganizationId: id,
-                }),
               }
             : {}),
+          ...((name || slug) && {
+            slug:
+              slug ??
+              (await generateOrganizationSlug(name ?? existingWorkspace.name, {
+                excludeOrganizationId: id,
+              })),
+          }),
           ...(isDefault !== undefined ? { isDefault } : {}),
         },
       },

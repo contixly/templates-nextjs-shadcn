@@ -14,6 +14,7 @@ import { Skeleton } from "@components/ui/skeleton";
 import { WorkspaceDeleteDialog } from "@features/workspaces/components/forms/workspace-delete-dialog";
 import { WorkspaceSettingsDialog } from "@features/workspaces/components/forms/workspace-settings-dialog";
 import { useTranslations } from "next-intl";
+import routes from "@features/routes";
 
 interface WorkspaceCardProps {
   workspace: WorkspaceWithCounts;
@@ -46,7 +47,9 @@ export function WorkspaceCard({ workspace, canDelete, canChangeDefault }: Worksp
       </CardContent>
       <CardFooter className="flex flex-col gap-2">
         <Button asChild variant="outline" className="w-full">
-          <Link href={`/${workspace.id}`}>{t("open")}</Link>
+          <Link href={routes.workspaces.pages.workspace.path({ organizationId: workspace.id })}>
+            {t("open")}
+          </Link>
         </Button>
         {canDelete && <WorkspaceDeleteDialog workspace={workspace} triggerClassName="w-full" />}
       </CardFooter>

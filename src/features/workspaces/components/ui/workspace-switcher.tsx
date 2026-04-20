@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Suspense, use, useState } from "react";
+import { Suspense, use, useState, useTransition } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Badge } from "@components/ui/badge";
 import { BreadcrumbEllipsis, BreadcrumbItem, BreadcrumbSeparator } from "@components/ui/breadcrumb";
@@ -19,6 +19,8 @@ import { ActionResult } from "@typings/actions";
 import { WorkspaceWithCounts } from "@features/workspaces/workspaces-types";
 import { IconCheck, IconSelector, IconSettings } from "@tabler/icons-react";
 import { useTranslations } from "next-intl";
+import { toast } from "sonner";
+import { setActiveOrganization } from "@features/organizations/actions/set-active-organization";
 
 interface WorkspaceSwitcherProps {
   loadUserWorkspacesPromise: Promise<ActionResult<WorkspaceWithCounts[]>>;
@@ -38,15 +40,28 @@ const WorkspaceSwitcherComponent = ({ loadUserWorkspacesPromise }: WorkspaceSwit
   const t = useTranslations("workspaces.ui.switcher");
   const router = useRouter();
   const [open, setOpen] = useState(false);
+  const [isPending, startTransition] = useTransition();
 
-  const { workspaceId: currentWorkspaceId } = useParams<{ workspaceId?: string }>();
+  const { organizationId: currentWorkspaceId } = useParams<{ organizationId?: string }>();
   const { data: workspaces } = use(loadUserWorkspacesPromise);
   const activeWorkspace = workspaces?.find((workspace) => workspace.id === currentWorkspaceId);
 
   const handleSelectWorkspace = (workspaceId: string) => {
     if (workspaceId === activeWorkspace?.id) return;
-    setOpen(false);
-    // router.push(routes.workspaces.pages.workspace_dashboard.path({ workspaceId })); // TODO switch to same route in another workspace
+
+    startTransition(async () => {
+      const result = await setActiveOrganization({ organizationId: workspaceId });
+      if (!result.success) {
+        toast.error(t("switchError"));
+        return;
+      }
+
+      setOpen(false);
+      router.push(
+        routes.dashboard.pages.organization_dashboard.path({ organizationId: workspaceId })
+      );
+      router.refresh();
+    });
   };
 
   if (!currentWorkspaceId) {
@@ -69,6 +84,7 @@ const WorkspaceSwitcherComponent = ({ loadUserWorkspacesPromise }: WorkspaceSwit
               <DropdownMenuItem
                 key={workspace.id}
                 onSelect={() => handleSelectWorkspace(workspace.id)}
+                disabled={isPending}
                 className="cursor-pointer"
               >
                 <IconCheck

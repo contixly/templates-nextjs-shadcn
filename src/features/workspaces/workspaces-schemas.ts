@@ -5,6 +5,7 @@ import { AnyTranslationsFn } from "@/src/i18n/config";
 
 export const WORKSPACE_NAME_MAX_LENGTH = 50;
 const workspaceNamePattern = /^[\p{L}0-9\s\-_]+$/u;
+const workspaceSlugPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 const getErrorMessage = (
   tAny: AnyTranslationsFn | undefined,
@@ -55,6 +56,11 @@ const createWorkspaceNameSchema = (previousName?: string, tAny?: AnyTranslations
     .transform((value) => value.trim());
 
 const name = createWorkspaceNameSchema();
+const slug = z
+  .string()
+  .trim()
+  .toLowerCase()
+  .regex(workspaceSlugPattern, WORKSPACE_ERROR_KEYS.nameInvalidCharacters);
 
 export const createWorkspaceSchema = z.object({
   name,
@@ -70,6 +76,7 @@ export const createWorkspaceFormSchema = (tAny: AnyTranslationsFn) =>
 export const updateWorkspaceSchema = z.object({
   id,
   name: name.optional(),
+  slug: slug.optional(),
   isDefault: z.boolean().optional(),
 });
 
@@ -77,6 +84,7 @@ export const createUpdateWorkspaceFormSchema = (previousName: string, tAny: AnyT
   z.object({
     id,
     name: createWorkspaceNameSchema(previousName, tAny).optional(),
+    slug: slug.optional(),
     isDefault: z.boolean().optional(),
   });
 

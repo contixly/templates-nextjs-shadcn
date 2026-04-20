@@ -24,6 +24,7 @@
       "nameInvalidCharacters": "Workspace name can only contain letters, numbers, spaces, hyphens, and underscores",
       "nameUnchanged": "New workspace name must be different from current name",
       "duplicateName": "A workspace with this name already exists",
+      "duplicateSlug": "A workspace with this slug already exists",
       "confirmationRequired": "Confirmation text is required",
       "confirmationMismatch": "Confirmation text does not match workspace name",
       "atLeastOneWorkspace": "You must have at least one workspace",
@@ -95,7 +96,15 @@
       "fallback": "Workspaces",
       "myWorkspaces": "My Workspaces",
       "defaultBadge": "Default",
+      "switchError": "Unable to switch workspaces right now.",
       "manageWorkspaces": "Manage Workspaces"
+    },
+    "onboarding": {
+      "title": "Create your first workspace",
+      "description": "You do not have access to any workspaces yet. Create one to open the application, or join one from an invitation when that flow is available.",
+      "createAction": "Create Workspace",
+      "inviteAction": "Accept Invitation",
+      "inviteHint": "Invitation flow coming soon"
     },
     "navigation": {
       "quickCreate": "Quick Create",

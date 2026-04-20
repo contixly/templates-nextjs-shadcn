@@ -8,6 +8,9 @@ import { Suspense } from "react";
 import { buildPageMetadata } from "@lib/metadata";
 import accountsRoutes from "@features/accounts/accounts-routes";
 import { getTranslations } from "next-intl/server";
+import { loadCurrentUserId } from "@features/accounts/accounts-actions";
+import { countAccessibleOrganizationsByUserId } from "@features/organizations/organizations-repository";
+import { WorkspaceOnboardingGuard } from "@features/workspaces/components/ui/workspace-onboarding-guard";
 
 export const generateMetadata = async (): Promise<Metadata> =>
   buildPageMetadata(accountsRoutes.pages.welcome);
@@ -31,6 +34,10 @@ export default async function WelcomePage({
       id: "ship",
     },
   ] as const;
+  const userId = await loadCurrentUserId();
+  const hasNoWorkspaces = userId
+    ? (await countAccessibleOrganizationsByUserId(userId)) === 0
+    : false;
 
   return (
     <div className="flex flex-col">
@@ -43,6 +50,13 @@ export default async function WelcomePage({
           </p>
         </div>
       </section>
+
+      {hasNoWorkspaces && (
+        <>
+          <Separator />
+          <WorkspaceOnboardingGuard />
+        </>
+      )}
 
       <Separator />
 
