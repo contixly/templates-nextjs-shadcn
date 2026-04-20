@@ -2,7 +2,7 @@
 
 ### Requirement: Workspace Route Redirects Only After Access Validation
 
-The `/workspaces/[workspaceId]` route must validate that the requested workspace belongs to the current user before redirecting them to the application dashboard.
+The `/workspaces/[workspaceId]` route MUST validate that the requested workspace belongs to the current user before redirecting them to the application dashboard.
 
 #### Scenario: Accessible workspace redirects to the dashboard
 
@@ -18,7 +18,7 @@ The `/workspaces/[workspaceId]` route must validate that the requested workspace
 
 ### Requirement: Workspace Route Provides Route-Level Loading Feedback
 
-The `/workspaces/[workspaceId]` route must provide loading feedback through the App Router route-level loading convention.
+The `/workspaces/[workspaceId]` route MUST provide loading feedback through the App Router route-level loading convention.
 
 #### Scenario: Workspace route is loading
 
