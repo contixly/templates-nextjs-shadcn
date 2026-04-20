@@ -11,7 +11,8 @@
     "format": "prettier --write .",
     "migrate:postgres": "dotenv -e .env -- npx prisma migrate deploy",
     "shadcn:upgrade": "npx shadcn@latest add -y -o $(basename -s .tsx ./src/components/ui/*.tsx | grep -v '^sidebar$')",
-    "skills:update": ".ai/skills-update.sh"
+    "skills:update": ".agents/skills-update.sh",
+    "openspec:ui": "npx openspecui@latest"
   },
   "dependencies": {
     "@base-ui/react": "^1.4.0",
