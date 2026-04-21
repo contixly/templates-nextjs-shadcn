@@ -20,7 +20,7 @@ type WorkspacesPages =
   | "settings_roles";
 export type WorkspaceRoutes = Feature<WorkspacesPages>;
 
-const workspaceRoutes: WorkspaceRoutes = buildFeature("workspaces", {
+const workspaceRoutes: WorkspaceRoutes = buildFeature<WorkspacesPages>("workspaces", {
   pages: {
     workspaces: {
       pathTemplate: "/workspaces",

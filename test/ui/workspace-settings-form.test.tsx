@@ -157,4 +157,29 @@ describe("WorkspaceSettingsForm", () => {
     expect(screen.getByDisplayValue("Renamed Workspace")).toBeInTheDocument();
     expect(screen.getByDisplayValue("renamed-workspace")).toBeInTheDocument();
   });
+
+  it("enables save when a workspace with a better-auth style id is edited", async () => {
+    render(
+      <WorkspaceSettingsForm
+        workspace={{
+          id: "RkFBy8l5f36JR4Mwl1dExZxvzCjD8X7H",
+          name: "Client Workspace",
+          slug: "client-workspace",
+          logo: null,
+          metadata: null,
+          createdAt: new Date("2026-04-20T10:00:00.000Z"),
+          updatedAt: new Date("2026-04-20T10:00:00.000Z"),
+          isDefault: false,
+        }}
+      />
+    );
+
+    fireEvent.change(screen.getByLabelText("Название рабочего пространства"), {
+      target: { value: "Client Workspace Updated" },
+    });
+
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: "Сохранить" })).not.toBeDisabled();
+    });
+  });
 });

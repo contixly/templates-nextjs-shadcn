@@ -1,7 +1,7 @@
 import { z } from "zod";
-import { id } from "@lib/z";
 import { WORKSPACE_ERROR_KEYS } from "@features/workspaces/workspaces-errors";
 import { AnyTranslationsFn } from "@/src/i18n/config";
+import { organizationIdSchema } from "@features/organizations/organizations-schemas";
 
 export const WORKSPACE_NAME_MAX_LENGTH = 50;
 const workspaceNamePattern = /^[\p{L}0-9\s\-_]+$/u;
@@ -56,11 +56,14 @@ const createWorkspaceNameSchema = (previousName?: string, tAny?: AnyTranslations
     .transform((value) => value.trim());
 
 const name = createWorkspaceNameSchema();
-const slug = z
-  .string()
-  .trim()
-  .toLowerCase()
-  .regex(workspaceSlugPattern, WORKSPACE_ERROR_KEYS.nameInvalidCharacters);
+const createWorkspaceSlugSchema = (tAny?: AnyTranslationsFn) =>
+  z
+    .string()
+    .trim()
+    .toLowerCase()
+    .regex(workspaceSlugPattern, getErrorMessage(tAny, WORKSPACE_ERROR_KEYS.nameInvalidCharacters));
+
+const slug = createWorkspaceSlugSchema();
 
 export const createWorkspaceSchema = z.object({
   name,
@@ -74,7 +77,7 @@ export const createWorkspaceFormSchema = (tAny: AnyTranslationsFn) =>
   });
 
 export const updateWorkspaceSchema = z.object({
-  id,
+  id: organizationIdSchema,
   name: name.optional(),
   slug: slug.optional(),
   isDefault: z.boolean().optional(),
@@ -82,16 +85,16 @@ export const updateWorkspaceSchema = z.object({
 
 export const createUpdateWorkspaceFormSchema = (previousName: string, tAny: AnyTranslationsFn) =>
   z.object({
-    id,
+    id: organizationIdSchema,
     name: createWorkspaceNameSchema(previousName, tAny).optional(),
-    slug: slug.optional(),
+    slug: createWorkspaceSlugSchema(tAny).optional(),
     isDefault: z.boolean().optional(),
   });
 
 const createDeleteWorkspaceSchema = (tAny?: AnyTranslationsFn) =>
   z
     .object({
-      id,
+      id: organizationIdSchema,
       name: z.string(),
       confirmationText: z
         .string()

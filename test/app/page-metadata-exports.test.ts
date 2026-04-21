@@ -49,4 +49,18 @@ describe("workspace og image export", () => {
       organizationKey: "workspace-123",
     });
   });
+
+  it("forwards workspace settings params to buildPageMetadata", async () => {
+    const pageModule =
+      await import("../../src/app/(protected)/(global)/[organizationKey]/settings/workspace/opengraph-image");
+    const mockedBuildPageMetadata = buildPageMetadata as jest.MockedFunction<
+      typeof buildPageMetadata
+    >;
+
+    await pageModule.default({ params: Promise.resolve({ organizationKey: "workspace-123" }) });
+
+    expect(mockedBuildPageMetadata).toHaveBeenCalledWith(workspaceRoutes.pages.settings_workspace, {
+      organizationKey: "workspace-123",
+    });
+  });
 });
