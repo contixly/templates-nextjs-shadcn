@@ -1,5 +1,7 @@
 # Next.js Template
 
+![Next.js Template Hero](https://cdn.contixly.com/github/contixly/templates/nextjs-shadcn/assets/img/hero.png)
+
 [![Use this template](https://img.shields.io/badge/Use%20this%20template-2ea44f?style=for-the-badge&logo=github)](https://github.com/new?template_name=templates-nextjs-shadcn&template_owner=contixly)
 
 A localized starting point for building custom services with Next.js, TypeScript, Tailwind CSS v4, Better Auth, Prisma,
