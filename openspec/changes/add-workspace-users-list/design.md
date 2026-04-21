@@ -16,6 +16,8 @@ protected server actions. This change only needs a read path.
 - Keep the implementation aligned with the existing workspace settings routing and page-shell patterns.
 - Preserve workspace terminology in the UI while using Better Auth organization membership as the source of truth.
 - Represent current Better Auth role data safely, including multi-role strings.
+- Present the current user differently from other workspace members so the rest of the organization can be scanned as a
+  table.
 
 **Non-Goals:**
 - Inviting users, cancelling invitations, or showing pending invitations on the users page.
@@ -80,6 +82,20 @@ Alternatives considered:
 - Fetch members from a client component with the auth client. Rejected because it duplicates route authorization and
   adds state-management complexity for a static first version.
 
+### 5. Separate the current user from the tabular member list
+
+The page will keep the current user visually distinct and render all other workspace members in a table.
+
+Rationale:
+- The user asked for the member list to become easier to scan when reviewing colleagues rather than themselves.
+- A table fits repeated member attributes like name, email, roles, and joined date better than a generic stacked list.
+- Keeping the current user separate preserves the existing “you are here” emphasis without forcing a special-case row
+  into the table.
+
+Alternatives considered:
+- Render every member, including the current user, in the same table. Rejected because it weakens the self-identifying
+  treatment already called for by the spec.
+
 ## Risks / Trade-offs
 
 - [Repository logic can drift from Better Auth permission behavior] → Keep this change scoped to the current
@@ -90,6 +106,8 @@ Alternatives considered:
 - [A read-only page may not satisfy future admin workflows] → Treat this as the foundation for later invitations and
   role-management changes instead of overloading the initial release.
 - [Member ordering can feel arbitrary] → Use a deterministic default ordering in the repository and cover it with tests.
+- [Two presentations can complicate empty-state handling] → Define whether the page should show only the self panel,
+  only the table, or both, based on whether any non-self members exist.
 
 ## Migration Plan
 
@@ -110,3 +128,4 @@ Rollback path:
 - Should the page expose only active members, or also reserve space for future invitation counts/navigation hints?
 - Do we want a dedicated DTO under `features/organizations`, or should the first implementation keep the member list
   types local to the workspace settings surface?
+- Should the current user remain above the table as a compact summary card, or as a dedicated non-tabular list row?

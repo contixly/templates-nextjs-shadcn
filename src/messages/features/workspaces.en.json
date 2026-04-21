@@ -42,10 +42,10 @@
     },
     "settings_users": {
       "title": "Users",
-      "description": "Review the upcoming workspace user management area.",
+      "description": "Review workspace members, their roles, and when they joined.",
       "openGraph": {
         "title": "Users",
-        "description": "Review the upcoming workspace user management area."
+        "description": "Review workspace members, their roles, and when they joined."
       }
     },
     "settings_teams": {
@@ -123,6 +123,29 @@
       "success": "Workspace updated successfully",
       "errorTitle": "Update Workspace",
       "unknownError": "Unknown error"
+    },
+    "settingsUsersPage": {
+      "title": "Workspace Users",
+      "description": "Review the people who currently belong to this workspace. Invitations and role changes stay in separate settings sections.",
+      "currentUserSectionLabel": "Your workspace access",
+      "currentUserBadge": "You",
+      "otherUsersSectionLabel": "Other workspace users",
+      "otherUsersTitle": "Other workspace users",
+      "otherUsersDescription": "People other than you are shown in a table for faster scanning.",
+      "joinedLabel": "Joined",
+      "emptyTitle": "No workspace users yet",
+      "emptyDescription": "This workspace does not have any visible members yet.",
+      "othersEmptyTitle": "No other workspace users",
+      "othersEmptyDescription": "You are the only visible member in this workspace right now.",
+      "table": {
+        "columns": {
+          "user": "User",
+          "email": "Email",
+          "roles": "Roles",
+          "joined": "Joined"
+        },
+        "noRoles": "No roles"
+      }
     },
     "settingsPlaceholder": {
       "badge": "Coming soon",

@@ -2,8 +2,8 @@ import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import workspaceRoutes from "@features/workspaces/workspaces-routes";
 import { buildPageMetadata } from "@lib/metadata";
-import { WorkspaceSettingsPlaceholderPage } from "@features/workspaces/components/pages/workspace-settings-placeholder-page";
-import { loadWorkspaceSettingsPageContext } from "@features/workspaces/workspaces-settings";
+import { WorkspaceSettingsUsersPage } from "@features/workspaces/components/pages/workspace-settings-users-page";
+import { loadWorkspaceSettingsUsersPageContext } from "@features/workspaces/workspaces-settings";
 
 interface WorkspaceSettingsUsersPageProps {
   params: Promise<{ organizationKey: string }>;
@@ -14,11 +14,12 @@ export const generateMetadata = async ({
 }: WorkspaceSettingsUsersPageProps): Promise<Metadata> =>
   buildPageMetadata(workspaceRoutes.pages.settings_users, await params);
 
-export default async function WorkspaceSettingsUsersPage({
+export default async function WorkspaceSettingsUsersRoutePage({
   params,
 }: WorkspaceSettingsUsersPageProps) {
   const { organizationKey } = await params;
-  const { canonicalOrganizationKey } = await loadWorkspaceSettingsPageContext(organizationKey);
+  const { canonicalOrganizationKey, currentUserId, members } =
+    await loadWorkspaceSettingsUsersPageContext(organizationKey);
 
   if (organizationKey !== canonicalOrganizationKey) {
     redirect(
@@ -28,5 +29,5 @@ export default async function WorkspaceSettingsUsersPage({
     );
   }
 
-  return <WorkspaceSettingsPlaceholderPage section="users" />;
+  return <WorkspaceSettingsUsersPage currentUserId={currentUserId} members={members} />;
 }

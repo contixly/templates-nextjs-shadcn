@@ -23,6 +23,31 @@ export interface OrganizationWorkspaceDto extends OrganizationRouteIdentity {
   metadata?: Record<string, unknown> | null;
 }
 
+export interface OrganizationMemberUserRecord {
+  id: string;
+  name: string;
+  email: string;
+  image?: string | null;
+}
+
+export interface OrganizationMemberRecord {
+  id: string;
+  userId: string;
+  role: string;
+  createdAt: Date;
+  user: OrganizationMemberUserRecord;
+}
+
+export interface OrganizationMemberListItemDto {
+  id: string;
+  userId: string;
+  name: string;
+  email: string;
+  image?: string | null;
+  roleLabels: string[];
+  joinedAt: Date;
+}
+
 export interface BetterAuthOrganizationRecord {
   id: string;
   name: string;
@@ -47,3 +72,5 @@ export interface ResolveDefaultOrganizationIdOptions {
 export const CACHE_OrganizationsByUserIdTag = (userId: string) => `organizations_user_${userId}`;
 export const CACHE_OrganizationByIdTag = (organizationId: string) =>
   `organization_${organizationId}`;
+export const CACHE_OrganizationMembersTag = (organizationId: string) =>
+  `organization_${organizationId}_members`;

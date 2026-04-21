@@ -4,10 +4,15 @@ import type { Prisma } from "@/prisma/generated/client";
 import prisma from "@server/prisma";
 import { cacheLife, cacheTag } from "next/cache";
 import { organizationsLogger } from "@features/organizations/organizations-logger";
-import { toWorkspaceDto } from "@features/organizations/organizations-dto";
+import {
+  toOrganizationMemberListItemDto,
+  toWorkspaceDto,
+} from "@features/organizations/organizations-dto";
 import {
   CACHE_OrganizationByIdTag,
+  CACHE_OrganizationMembersTag,
   CACHE_OrganizationsByUserIdTag,
+  type OrganizationMemberListItemDto,
   type OrganizationWorkspaceDto,
 } from "@features/organizations/organizations-types";
 
@@ -29,6 +34,26 @@ const workspaceOrderBy = [
   { name: "asc" },
   { id: "asc" },
 ] satisfies Prisma.OrganizationOrderByWithRelationInput[];
+
+const memberSelect = {
+  id: true,
+  userId: true,
+  role: true,
+  createdAt: true,
+  user: {
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      image: true,
+    },
+  },
+} satisfies Prisma.MemberSelect;
+
+const memberOrderBy = [
+  { createdAt: "asc" },
+  { id: "asc" },
+] satisfies Prisma.MemberOrderByWithRelationInput[];
 
 export const findManyAccessibleOrganizationsByUserId = async (
   userId: string
@@ -162,6 +187,44 @@ export const findFirstAccessibleOrganizationForUser = async (userId: string) => 
   });
 
   return organization ? toWorkspaceDto(organization) : null;
+};
+
+export const findManyAccessibleOrganizationMembersByIdAndUserId = async (
+  organizationId: string,
+  userId: string
+): Promise<OrganizationMemberListItemDto[]> => {
+  "use cache";
+  cacheLife("hours");
+  cacheTag(
+    CACHE_OrganizationByIdTag(organizationId),
+    CACHE_OrganizationMembersTag(organizationId),
+    CACHE_OrganizationsByUserIdTag(userId)
+  );
+
+  logger
+    .child({
+      function: "findManyAccessibleOrganizationMembersByIdAndUserId",
+      organizationId,
+      userId,
+    })
+    .debug("Fetching accessible organization members");
+
+  const members = await prisma.member.findMany({
+    where: {
+      organizationId,
+      organization: {
+        members: {
+          some: {
+            userId,
+          },
+        },
+      },
+    },
+    orderBy: memberOrderBy,
+    select: memberSelect,
+  });
+
+  return members.map((member) => toOrganizationMemberListItemDto(member));
 };
 
 export const countAccessibleOrganizationsByUserId = async (userId: string) =>

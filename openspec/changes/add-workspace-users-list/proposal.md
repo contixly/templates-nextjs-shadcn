@@ -11,6 +11,7 @@ is to make the users section useful and validate that the current organization m
   `members`, and `users`.
 - Render essential member information on the page: avatar, display name, email, role labels, joined date, and a
   visible marker for the current user.
+- Render users other than the current user in a table so workspace membership is easier to scan.
 - Add an explicit empty state for organizations that return no members instead of falling back to placeholder copy.
 - Keep invitations, role updates, member removal, and team management out of scope for this change.
 - Add translations and tests for the new users page behavior.

@@ -1,9 +1,16 @@
 import type {
+  OrganizationMemberListItemDto,
+  OrganizationMemberRecord,
   OrganizationWorkspaceDto,
   OrganizationWorkspaceRecord,
 } from "@features/organizations/organizations-types";
 
-export type { OrganizationWorkspaceDto, OrganizationWorkspaceRecord };
+export type {
+  OrganizationMemberListItemDto,
+  OrganizationMemberRecord,
+  OrganizationWorkspaceDto,
+  OrganizationWorkspaceRecord,
+};
 
 const parseMetadata = (metadata: OrganizationWorkspaceRecord["metadata"]) => {
   if (!metadata) {
@@ -32,4 +39,26 @@ export const toWorkspaceDto = (
   createdAt: organization.createdAt,
   updatedAt: organization.updatedAt ?? organization.createdAt,
   isDefault: organization.isDefault,
+});
+
+const parseRoleLabels = (role: string) =>
+  Array.from(
+    new Set(
+      role
+        .split(",")
+        .map((value) => value.trim())
+        .filter(Boolean)
+    )
+  );
+
+export const toOrganizationMemberListItemDto = (
+  member: OrganizationMemberRecord
+): OrganizationMemberListItemDto => ({
+  id: member.id,
+  userId: member.userId,
+  name: member.user.name,
+  email: member.user.email,
+  image: member.user.image ?? null,
+  roleLabels: parseRoleLabels(member.role),
+  joinedAt: member.createdAt,
 });

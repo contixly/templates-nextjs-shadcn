@@ -13,6 +13,13 @@ the current workspace.
 - **WHEN** an authenticated user opens the users settings page for an accessible workspace
 - **THEN** the system highlights which listed member corresponds to the current user
 
+#### Scenario: Other workspace users are shown in a table
+- **WHEN** an authenticated user opens the users settings page and the workspace contains members other than the
+  current user
+- **THEN** the system renders those other members in a tabular layout
+- **AND** preserves the current user as a separately identifiable item rather than merging that item into the generic
+  table presentation
+
 #### Scenario: No members returned for the workspace
 - **WHEN** the users settings page loads for an accessible workspace and no members are returned
 - **THEN** the system renders an explicit empty state
