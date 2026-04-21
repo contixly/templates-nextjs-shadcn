@@ -1,4 +1,5 @@
-import { IconStarFilled } from "@tabler/icons-react";
+import { IconSettings, IconStarFilled } from "@tabler/icons-react";
+import NextLink from "next/link";
 import Link from "@components/ui/custom/animated-link";
 import { Button } from "@components/ui/button";
 import {
@@ -12,7 +13,6 @@ import {
 import type { WorkspaceWithCounts } from "@features/workspaces/workspaces-types";
 import { Skeleton } from "@components/ui/skeleton";
 import { WorkspaceDeleteDialog } from "@features/workspaces/components/forms/workspace-delete-dialog";
-import { WorkspaceSettingsDialog } from "@features/workspaces/components/forms/workspace-settings-dialog";
 import { useTranslations } from "next-intl";
 import routes from "@features/routes";
 import { getOrganizationRouteKey } from "@features/organizations/organizations-context";
@@ -20,11 +20,11 @@ import { getOrganizationRouteKey } from "@features/organizations/organizations-c
 interface WorkspaceCardProps {
   workspace: WorkspaceWithCounts;
   canDelete?: boolean;
-  canChangeDefault?: boolean;
 }
 
-export function WorkspaceCard({ workspace, canDelete, canChangeDefault }: WorkspaceCardProps) {
+export function WorkspaceCard({ workspace, canDelete }: WorkspaceCardProps) {
   const t = useTranslations("workspaces.ui.card");
+  const organizationKey = getOrganizationRouteKey(workspace);
 
   return (
     <Card className="bg-card flex h-full w-full max-w-md min-w-0 flex-col shadow-none transition-shadow">
@@ -37,7 +37,17 @@ export function WorkspaceCard({ workspace, canDelete, canChangeDefault }: Worksp
             </CardTitle>
             <CardDescription>{workspace.isDefault ? t("default") : t("custom")}</CardDescription>
           </div>
-          <WorkspaceSettingsDialog workspace={workspace} canChangeDefault={canChangeDefault} />
+          <Button asChild variant="ghost" size="icon">
+            <NextLink
+              href={routes.workspaces.pages.settings_workspace.path({
+                organizationKey,
+              })}
+              aria-label={t("settings")}
+            >
+              <IconSettings className="size-4" />
+              <span className="sr-only">{t("settings")}</span>
+            </NextLink>
+          </Button>
         </div>
       </CardHeader>
       <CardContent className="flex-1">
@@ -54,7 +64,7 @@ export function WorkspaceCard({ workspace, canDelete, canChangeDefault }: Worksp
         <Button asChild variant="outline" className="w-full">
           <Link
             href={routes.workspaces.pages.workspace.path({
-              organizationKey: getOrganizationRouteKey(workspace),
+              organizationKey,
             })}
           >
             {t("open")}

@@ -15,6 +15,54 @@
         "title": "Workspace",
         "description": "Configure and manage workspace settings and related content."
       }
+    },
+    "settings": {
+      "title": "Workspace Settings",
+      "description": "Manage workspace settings sections for configuration, people, and permissions.",
+      "openGraph": {
+        "title": "Workspace Settings",
+        "description": "Manage workspace settings sections for configuration, people, and permissions."
+      }
+    },
+    "settings_workspace": {
+      "title": "Workspace Settings",
+      "description": "Update the workspace name, slug, and default workspace preference.",
+      "openGraph": {
+        "title": "Workspace Settings",
+        "description": "Update the workspace name, slug, and default workspace preference."
+      }
+    },
+    "settings_invitations": {
+      "title": "Invitations",
+      "description": "Review the upcoming workspace invitation management area.",
+      "openGraph": {
+        "title": "Invitations",
+        "description": "Review the upcoming workspace invitation management area."
+      }
+    },
+    "settings_users": {
+      "title": "Users",
+      "description": "Review the upcoming workspace user management area.",
+      "openGraph": {
+        "title": "Users",
+        "description": "Review the upcoming workspace user management area."
+      }
+    },
+    "settings_teams": {
+      "title": "Teams",
+      "description": "Review the upcoming workspace team management area.",
+      "openGraph": {
+        "title": "Teams",
+        "description": "Review the upcoming workspace team management area."
+      }
+    },
+    "settings_roles": {
+      "title": "Roles",
+      "description": "Review the upcoming workspace role management area.",
+      "openGraph": {
+        "title": "Roles",
+        "description": "Review the upcoming workspace role management area."
+      }
     }
   },
   "validation": {
@@ -60,6 +108,44 @@
       "errorTitle": "Update Workspace",
       "unknownError": "Unknown error"
     },
+    "settingsPage": {
+      "title": "Workspace Settings",
+      "description": "Update the basic workspace details and default workspace preference."
+    },
+    "settingsForm": {
+      "nameLabel": "Workspace Name",
+      "namePlaceholder": "e.g., Work, Personal, Projects",
+      "nameHint": "Maximum 50 characters",
+      "slugLabel": "Workspace Slug",
+      "slugPlaceholder": "e.g., work-personal-projects",
+      "slugHint": "Lowercase letters, numbers, and hyphens only",
+      "defaultLabel": "Set as default workspace",
+      "success": "Workspace updated successfully",
+      "errorTitle": "Update Workspace",
+      "unknownError": "Unknown error"
+    },
+    "settingsPlaceholder": {
+      "badge": "Coming soon",
+      "body": "This section is visible now so workspace administration has a stable home, but management tools for it are not part of this change yet.",
+      "sections": {
+        "invitations": {
+          "title": "Invitations",
+          "description": "Workspace invitation flows will be added here in a follow-up change."
+        },
+        "users": {
+          "title": "Users",
+          "description": "Workspace user management will be added here in a follow-up change."
+        },
+        "teams": {
+          "title": "Teams",
+          "description": "Workspace team management will be added here in a follow-up change."
+        },
+        "roles": {
+          "title": "Roles",
+          "description": "Workspace role management will be added here in a follow-up change."
+        }
+      }
+    },
     "deleteDialog": {
       "title": "Delete Workspace?",
       "description": "This action cannot be undone. The workspace record will be permanently removed.",
@@ -92,6 +178,7 @@
     "card": {
       "default": "Default workspace",
       "custom": "Custom workspace",
+      "settings": "Settings",
       "slugLabel": "Slug",
       "summary": "Use this card to summarize what lives under this workspace once you add your own entities.",
       "open": "Open workspace"

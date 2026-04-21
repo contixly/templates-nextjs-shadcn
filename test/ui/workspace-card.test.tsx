@@ -9,6 +9,7 @@ jest.mock("next-intl", () => ({
       "workspaces.ui.card": {
         default: "Default workspace",
         custom: "Custom workspace",
+        settings: "Settings",
         slugLabel: "Slug",
         summary: "Workspace summary",
         open: "Open workspace",
@@ -23,6 +24,23 @@ jest.mock("../../src/components/ui/custom/animated-link", () => ({
   __esModule: true,
   default: ({ children, href }: { children?: React.ReactNode; href: string }) => (
     <a href={href}>{children}</a>
+  ),
+}));
+
+jest.mock("next/link", () => ({
+  __esModule: true,
+  default: ({
+    children,
+    href,
+    ...props
+  }: {
+    children?: React.ReactNode;
+    href: string;
+    [key: string]: unknown;
+  }) => (
+    <a href={href} {...props}>
+      {children}
+    </a>
   ),
 }));
 
@@ -48,10 +66,6 @@ jest.mock("../../src/features/workspaces/components/forms/workspace-delete-dialo
   WorkspaceDeleteDialog: () => <div data-testid="workspace-delete-dialog" />,
 }));
 
-jest.mock("../../src/features/workspaces/components/forms/workspace-settings-dialog", () => ({
-  WorkspaceSettingsDialog: () => <div data-testid="workspace-settings-dialog" />,
-}));
-
 describe("WorkspaceCard", () => {
   it("renders organization-backed workspace fields using workspace terminology", () => {
     render(
@@ -72,6 +86,10 @@ describe("WorkspaceCard", () => {
     expect(screen.getByText("Client Workspace")).toBeInTheDocument();
     expect(screen.getByText("Slug")).toBeInTheDocument();
     expect(screen.getByText("client-workspace")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Settings" })).toHaveAttribute(
+      "href",
+      "/client-workspace/settings/workspace"
+    );
     expect(screen.getByRole("link", { name: "Open workspace" })).toHaveAttribute(
       "href",
       "/client-workspace"

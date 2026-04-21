@@ -49,7 +49,6 @@ const UserWorkspacesComponent = ({ loadUserWorkspacesPromise }: UserWorkspacesPr
                 key={workspace.id}
                 workspace={workspace}
                 canDelete={workspaceItems.length > 1}
-                canChangeDefault={workspaceItems.length > 1}
               />
             ))}
           </div>
