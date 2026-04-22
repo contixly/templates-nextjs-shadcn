@@ -35,6 +35,22 @@
         "description": "Update your profile information and personal preferences."
       }
     },
+    "invitations": {
+      "title": "My Invitations",
+      "description": "Review pending workspace invitations addressed to your account email.",
+      "openGraph": {
+        "title": "My Invitations",
+        "description": "Review and respond to workspace invitations sent to your account."
+      }
+    },
+    "invitation": {
+      "title": "Workspace Invitation",
+      "description": "Review a workspace invitation and decide whether to join.",
+      "openGraph": {
+        "title": "Workspace Invitation",
+        "description": "Review invitation details before accepting or rejecting access to a workspace."
+      }
+    },
     "connections": {
       "title": "Connected Accounts",
       "description": "Manage your connected OAuth providers including Google and GitHub. Link or unlink accounts for seamless authentication.",

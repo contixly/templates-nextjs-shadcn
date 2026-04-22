@@ -9,6 +9,21 @@ export const WORKSPACE_ERROR_KEYS = {
   confirmationMismatch: "validation.errors.confirmationMismatch",
   atLeastOneWorkspace: "validation.errors.atLeastOneWorkspace",
   defaultWorkspaceDeletionForbidden: "validation.errors.defaultWorkspaceDeletionForbidden",
+  invitationEmailRequired: "validation.errors.invitationEmailRequired",
+  invitationEmailInvalid: "validation.errors.invitationEmailInvalid",
+  invitationAlreadyExists: "validation.errors.invitationAlreadyExists",
+  invitationRecipientAlreadyMember: "validation.errors.invitationRecipientAlreadyMember",
+  invitationPermissionDenied: "validation.errors.invitationPermissionDenied",
+  invitationNotFound: "validation.errors.invitationNotFound",
+  invitationNotPending: "validation.errors.invitationNotPending",
+  invitationExpired: "validation.errors.invitationExpired",
+  invitationRecipientMismatch: "validation.errors.invitationRecipientMismatch",
+  invitationEmailVerificationRequired: "validation.errors.invitationEmailVerificationRequired",
+  invitationAlreadyMember: "validation.errors.invitationAlreadyMember",
+  memberIdRequired: "validation.errors.memberIdRequired",
+  memberNotFound: "validation.errors.memberNotFound",
+  memberAlreadyExists: "validation.errors.memberAlreadyExists",
+  memberPermissionDenied: "validation.errors.memberPermissionDenied",
 } as const;
 
 const WORKSPACE_ERROR_KEY_SET = new Set<string>(Object.values(WORKSPACE_ERROR_KEYS));

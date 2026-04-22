@@ -1,4 +1,11 @@
-import { IconAlertTriangle, IconLink, IconLogin, IconShield, IconUser } from "@tabler/icons-react";
+import {
+  IconAlertTriangle,
+  IconLink,
+  IconLogin,
+  IconMail,
+  IconShield,
+  IconUser,
+} from "@tabler/icons-react";
 import { Feature } from "@typings/pages";
 import { buildFeature } from "@lib/pages";
 
@@ -8,6 +15,8 @@ type AccountsPages =
   | "welcome"
   | "user"
   | "profile"
+  | "invitations"
+  | "invitation"
   | "connections"
   | "security"
   | "danger";
@@ -41,6 +50,19 @@ const accountsRoutes: AccountsRoutes = buildFeature<AccountsPages>("accounts", {
       icon: IconUser,
 
       hidePageHeader: true,
+    },
+    invitations: {
+      parent: "user",
+      pathTemplate: "/user/invitations",
+      icon: IconMail,
+
+      hidePageHeader: true,
+    },
+    invitation: {
+      pathTemplate: "/invite/[invitationId]",
+
+      hidePageHeader: true,
+      hidePageHeaderOnMobile: true,
     },
     connections: {
       parent: "user",

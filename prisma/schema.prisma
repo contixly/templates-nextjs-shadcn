@@ -112,6 +112,7 @@ model Member {
 
   @@index([organizationId])
   @@index([userId])
+  @@unique([organizationId, userId])
   @@map("members")
 }
 

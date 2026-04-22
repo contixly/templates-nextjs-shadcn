@@ -71,7 +71,7 @@
     },
     "welcome": {
       "title": "Welcome",
-      "description": "Your account has been created and a default workspace is ready. Here’s what this template includes.",
+      "description": "Your account has been created. Here’s what this template includes.",
       "includedTitle": "What is included",
       "includedDescription": "Same overview as the public landing page — edit copy in template-landing-content.ts.",
       "stepsTitle": "Get started in 3 steps",

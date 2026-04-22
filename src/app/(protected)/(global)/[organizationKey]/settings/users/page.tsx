@@ -18,7 +18,7 @@ export default async function WorkspaceSettingsUsersRoutePage({
   params,
 }: WorkspaceSettingsUsersPageProps) {
   const { organizationKey } = await params;
-  const { canonicalOrganizationKey, currentUserId, members } =
+  const { workspace, canonicalOrganizationKey, currentUserId, members, canAddMembers } =
     await loadWorkspaceSettingsUsersPageContext(organizationKey);
 
   if (organizationKey !== canonicalOrganizationKey) {
@@ -29,5 +29,12 @@ export default async function WorkspaceSettingsUsersRoutePage({
     );
   }
 
-  return <WorkspaceSettingsUsersPage currentUserId={currentUserId} members={members} />;
+  return (
+    <WorkspaceSettingsUsersPage
+      organizationId={workspace.id}
+      currentUserId={currentUserId}
+      members={members}
+      canAddMembers={canAddMembers}
+    />
+  );
 }

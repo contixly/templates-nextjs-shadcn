@@ -3,6 +3,7 @@ import { render, screen } from "@testing-library/react";
 import React from "react";
 import { loadCurrentUser, loadCurrentUserId } from "@features/accounts/accounts-actions";
 import { countAccessibleOrganizationsByUserId } from "@features/organizations/organizations-repository";
+import { loadCurrentUserPendingWorkspaceInvitations } from "@features/workspaces/workspaces-invitations";
 import { loadUserWorkspaces } from "@features/workspaces/actions/load-user-workspaces";
 
 jest.mock("../../src/features/accounts/accounts-actions", () => ({
@@ -12,6 +13,10 @@ jest.mock("../../src/features/accounts/accounts-actions", () => ({
 
 jest.mock("../../src/features/organizations/organizations-repository", () => ({
   countAccessibleOrganizationsByUserId: jest.fn(),
+}));
+
+jest.mock("../../src/features/workspaces/workspaces-invitations", () => ({
+  loadCurrentUserPendingWorkspaceInvitations: jest.fn(),
 }));
 
 jest.mock("../../src/features/workspaces/actions/load-user-workspaces", () => ({
@@ -53,6 +58,12 @@ jest.mock("../../src/features/workspaces/components/ui/workspace-onboarding-guar
   WorkspaceOnboardingGuard: () => <div data-testid="workspace-onboarding-guard" />,
 }));
 
+jest.mock("../../src/features/workspaces/components/pending-workspace-invitations-block", () => ({
+  PendingWorkspaceInvitationsBlock: ({ invitations }: { invitations: Array<{ id: string }> }) => (
+    <div data-testid="pending-workspace-invitations-block">{invitations.length}</div>
+  ),
+}));
+
 jest.mock("../../src/features/workspaces/components/user-workspaces", () => ({
   UserWorkspaces: ({
     loadUserWorkspacesPromise,
@@ -77,7 +88,9 @@ describe("workspace onboarding pages", () => {
     (loadCurrentUserId as jest.Mock).mockReset();
     (loadCurrentUser as jest.Mock).mockReset();
     (countAccessibleOrganizationsByUserId as jest.Mock).mockReset();
+    (loadCurrentUserPendingWorkspaceInvitations as jest.Mock).mockReset();
     (loadUserWorkspaces as jest.Mock).mockReset();
+    (loadCurrentUserPendingWorkspaceInvitations as jest.Mock).mockResolvedValue([]);
   });
 
   it("renders the onboarding guard on the welcome page for authenticated users with zero accessible workspaces", async () => {
@@ -92,6 +105,23 @@ describe("workspace onboarding pages", () => {
     render(element);
 
     expect(screen.getByTestId("workspace-onboarding-guard")).toBeInTheDocument();
+  });
+
+  it("renders the pending invitations block on the welcome page when invitations exist", async () => {
+    (loadCurrentUserId as jest.Mock).mockResolvedValue("user-123");
+    (countAccessibleOrganizationsByUserId as jest.Mock).mockResolvedValue(1);
+    (loadCurrentUserPendingWorkspaceInvitations as jest.Mock).mockResolvedValue([
+      { id: "invite-1" },
+    ]);
+
+    const pageModule = await import("../../src/app/(protected)/(global)/welcome/page");
+    const element = await pageModule.default({
+      searchParams: Promise.resolve({}),
+    });
+
+    render(element);
+
+    expect(screen.getByTestId("pending-workspace-invitations-block")).toHaveTextContent("1");
   });
 
   it("keeps the workspace management page accessible for users with zero workspaces", async () => {

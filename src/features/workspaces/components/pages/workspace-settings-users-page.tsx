@@ -2,6 +2,7 @@
 
 import { Avatar, AvatarFallback, AvatarImage } from "@components/ui/avatar";
 import { Badge } from "@components/ui/badge";
+import { Button } from "@components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@components/ui/card";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@components/ui/empty";
 import {
@@ -12,23 +13,28 @@ import {
   TableHeader,
   TableRow,
 } from "@components/ui/table";
-import { IconUsers } from "@tabler/icons-react";
+import { IconUserPlus, IconUsers } from "@tabler/icons-react";
 import { accountsTools } from "@features/accounts/accounts-tools";
 import type { OrganizationMemberListItemDto } from "@features/organizations/organizations-types";
+import { WorkspaceAddMemberDialog } from "@features/workspaces/components/forms/workspace-add-member-dialog";
 import { timeTools } from "@lib/time";
 import { useLocale, useTranslations } from "next-intl";
 
 interface WorkspaceSettingsUsersPageProps {
+  organizationId: string;
   members: OrganizationMemberListItemDto[];
   currentUserId: string;
+  canAddMembers: boolean;
 }
 
 const getDisplayName = (member: OrganizationMemberListItemDto) =>
   member.name.trim() || member.email;
 
 export const WorkspaceSettingsUsersPage = ({
+  organizationId,
   members,
   currentUserId,
+  canAddMembers,
 }: WorkspaceSettingsUsersPageProps) => {
   const t = useTranslations("workspaces.ui.settingsUsersPage");
   const locale = useLocale();
@@ -37,9 +43,22 @@ export const WorkspaceSettingsUsersPage = ({
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>{t("title")}</CardTitle>
-        <CardDescription>{t("description")}</CardDescription>
+      <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="space-y-1.5">
+          <CardTitle>{t("title")}</CardTitle>
+          <CardDescription>{t("description")}</CardDescription>
+        </div>
+        {canAddMembers ? (
+          <WorkspaceAddMemberDialog
+            organizationId={organizationId}
+            trigger={
+              <Button size="sm" variant="outline">
+                <IconUserPlus className="size-4" />
+                {t("addMemberAction")}
+              </Button>
+            }
+          />
+        ) : null}
       </CardHeader>
       <CardContent>
         {members.length === 0 ? (

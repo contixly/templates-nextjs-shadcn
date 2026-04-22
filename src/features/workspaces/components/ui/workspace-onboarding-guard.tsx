@@ -1,10 +1,12 @@
 "use client";
 
+import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { Button } from "@components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@components/ui/card";
 import { WorkspaceCreateDialog } from "@features/workspaces/components/forms/workspace-create-dialog";
 import { IconMailPlus, IconPlus } from "@tabler/icons-react";
+import routes from "@features/routes";
 
 const onboardingActionClassName =
   "h-auto min-h-9 py-2 [&>span:last-child]:overflow-visible [&>span:last-child]:text-clip [&>span:last-child]:whitespace-normal";
@@ -28,15 +30,11 @@ export const WorkspaceOnboardingGuard = () => {
               </Button>
             }
           />
-          <Button
-            size="lg"
-            variant="outline"
-            className={onboardingActionClassName}
-            disabled
-            title={t("inviteHint")}
-          >
-            <IconMailPlus className="size-4" />
-            {t("inviteAction")}
+          <Button size="lg" variant="outline" className={onboardingActionClassName} asChild>
+            <Link href={routes.accounts.pages.invitations.path()}>
+              <IconMailPlus className="size-4" />
+              {t("inviteAction")}
+            </Link>
           </Button>
         </CardContent>
       </Card>

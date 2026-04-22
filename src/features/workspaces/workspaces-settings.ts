@@ -9,6 +9,7 @@ import {
 } from "@features/organizations/organizations-repository";
 import { getOrganizationRouteKey } from "@features/organizations/organizations-context";
 import type { OrganizationMemberListItemDto } from "@features/organizations/organizations-types";
+import { hasWorkspacePermission } from "@features/workspaces/workspaces-permissions";
 import type { WorkspaceWithCounts } from "@features/workspaces/workspaces-types";
 
 export interface WorkspaceSettingsPageContext {
@@ -20,6 +21,7 @@ export interface WorkspaceSettingsPageContext {
 export interface WorkspaceSettingsUsersPageContext extends WorkspaceSettingsPageContext {
   currentUserId: string;
   members: OrganizationMemberListItemDto[];
+  canAddMembers: boolean;
 }
 
 const loadRequiredCurrentUserId = async () => {
@@ -64,14 +66,15 @@ export const loadWorkspaceSettingsUsersPageContext = async (
 ): Promise<WorkspaceSettingsUsersPageContext> => {
   const userId = await loadRequiredCurrentUserId();
   const workspaceContext = await loadWorkspaceSettingsPageContextForUser(organizationKey, userId);
-  const members = await findManyAccessibleOrganizationMembersByIdAndUserId(
-    workspaceContext.workspace.id,
-    userId
-  );
+  const [members, canAddMembers] = await Promise.all([
+    findManyAccessibleOrganizationMembersByIdAndUserId(workspaceContext.workspace.id, userId),
+    hasWorkspacePermission(workspaceContext.workspace.id, { member: ["create"] }),
+  ]);
 
   return {
     ...workspaceContext,
     currentUserId: userId,
     members,
+    canAddMembers,
   };
 };

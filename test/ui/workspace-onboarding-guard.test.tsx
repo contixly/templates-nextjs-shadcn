@@ -20,14 +20,26 @@ jest.mock("../../src/components/ui/button", () => ({
     children,
     disabled,
     title,
+    asChild,
   }: {
     children?: React.ReactNode;
     disabled?: boolean;
     title?: string;
-  }) => (
-    <button disabled={disabled} title={title}>
-      {children}
-    </button>
+    asChild?: boolean;
+  }) =>
+    asChild ? (
+      <span data-testid="button-as-child">{children}</span>
+    ) : (
+      <button disabled={disabled} title={title}>
+        {children}
+      </button>
+    ),
+}));
+
+jest.mock("next/link", () => ({
+  __esModule: true,
+  default: ({ href, children }: { href: string; children?: React.ReactNode }) => (
+    <a href={href}>{children}</a>
   ),
 }));
 
@@ -46,7 +58,7 @@ jest.mock("../../src/features/workspaces/components/forms/workspace-create-dialo
 }));
 
 describe("WorkspaceOnboardingGuard", () => {
-  it("renders onboarding actions for creating a workspace and entering future invite flows", async () => {
+  it("renders onboarding actions for creating a workspace and reviewing invitations", async () => {
     render(<WorkspaceOnboardingGuard />);
 
     expect(
@@ -54,10 +66,9 @@ describe("WorkspaceOnboardingGuard", () => {
     ).toBeInTheDocument();
     expect(screen.getByText("Set up a workspace or wait for an invitation.")).toBeInTheDocument();
     expect(screen.getByTestId("workspace-create-dialog")).toHaveTextContent("Create workspace");
-    expect(screen.getByRole("button", { name: "Join with invite" })).toBeDisabled();
-    expect(screen.getByRole("button", { name: "Join with invite" })).toHaveAttribute(
-      "title",
-      "Invites are coming soon."
+    expect(screen.getByRole("link", { name: "Join with invite" })).toHaveAttribute(
+      "href",
+      "/user/invitations"
     );
   });
 });

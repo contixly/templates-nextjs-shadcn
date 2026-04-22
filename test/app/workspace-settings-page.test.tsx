@@ -6,16 +6,31 @@ import {
   loadWorkspaceSettingsPageContext,
   loadWorkspaceSettingsUsersPageContext,
 } from "../../src/features/workspaces/workspaces-settings";
+import { loadWorkspaceSettingsInvitationsPageContext as loadWorkspaceInvitationsContext } from "../../src/features/workspaces/workspaces-invitations";
 
 jest.mock("../../src/features/workspaces/workspaces-settings", () => ({
   loadWorkspaceSettingsPageContext: jest.fn(),
   loadWorkspaceSettingsUsersPageContext: jest.fn(),
 }));
 
+jest.mock("../../src/features/workspaces/workspaces-invitations", () => ({
+  loadWorkspaceSettingsInvitationsPageContext: jest.fn(),
+}));
+
 jest.mock(
-  "../../src/features/workspaces/components/pages/workspace-settings-placeholder-page",
+  "../../src/features/workspaces/components/pages/workspace-settings-invitations-page",
   () => ({
-    WorkspaceSettingsPlaceholderPage: () => null,
+    WorkspaceSettingsInvitationsPage: ({
+      invitations,
+      canCreateInvitations,
+    }: {
+      invitations: Array<{ id: string }>;
+      canCreateInvitations: boolean;
+    }) => (
+      <div data-testid="workspace-settings-invitations-page">
+        {String(canCreateInvitations)}:{invitations.length}
+      </div>
+    ),
   })
 );
 
@@ -51,6 +66,7 @@ describe("workspace settings root route", () => {
   beforeEach(() => {
     (loadWorkspaceSettingsPageContext as jest.Mock).mockReset();
     (loadWorkspaceSettingsUsersPageContext as jest.Mock).mockReset();
+    (loadWorkspaceInvitationsContext as jest.Mock).mockReset();
   });
 
   it("redirects the settings root to the canonical workspace settings section", async () => {
@@ -79,6 +95,7 @@ describe("workspace settings section routes", () => {
   beforeEach(() => {
     (loadWorkspaceSettingsPageContext as jest.Mock).mockReset();
     (loadWorkspaceSettingsUsersPageContext as jest.Mock).mockReset();
+    (loadWorkspaceInvitationsContext as jest.Mock).mockReset();
   });
 
   it("redirects id-based section urls to the slug-preferred users settings path", async () => {
@@ -88,6 +105,7 @@ describe("workspace settings section routes", () => {
       canonicalOrganizationKey: "client-workspace",
       currentUserId: "user-123",
       members: [],
+      canAddMembers: false,
     });
 
     const pageModule =
@@ -121,6 +139,7 @@ describe("workspace settings section routes", () => {
           joinedAt: new Date("2026-04-20T10:00:00.000Z"),
         },
       ],
+      canAddMembers: true,
     });
 
     const pageModule =
@@ -133,5 +152,30 @@ describe("workspace settings section routes", () => {
     render(element);
 
     expect(screen.getByTestId("workspace-settings-users-page")).toHaveTextContent("user-123:1");
+  });
+
+  it("renders the dedicated workspace invitations page for canonical section urls", async () => {
+    (loadWorkspaceInvitationsContext as jest.Mock).mockResolvedValue({
+      workspace: { id: "workspace-123", slug: "client-workspace" },
+      canChangeDefault: true,
+      canonicalOrganizationKey: "client-workspace",
+      invitations: [
+        {
+          id: "invite-1",
+        },
+      ],
+      canCreateInvitations: true,
+    });
+
+    const pageModule =
+      await import("../../src/app/(protected)/(global)/[organizationKey]/settings/invitations/page");
+
+    const element = await pageModule.default({
+      params: Promise.resolve({ organizationKey: "client-workspace" }),
+    });
+
+    render(element);
+
+    expect(screen.getByTestId("workspace-settings-invitations-page")).toHaveTextContent("true:1");
   });
 });

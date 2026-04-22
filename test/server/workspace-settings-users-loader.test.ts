@@ -4,6 +4,7 @@ const mockLoadCurrentUserId = jest.fn();
 const mockCountAccessibleOrganizationsByUserId = jest.fn();
 const mockFindWorkspaceDtoByKeyAndUserId = jest.fn();
 const mockFindManyAccessibleOrganizationMembersByIdAndUserId = jest.fn();
+const mockHasWorkspacePermission = jest.fn();
 
 jest.mock("../../src/features/accounts/accounts-actions", () => ({
   loadCurrentUserId: (...args: unknown[]) => mockLoadCurrentUserId(...args),
@@ -16,6 +17,10 @@ jest.mock("../../src/features/organizations/organizations-repository", () => ({
     mockFindWorkspaceDtoByKeyAndUserId(...args),
   findManyAccessibleOrganizationMembersByIdAndUserId: (...args: unknown[]) =>
     mockFindManyAccessibleOrganizationMembersByIdAndUserId(...args),
+}));
+
+jest.mock("../../src/features/workspaces/workspaces-permissions", () => ({
+  hasWorkspacePermission: (...args: unknown[]) => mockHasWorkspacePermission(...args),
 }));
 
 jest.mock("next/navigation", () => ({
@@ -35,6 +40,7 @@ describe("loadWorkspaceSettingsUsersPageContext", () => {
     mockCountAccessibleOrganizationsByUserId.mockReset();
     mockFindWorkspaceDtoByKeyAndUserId.mockReset();
     mockFindManyAccessibleOrganizationMembersByIdAndUserId.mockReset();
+    mockHasWorkspacePermission.mockReset();
   });
 
   it("loads the canonical workspace context together with visible organization members", async () => {
@@ -50,6 +56,7 @@ describe("loadWorkspaceSettingsUsersPageContext", () => {
       updatedAt: new Date("2026-04-20T10:00:00.000Z"),
       isDefault: false,
     });
+    mockHasWorkspacePermission.mockResolvedValue(true);
     mockFindManyAccessibleOrganizationMembersByIdAndUserId.mockResolvedValue([
       {
         id: "member-1",
@@ -70,6 +77,7 @@ describe("loadWorkspaceSettingsUsersPageContext", () => {
       canChangeDefault: true,
       canonicalOrganizationKey: "acme",
       currentUserId: "user-123",
+      canAddMembers: true,
       members: [
         expect.objectContaining({
           id: "member-1",

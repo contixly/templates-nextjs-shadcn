@@ -3,6 +3,12 @@ import { render, screen } from "@testing-library/react";
 import React from "react";
 import { WorkspaceSettingsUsersPage } from "@features/workspaces/components/pages/workspace-settings-users-page";
 
+jest.mock("../../src/features/workspaces/components/forms/workspace-add-member-dialog", () => ({
+  WorkspaceAddMemberDialog: ({ trigger }: { trigger?: React.ReactNode }) => (
+    <div data-testid="workspace-add-member-dialog">{trigger}</div>
+  ),
+}));
+
 jest.mock("next-intl", () => ({
   useLocale: () => "en",
   useTranslations: (namespace: string) => (key: string) => {
@@ -12,6 +18,7 @@ jest.mock("next-intl", () => ({
           settingsUsersPage: {
             title: "Workspace Users",
             description: "Review workspace users",
+            addMemberAction: "Add Member",
             currentUserSectionLabel: "Your workspace access",
             currentUserBadge: "You",
             otherUsersSectionLabel: "Other workspace users",
@@ -60,7 +67,9 @@ describe("WorkspaceSettingsUsersPage", () => {
   it("renders the current user separately and other members inside a table", () => {
     render(
       <WorkspaceSettingsUsersPage
+        organizationId="org-1"
         currentUserId="user-123"
+        canAddMembers
         members={[
           {
             id: "member-1",
@@ -85,6 +94,7 @@ describe("WorkspaceSettingsUsersPage", () => {
     );
 
     expect(screen.getByLabelText("Your workspace access")).toBeInTheDocument();
+    expect(screen.getByTestId("workspace-add-member-dialog")).toHaveTextContent("Add Member");
     expect(screen.getByText("Alice Adams")).toBeInTheDocument();
     expect(screen.getByText("alice@example.com")).toBeInTheDocument();
     expect(screen.getByText("owner")).toBeInTheDocument();
@@ -105,7 +115,14 @@ describe("WorkspaceSettingsUsersPage", () => {
   });
 
   it("renders an explicit empty state instead of the placeholder copy", () => {
-    render(<WorkspaceSettingsUsersPage currentUserId="user-123" members={[]} />);
+    render(
+      <WorkspaceSettingsUsersPage
+        organizationId="org-1"
+        currentUserId="user-123"
+        canAddMembers={false}
+        members={[]}
+      />
+    );
 
     expect(screen.getByText("No workspace users yet")).toBeInTheDocument();
     expect(
@@ -117,7 +134,9 @@ describe("WorkspaceSettingsUsersPage", () => {
   it("keeps the current user outside the table and shows a separate empty state for other users", () => {
     render(
       <WorkspaceSettingsUsersPage
+        organizationId="org-1"
         currentUserId="user-123"
+        canAddMembers={false}
         members={[
           {
             id: "member-1",

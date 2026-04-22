@@ -11,6 +11,8 @@ import { BetterAuthAdvancedOptions, isProduction } from "better-auth";
 import { socialsProviders } from "@typings/auth";
 import { YandexOAuth2ClientConfig } from "@server/auth/yandex-oauth2-client";
 
+type BetterAuthApiMethod = (...args: unknown[]) => Promise<unknown>;
+
 export const auth = betterAuth({
   database: prismaAdapter(prisma, {
     provider: "postgresql",
@@ -62,6 +64,7 @@ export const auth = betterAuth({
       cookieName: LAST_LOGIN_METHOD_KEY,
     }),
     organization({
+      requireEmailVerificationOnInvitation: true,
       schema: {
         session: {
           fields: {
@@ -99,4 +102,6 @@ export const auth = betterAuth({
   },
   secret: process.env.BETTER_AUTH_SECRET,
   trustedOrigins: [process.env.BETTER_AUTH_URL],
-} as BetterAuthOptions);
+} as BetterAuthOptions) as ReturnType<typeof betterAuth> & {
+  api: Record<string, BetterAuthApiMethod>;
+};
