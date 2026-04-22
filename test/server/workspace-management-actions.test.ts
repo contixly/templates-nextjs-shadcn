@@ -78,6 +78,7 @@ jest.mock("next/cache", () => ({
 
 jest.mock("../../src/lib/cache", () => ({
   revalidateTags: jest.fn(),
+  updateTags: jest.fn(),
 }));
 
 jest.mock("next/navigation", () => ({

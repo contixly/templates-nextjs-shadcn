@@ -2,7 +2,7 @@
 
 import { PropsWithClassName } from "@typings/ui";
 import { useIsMobile } from "@hooks/use-mobile";
-import React, { PropsWithChildren } from "react";
+import React, { PropsWithChildren, useEffect, useState } from "react";
 import {
   AlertDialog,
   AlertDialogContent,
@@ -63,6 +63,19 @@ export function Modal({
   triggerClassName,
 }: ModalProps & PropsWithChildren) {
   const isMobile = useIsMobile();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setMounted(true);
+  }, []);
+
+  // Keep server markup and the initial hydrated tree identical.
+  // Radix adds dialog-specific ARIA/state attributes on the trigger, which can
+  // otherwise drift during hydration when the client dialog tree takes over.
+  if (!mounted) {
+    return trigger ?? null;
+  }
 
   if (isMobile) {
     return (

@@ -1,5 +1,4 @@
-import { updateTag } from "next/cache";
-import { revalidateTags } from "@lib/cache";
+import { revalidateTags, updateTags } from "@lib/cache";
 import {
   CACHE_OrganizationByIdTag,
   CACHE_OrganizationsByUserIdTag,
@@ -9,8 +8,18 @@ import {
 /** Alias kept for current UI call sites while the tenant model moves to organizations. */
 export type WorkspaceWithCounts = OrganizationWorkspaceDto;
 
-export const CACHE_WorkspacesByUserIdTag = (userId: string) => `workspaces_user_${userId}`;
-export const CACHE_WorkspaceByIdTag = (workspaceId: string) => `workspace_${workspaceId}`;
+export const CACHE_WorkspacesByUserIdTag = CACHE_OrganizationsByUserIdTag;
+export const CACHE_WorkspaceByIdTag = CACHE_OrganizationByIdTag;
+
+const getWorkspaceCacheTags = ({ userId, workspaceId }: { userId: string; workspaceId: string }) =>
+  Array.from(
+    new Set([
+      CACHE_WorkspacesByUserIdTag(userId),
+      CACHE_WorkspaceByIdTag(workspaceId),
+      CACHE_OrganizationsByUserIdTag(userId),
+      CACHE_OrganizationByIdTag(workspaceId),
+    ])
+  );
 
 export const updateWorkspaceCache = ({
   userId,
@@ -18,12 +27,7 @@ export const updateWorkspaceCache = ({
 }: {
   userId: string;
   workspaceId: string;
-}) => {
-  updateTag(CACHE_WorkspacesByUserIdTag(userId));
-  updateTag(CACHE_WorkspaceByIdTag(workspaceId));
-  updateTag(CACHE_OrganizationsByUserIdTag(userId));
-  updateTag(CACHE_OrganizationByIdTag(workspaceId));
-};
+}) => updateTags(getWorkspaceCacheTags({ userId, workspaceId }));
 
 export const revalidateWorkspaceCache = ({
   userId,
@@ -31,11 +35,4 @@ export const revalidateWorkspaceCache = ({
 }: {
   userId: string;
   workspaceId: string;
-}) => {
-  revalidateTags([
-    CACHE_WorkspacesByUserIdTag(userId),
-    CACHE_WorkspaceByIdTag(workspaceId),
-    CACHE_OrganizationsByUserIdTag(userId),
-    CACHE_OrganizationByIdTag(workspaceId),
-  ]);
-};
+}) => revalidateTags(getWorkspaceCacheTags({ userId, workspaceId }));

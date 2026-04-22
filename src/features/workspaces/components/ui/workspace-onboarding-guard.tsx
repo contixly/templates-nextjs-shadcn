@@ -1,11 +1,16 @@
-import { getTranslations } from "next-intl/server";
+"use client";
+
+import { useTranslations } from "next-intl";
 import { Button } from "@components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@components/ui/card";
 import { WorkspaceCreateDialog } from "@features/workspaces/components/forms/workspace-create-dialog";
 import { IconMailPlus, IconPlus } from "@tabler/icons-react";
 
-export const WorkspaceOnboardingGuard = async () => {
-  const t = await getTranslations("workspaces.ui.onboarding");
+const onboardingActionClassName =
+  "h-auto min-h-9 py-2 [&>span:last-child]:overflow-visible [&>span:last-child]:text-clip [&>span:last-child]:whitespace-normal";
+
+export const WorkspaceOnboardingGuard = () => {
+  const t = useTranslations("workspaces.ui.onboarding");
 
   return (
     <section className="flex w-full flex-1 items-center justify-center px-4 py-8 lg:px-6">
@@ -17,13 +22,19 @@ export const WorkspaceOnboardingGuard = async () => {
         <CardContent className="flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
           <WorkspaceCreateDialog
             trigger={
-              <Button size="lg">
+              <Button size="lg" className={onboardingActionClassName}>
                 <IconPlus className="size-4" />
                 {t("createAction")}
               </Button>
             }
           />
-          <Button size="lg" variant="outline" disabled title={t("inviteHint")}>
+          <Button
+            size="lg"
+            variant="outline"
+            className={onboardingActionClassName}
+            disabled
+            title={t("inviteHint")}
+          >
             <IconMailPlus className="size-4" />
             {t("inviteAction")}
           </Button>

@@ -11,8 +11,8 @@ const messages = {
   inviteHint: "Invites are coming soon.",
 };
 
-jest.mock("next-intl/server", () => ({
-  getTranslations: async () => (key: keyof typeof messages) => messages[key] ?? key,
+jest.mock("next-intl", () => ({
+  useTranslations: () => (key: keyof typeof messages) => messages[key] ?? key,
 }));
 
 jest.mock("../../src/components/ui/button", () => ({
@@ -47,7 +47,7 @@ jest.mock("../../src/features/workspaces/components/forms/workspace-create-dialo
 
 describe("WorkspaceOnboardingGuard", () => {
   it("renders onboarding actions for creating a workspace and entering future invite flows", async () => {
-    render(await WorkspaceOnboardingGuard());
+    render(<WorkspaceOnboardingGuard />);
 
     expect(
       screen.getByRole("heading", { name: "Create your first workspace" })
