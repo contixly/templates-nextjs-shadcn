@@ -19,8 +19,13 @@ export default async function WorkspaceSettingsInvitationsPage({
   params,
 }: WorkspaceSettingsInvitationsPageProps) {
   const { organizationKey } = await params;
-  const { workspace, canonicalOrganizationKey, invitations, canCreateInvitations } =
-    await loadWorkspaceSettingsInvitationsPageContext(organizationKey);
+  const {
+    workspace,
+    canonicalOrganizationKey,
+    invitations,
+    canCreateInvitations,
+    assignableWorkspaceRoles,
+  } = await loadWorkspaceSettingsInvitationsPageContext(organizationKey);
 
   if (organizationKey !== canonicalOrganizationKey) {
     redirect(
@@ -36,6 +41,7 @@ export default async function WorkspaceSettingsInvitationsPage({
         organizationId={workspace.id}
         invitations={invitations}
         canCreateInvitations={canCreateInvitations}
+        assignableWorkspaceRoles={assignableWorkspaceRoles}
       />
     </SettingsPageSection>
   );

@@ -11,30 +11,42 @@ import { Button } from "@components/ui/button";
 import { Modal, type ModalProps } from "@components/ui/custom/modal";
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@components/ui/field";
 import { Input } from "@components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@components/ui/select";
 import { Spinner } from "@components/ui/spinner";
 import { addWorkspaceMember } from "@features/workspaces/actions/add-workspace-member";
 import {
   addWorkspaceMemberFormSchema,
   type AddWorkspaceMemberInput,
 } from "@features/workspaces/workspaces-invitations-schemas";
+import type { WorkspaceManageableRole } from "@features/workspaces/workspaces-roles";
 import { translateWorkspaceErrorMessage } from "@features/workspaces/workspaces-errors";
 import { useAnyTranslations } from "@/src/i18n/use-any-translations";
 
 interface WorkspaceAddMemberDialogProps {
   organizationId: string;
+  assignableRoles: WorkspaceManageableRole[];
 }
 
 export const WorkspaceAddMemberDialog = ({
   organizationId,
+  assignableRoles,
   trigger,
   ...props
 }: WorkspaceAddMemberDialogProps & Partial<ModalProps>) => {
   const tCommon = useTranslations("common");
   const tWorkspaces = useTranslations("workspaces.ui.addMemberDialog");
+  const tRoles = useTranslations("workspaces.ui.roles.labels");
   const tAny = useAnyTranslations("workspaces");
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [open, onOpenChange] = useState(false);
+  const defaultRole = assignableRoles[0] ?? "member";
 
   const {
     control,
@@ -47,6 +59,7 @@ export const WorkspaceAddMemberDialog = ({
     defaultValues: {
       organizationId,
       userId: "",
+      role: defaultRole,
     },
   });
 
@@ -55,9 +68,10 @@ export const WorkspaceAddMemberDialog = ({
       reset({
         organizationId,
         userId: "",
+        role: defaultRole,
       });
     }
-  }, [open, organizationId, reset]);
+  }, [defaultRole, open, organizationId, reset]);
 
   const submit: SubmitHandler<AddWorkspaceMemberInput> = (data) => {
     startTransition(async () => {
@@ -114,6 +128,40 @@ export const WorkspaceAddMemberDialog = ({
                   autoComplete="off"
                 />
                 <FieldDescription>{tWorkspaces("userIdHint")}</FieldDescription>
+                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+              </Field>
+            )}
+          />
+
+          <Controller
+            name="role"
+            control={control}
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel htmlFor="workspace-add-member-role">
+                  {tWorkspaces("roleLabel")}
+                </FieldLabel>
+                <Select
+                  value={field.value}
+                  onValueChange={field.onChange}
+                  disabled={isPending || assignableRoles.length === 0}
+                >
+                  <SelectTrigger
+                    id="workspace-add-member-role"
+                    aria-invalid={fieldState.invalid}
+                    className="w-full"
+                  >
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {assignableRoles.map((role) => (
+                      <SelectItem key={role} value={role}>
+                        {tRoles(role)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FieldDescription>{tWorkspaces("roleHint")}</FieldDescription>
                 {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
               </Field>
             )}

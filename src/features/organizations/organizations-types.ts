@@ -44,6 +44,7 @@ export interface OrganizationMemberListItemDto {
   name: string;
   email: string;
   image?: string | null;
+  role?: string;
   roleLabels: string[];
   joinedAt: Date;
 }

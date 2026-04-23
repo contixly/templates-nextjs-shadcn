@@ -64,14 +64,19 @@ jest.mock("@lib/time", () => ({
   },
 }));
 
-jest.mock(
-  "@features/workspaces/components/forms/workspace-create-invitation-dialog",
-  () => ({
-    WorkspaceCreateInvitationDialog: ({ organizationId }: { organizationId: string }) => (
-      <div data-testid="workspace-create-invitation-dialog">{organizationId}</div>
-    ),
-  })
-);
+jest.mock("@features/workspaces/components/forms/workspace-create-invitation-dialog", () => ({
+  WorkspaceCreateInvitationDialog: ({
+    organizationId,
+    assignableRoles,
+  }: {
+    organizationId: string;
+    assignableRoles: string[];
+  }) => (
+    <div data-testid="workspace-create-invitation-dialog">
+      {organizationId}:{assignableRoles.join(",")}
+    </div>
+  ),
+}));
 
 describe("WorkspaceSettingsInvitationsPage", () => {
   it("renders invitation rows together with the invite-by-email control", () => {
@@ -79,6 +84,7 @@ describe("WorkspaceSettingsInvitationsPage", () => {
       <WorkspaceSettingsInvitationsPage
         organizationId="org-1"
         canCreateInvitations
+        assignableWorkspaceRoles={["member", "admin"]}
         invitations={[
           {
             id: "invite-1",
@@ -102,7 +108,9 @@ describe("WorkspaceSettingsInvitationsPage", () => {
     );
 
     expect(screen.getByText("Workspace Invitations")).toBeInTheDocument();
-    expect(screen.getByTestId("workspace-create-invitation-dialog")).toHaveTextContent("org-1");
+    expect(screen.getByTestId("workspace-create-invitation-dialog")).toHaveTextContent(
+      "org-1:member,admin"
+    );
     expect(screen.getByRole("columnheader", { name: "Email" })).toBeInTheDocument();
     expect(screen.getByText("alice@example.com")).toBeInTheDocument();
     expect(screen.getByText("Alice Admin")).toBeInTheDocument();
@@ -117,6 +125,7 @@ describe("WorkspaceSettingsInvitationsPage", () => {
       <WorkspaceSettingsInvitationsPage
         organizationId="org-1"
         canCreateInvitations={false}
+        assignableWorkspaceRoles={[]}
         invitations={[]}
       />
     );

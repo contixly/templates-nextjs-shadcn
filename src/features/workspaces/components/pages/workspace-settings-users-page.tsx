@@ -1,10 +1,20 @@
 "use client";
 
+import { useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { Avatar, AvatarFallback, AvatarImage } from "@components/ui/avatar";
 import { Badge } from "@components/ui/badge";
 import { Button } from "@components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@components/ui/card";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@components/ui/empty";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@components/ui/select";
+import { Spinner } from "@components/ui/spinner";
 import {
   Table,
   TableBody,
@@ -14,29 +24,148 @@ import {
   TableRow,
 } from "@components/ui/table";
 import { IconUserPlus, IconUsers } from "@tabler/icons-react";
+import { toast } from "sonner";
 import { accountsTools } from "@features/accounts/accounts-tools";
 import type { OrganizationMemberListItemDto } from "@features/organizations/organizations-types";
+import { updateWorkspaceMemberRole } from "@features/workspaces/actions/update-workspace-member-role";
 import { WorkspaceAddMemberDialog } from "@features/workspaces/components/forms/workspace-add-member-dialog";
+import { translateWorkspaceErrorMessage } from "@features/workspaces/workspaces-errors";
+import {
+  getSingleWorkspaceManageableRole,
+  isWorkspaceManageableRole,
+  type WorkspaceManageableRole,
+} from "@features/workspaces/workspaces-roles";
 import { timeTools } from "@lib/time";
 import { useLocale, useTranslations } from "next-intl";
+import { useAnyTranslations } from "@/src/i18n/use-any-translations";
 
 interface WorkspaceSettingsUsersPageProps {
   organizationId: string;
   members: OrganizationMemberListItemDto[];
   currentUserId: string;
   canAddMembers: boolean;
+  canUpdateMemberRoles: boolean;
+  assignableWorkspaceRoles: WorkspaceManageableRole[];
 }
 
 const getDisplayName = (member: OrganizationMemberListItemDto) =>
   member.name.trim() || member.email;
+
+const getMemberRoleValue = (member: OrganizationMemberListItemDto) =>
+  member.role ?? member.roleLabels.join(",");
+
+const getRoleLabel = (roleLabel: string, tRoles: (role: WorkspaceManageableRole) => string) =>
+  isWorkspaceManageableRole(roleLabel) ? tRoles(roleLabel) : roleLabel;
+
+const canRenderRoleControl = ({
+  assignableWorkspaceRoles,
+  currentRole,
+}: {
+  assignableWorkspaceRoles: WorkspaceManageableRole[];
+  currentRole: WorkspaceManageableRole | null;
+}) => {
+  if (!currentRole || assignableWorkspaceRoles.length === 0) {
+    return false;
+  }
+
+  return currentRole !== "owner" || assignableWorkspaceRoles.includes("owner");
+};
+
+interface WorkspaceMemberRoleControlProps {
+  organizationId: string;
+  member: OrganizationMemberListItemDto;
+  displayName: string;
+  assignableWorkspaceRoles: WorkspaceManageableRole[];
+}
+
+const WorkspaceMemberRoleControl = ({
+  organizationId,
+  member,
+  displayName,
+  assignableWorkspaceRoles,
+}: WorkspaceMemberRoleControlProps) => {
+  const t = useTranslations("workspaces.ui.settingsUsersPage");
+  const tRoles = useTranslations("workspaces.ui.roles.labels");
+  const tAny = useAnyTranslations("workspaces");
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
+  const currentRole = getSingleWorkspaceManageableRole(getMemberRoleValue(member));
+  const isEditable = canRenderRoleControl({
+    assignableWorkspaceRoles,
+    currentRole,
+  });
+
+  if (!isEditable || !currentRole) {
+    return <span className="text-muted-foreground text-sm">{t("table.readOnlyRole")}</span>;
+  }
+
+  const updateRole = (nextRole: WorkspaceManageableRole) => {
+    if (nextRole === currentRole) {
+      return;
+    }
+
+    startTransition(async () => {
+      const result = await updateWorkspaceMemberRole({
+        organizationId,
+        memberId: member.id,
+        role: nextRole,
+      });
+
+      if (result.success) {
+        toast.success(t("roleUpdateSuccess"));
+        router.refresh();
+        return;
+      }
+
+      toast.error(t("roleUpdateErrorTitle"), {
+        description:
+          translateWorkspaceErrorMessage(result.error?.message, tAny) ??
+          t("roleUpdateUnknownError"),
+      });
+    });
+  };
+
+  return (
+    <div className="flex items-center gap-2">
+      <Select
+        value={currentRole}
+        onValueChange={(value) => {
+          if (isWorkspaceManageableRole(value)) {
+            updateRole(value);
+          }
+        }}
+        disabled={isPending}
+      >
+        <SelectTrigger
+          aria-label={t("table.roleSelectLabel", { name: displayName })}
+          className="w-32"
+          size="sm"
+        >
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {assignableWorkspaceRoles.map((role) => (
+            <SelectItem key={role} value={role}>
+              {tRoles(role)}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      {isPending ? <Spinner aria-hidden="true" /> : null}
+    </div>
+  );
+};
 
 export const WorkspaceSettingsUsersPage = ({
   organizationId,
   members,
   currentUserId,
   canAddMembers,
+  canUpdateMemberRoles,
+  assignableWorkspaceRoles,
 }: WorkspaceSettingsUsersPageProps) => {
   const t = useTranslations("workspaces.ui.settingsUsersPage");
+  const tRoles = useTranslations("workspaces.ui.roles.labels");
   const locale = useLocale();
   const currentMember = members.find((member) => member.userId === currentUserId) ?? null;
   const otherMembers = members.filter((member) => member.userId !== currentUserId);
@@ -54,6 +183,7 @@ export const WorkspaceSettingsUsersPage = ({
         {canAddMembers ? (
           <WorkspaceAddMemberDialog
             organizationId={organizationId}
+            assignableRoles={assignableWorkspaceRoles}
             trigger={
               <Button size="sm" variant="outline">
                 <IconUserPlus className="size-4" />
@@ -105,7 +235,7 @@ export const WorkspaceSettingsUsersPage = ({
                         <div className="flex flex-wrap gap-2">
                           {currentMember.roleLabels.map((roleLabel) => (
                             <Badge key={`${currentMember.id}-${roleLabel}`} variant="outline">
-                              {roleLabel}
+                              {getRoleLabel(roleLabel, tRoles)}
                             </Badge>
                           ))}
                         </div>
@@ -134,6 +264,9 @@ export const WorkspaceSettingsUsersPage = ({
                       <TableHead>{t("table.columns.user")}</TableHead>
                       <TableHead>{t("table.columns.email")}</TableHead>
                       <TableHead>{t("table.columns.roles")}</TableHead>
+                      {canUpdateMemberRoles ? (
+                        <TableHead>{t("table.columns.roleAction")}</TableHead>
+                      ) : null}
                       <TableHead>{t("table.columns.joined")}</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -162,7 +295,7 @@ export const WorkspaceSettingsUsersPage = ({
                               <div className="flex flex-wrap gap-2">
                                 {member.roleLabels.map((roleLabel) => (
                                   <Badge key={`${member.id}-${roleLabel}`} variant="outline">
-                                    {roleLabel}
+                                    {getRoleLabel(roleLabel, tRoles)}
                                   </Badge>
                                 ))}
                               </div>
@@ -170,6 +303,16 @@ export const WorkspaceSettingsUsersPage = ({
                               <span className="text-muted-foreground">{t("table.noRoles")}</span>
                             )}
                           </TableCell>
+                          {canUpdateMemberRoles ? (
+                            <TableCell>
+                              <WorkspaceMemberRoleControl
+                                organizationId={organizationId}
+                                member={member}
+                                displayName={displayName}
+                                assignableWorkspaceRoles={assignableWorkspaceRoles}
+                              />
+                            </TableCell>
+                          ) : null}
                           <TableCell>{timeTools.formatDate(member.joinedAt, locale)}</TableCell>
                         </TableRow>
                       );

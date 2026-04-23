@@ -26,6 +26,11 @@ export const WORKSPACE_ERROR_KEYS = {
   memberNotFound: "validation.errors.memberNotFound",
   memberAlreadyExists: "validation.errors.memberAlreadyExists",
   memberPermissionDenied: "validation.errors.memberPermissionDenied",
+  memberRoleUpdatePermissionDenied: "validation.errors.memberRoleUpdatePermissionDenied",
+  memberRoleUpdateDenied: "validation.errors.memberRoleUpdateDenied",
+  memberRoleUnchanged: "validation.errors.memberRoleUnchanged",
+  workspaceRoleInvalid: "validation.errors.workspaceRoleInvalid",
+  workspaceRolePermissionDenied: "validation.errors.workspaceRolePermissionDenied",
 } as const;
 
 const WORKSPACE_ERROR_KEY_SET = new Set<string>(Object.values(WORKSPACE_ERROR_KEYS));

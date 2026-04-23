@@ -12,6 +12,13 @@ import { CopyButton } from "@components/ui/custom/copy-button";
 import { Modal, type ModalProps } from "@components/ui/custom/modal";
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@components/ui/field";
 import { Input } from "@components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@components/ui/select";
 import { Spinner } from "@components/ui/spinner";
 import { createWorkspaceInvitation } from "@features/workspaces/actions/create-workspace-invitation";
 import {
@@ -19,25 +26,30 @@ import {
   type CreateWorkspaceInvitationInput,
 } from "@features/workspaces/workspaces-invitations-schemas";
 import type { WorkspaceInvitationDto } from "@features/workspaces/workspaces-invitations-types";
+import type { WorkspaceManageableRole } from "@features/workspaces/workspaces-roles";
 import { translateWorkspaceErrorMessage } from "@features/workspaces/workspaces-errors";
 import { useAnyTranslations } from "@/src/i18n/use-any-translations";
 
 interface WorkspaceCreateInvitationDialogProps {
   organizationId: string;
+  assignableRoles: WorkspaceManageableRole[];
 }
 
 export const WorkspaceCreateInvitationDialog = ({
   organizationId,
+  assignableRoles,
   trigger,
   ...props
 }: WorkspaceCreateInvitationDialogProps & Partial<ModalProps>) => {
   const tCommon = useTranslations("common");
   const tWorkspaces = useTranslations("workspaces.ui.createInvitationDialog");
+  const tRoles = useTranslations("workspaces.ui.roles.labels");
   const tAny = useAnyTranslations("workspaces");
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [open, onOpenChange] = useState(false);
   const [createdInvitation, setCreatedInvitation] = useState<WorkspaceInvitationDto | null>(null);
+  const defaultRole = assignableRoles[0] ?? "member";
 
   const {
     control,
@@ -50,6 +62,7 @@ export const WorkspaceCreateInvitationDialog = ({
     defaultValues: {
       organizationId,
       email: "",
+      role: defaultRole,
     },
   });
 
@@ -58,6 +71,7 @@ export const WorkspaceCreateInvitationDialog = ({
     reset({
       organizationId,
       email: "",
+      role: defaultRole,
     });
   };
 
@@ -170,6 +184,40 @@ export const WorkspaceCreateInvitationDialog = ({
                     inputMode="email"
                   />
                   <FieldDescription>{tWorkspaces("emailHint")}</FieldDescription>
+                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                </Field>
+              )}
+            />
+
+            <Controller
+              name="role"
+              control={control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor="workspace-invitation-role">
+                    {tWorkspaces("roleLabel")}
+                  </FieldLabel>
+                  <Select
+                    value={field.value}
+                    onValueChange={field.onChange}
+                    disabled={isPending || assignableRoles.length === 0}
+                  >
+                    <SelectTrigger
+                      id="workspace-invitation-role"
+                      aria-invalid={fieldState.invalid}
+                      className="w-full"
+                    >
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {assignableRoles.map((role) => (
+                        <SelectItem key={role} value={role}>
+                          {tRoles(role)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FieldDescription>{tWorkspaces("roleHint")}</FieldDescription>
                   {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                 </Field>
               )}

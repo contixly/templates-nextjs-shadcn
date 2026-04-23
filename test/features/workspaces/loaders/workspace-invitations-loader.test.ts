@@ -179,6 +179,8 @@ describe("workspace invitation loaders", () => {
       canDeleteWorkspace: false,
       canCreateInvitations: true,
       canonicalOrganizationKey: "acme",
+      currentMemberRole: "admin",
+      assignableWorkspaceRoles: ["member", "admin"],
     });
     mockFindManyWorkspaceInvitationsByOrganizationIdAndUserId.mockResolvedValue([
       {
@@ -203,6 +205,8 @@ describe("workspace invitation loaders", () => {
 
     await expect(loadWorkspaceSettingsInvitationsPageContext("acme")).resolves.toMatchObject({
       canCreateInvitations: true,
+      currentMemberRole: "admin",
+      assignableWorkspaceRoles: ["member", "admin"],
       invitations: [expect.objectContaining({ id: "invite-1" })],
     });
   });
@@ -216,6 +220,8 @@ describe("workspace invitation loaders", () => {
       canDeleteWorkspace: false,
       canCreateInvitations: false,
       canonicalOrganizationKey: "acme",
+      currentMemberRole: "member",
+      assignableWorkspaceRoles: [],
     });
 
     await expect(loadWorkspaceSettingsInvitationsPageContext("acme")).rejects.toThrow("forbidden");

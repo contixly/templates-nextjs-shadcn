@@ -4,14 +4,33 @@ import React from "react";
 import { WorkspaceSettingsUsersPage } from "@features/workspaces/components/pages/workspace-settings-users-page";
 
 jest.mock("@features/workspaces/components/forms/workspace-add-member-dialog", () => ({
-  WorkspaceAddMemberDialog: ({ trigger }: { trigger?: React.ReactNode }) => (
-    <div data-testid="workspace-add-member-dialog">{trigger}</div>
+  WorkspaceAddMemberDialog: ({
+    trigger,
+    assignableRoles,
+  }: {
+    trigger?: React.ReactNode;
+    assignableRoles: string[];
+  }) => (
+    <div data-testid="workspace-add-member-dialog">
+      {trigger}
+      <span>{assignableRoles.join(",")}</span>
+    </div>
   ),
+}));
+
+jest.mock("@features/workspaces/actions/update-workspace-member-role", () => ({
+  updateWorkspaceMemberRole: jest.fn(),
+}));
+
+jest.mock("next/navigation", () => ({
+  useRouter: () => ({
+    refresh: jest.fn(),
+  }),
 }));
 
 jest.mock("next-intl", () => ({
   useLocale: () => "en",
-  useTranslations: (namespace: string) => (key: string) => {
+  useTranslations: (namespace: string) => (key: string, values?: Record<string, string>) => {
     const messages = {
       workspaces: {
         ui: {
@@ -20,7 +39,7 @@ jest.mock("next-intl", () => ({
             description: "Review workspace users",
             addMemberAction: "Add Member",
             readOnlyNotice:
-              "You can review workspace members here, but only admins and owners can add people in this release.",
+              "You can review workspace members here, but only admins and owners can add people or change roles in this release.",
             currentUserSectionLabel: "Your workspace access",
             currentUserBadge: "You",
             otherUsersSectionLabel: "Other workspace users",
@@ -37,9 +56,19 @@ jest.mock("next-intl", () => ({
                 user: "User",
                 email: "Email",
                 roles: "Roles",
+                roleAction: "Role action",
                 joined: "Joined",
               },
+              roleSelectLabel: "Role for {name}",
               noRoles: "No roles",
+              readOnlyRole: "Read-only",
+            },
+          },
+          roles: {
+            labels: {
+              member: "Member",
+              admin: "Admin",
+              owner: "Owner",
             },
           },
         },
@@ -55,7 +84,11 @@ jest.mock("next-intl", () => ({
       return path;
     }, messages);
 
-    return typeof value === "string" ? value : path;
+    if (typeof value !== "string") {
+      return path;
+    }
+
+    return value.replace("{name}", values?.name ?? "");
   },
 }));
 
@@ -72,6 +105,8 @@ describe("WorkspaceSettingsUsersPage", () => {
         organizationId="org-1"
         currentUserId="user-123"
         canAddMembers
+        canUpdateMemberRoles
+        assignableWorkspaceRoles={["member", "admin", "owner"]}
         members={[
           {
             id: "member-1",
@@ -99,7 +134,7 @@ describe("WorkspaceSettingsUsersPage", () => {
     expect(screen.getByTestId("workspace-add-member-dialog")).toHaveTextContent("Add Member");
     expect(screen.getByText("Alice Adams")).toBeInTheDocument();
     expect(screen.getByText("alice@example.com")).toBeInTheDocument();
-    expect(screen.getByText("owner")).toBeInTheDocument();
+    expect(screen.getByText("Owner")).toBeInTheDocument();
     expect(screen.getByText("billing")).toBeInTheDocument();
     expect(screen.getByText("You")).toBeInTheDocument();
     expect(screen.getByText("formatted:2026-04-20T10:00:00.000Z")).toBeInTheDocument();
@@ -109,10 +144,12 @@ describe("WorkspaceSettingsUsersPage", () => {
     expect(screen.getByRole("columnheader", { name: "User" })).toBeInTheDocument();
     expect(screen.getByRole("columnheader", { name: "Email" })).toBeInTheDocument();
     expect(screen.getByRole("columnheader", { name: "Roles" })).toBeInTheDocument();
+    expect(screen.getByRole("columnheader", { name: "Role action" })).toBeInTheDocument();
     expect(screen.getByRole("columnheader", { name: "Joined" })).toBeInTheDocument();
     expect(screen.getByText("Bob Brown")).toBeInTheDocument();
     expect(screen.getByText("bob@example.com")).toBeInTheDocument();
-    expect(screen.getByText("member")).toBeInTheDocument();
+    expect(screen.getAllByText("Member").length).toBeGreaterThan(0);
+    expect(screen.getByRole("combobox", { name: "Role for Bob Brown" })).toBeInTheDocument();
     expect(screen.getByText("formatted:2026-04-21T10:00:00.000Z")).toBeInTheDocument();
   });
 
@@ -122,6 +159,8 @@ describe("WorkspaceSettingsUsersPage", () => {
         organizationId="org-1"
         currentUserId="user-123"
         canAddMembers={false}
+        canUpdateMemberRoles={false}
+        assignableWorkspaceRoles={[]}
         members={[]}
       />
     );
@@ -139,6 +178,8 @@ describe("WorkspaceSettingsUsersPage", () => {
         organizationId="org-1"
         currentUserId="user-123"
         canAddMembers={false}
+        canUpdateMemberRoles={false}
+        assignableWorkspaceRoles={[]}
         members={[
           {
             id: "member-1",
@@ -155,10 +196,11 @@ describe("WorkspaceSettingsUsersPage", () => {
 
     expect(
       screen.getByText(
-        "You can review workspace members here, but only admins and owners can add people in this release."
+        "You can review workspace members here, but only admins and owners can add people or change roles in this release."
       )
     ).toBeInTheDocument();
     expect(screen.queryByTestId("workspace-add-member-dialog")).not.toBeInTheDocument();
+    expect(screen.queryByRole("combobox")).not.toBeInTheDocument();
   });
 
   it("keeps the current user outside the table and shows a separate empty state for other users", () => {
@@ -167,6 +209,8 @@ describe("WorkspaceSettingsUsersPage", () => {
         organizationId="org-1"
         currentUserId="user-123"
         canAddMembers={false}
+        canUpdateMemberRoles={false}
+        assignableWorkspaceRoles={[]}
         members={[
           {
             id: "member-1",

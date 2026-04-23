@@ -6,7 +6,10 @@ import { HttpCodes } from "@typings/network";
 import { createProtectedActionWithInput } from "@lib/actions";
 import { auth } from "@server/auth";
 import prisma from "@server/prisma";
-import { findWorkspaceDtoByIdAndUserId } from "@features/organizations/organizations-repository";
+import {
+  findOrganizationMemberByOrganizationIdAndUserId,
+  findWorkspaceDtoByIdAndUserId,
+} from "@features/organizations/organizations-repository";
 import {
   createWorkspaceInvitationSchema,
   type CreateWorkspaceInvitationInput,
@@ -20,14 +23,19 @@ import {
 } from "@features/workspaces/workspaces-invitations-types";
 import { resolveWorkspaceInvitationMutationError } from "@features/workspaces/workspaces-invitations-action-utils";
 import { WORKSPACE_ERROR_KEYS } from "@features/workspaces/workspaces-errors";
+import { canAssignWorkspaceRole } from "@features/workspaces/workspaces-roles";
 import { workspacesLogger } from "@features/workspaces/workspaces-logger";
+
+interface BetterAuthCreatedInvitation {
+  id: string;
+}
 
 export const createWorkspaceInvitation = createProtectedActionWithInput<
   CreateWorkspaceInvitationInput,
   WorkspaceInvitationDto
 >(
   createWorkspaceInvitationSchema,
-  async ({ organizationId, email }, { userId }) => {
+  async ({ organizationId, email, role }, { userId }) => {
     const workspace = await findWorkspaceDtoByIdAndUserId(organizationId, userId);
 
     if (!workspace) {
@@ -43,6 +51,24 @@ export const createWorkspaceInvitation = createProtectedActionWithInput<
         success: false,
         error: {
           message: WORKSPACE_ERROR_KEYS.invitationPermissionDenied,
+          code: HttpCodes.FORBIDDEN,
+        },
+      };
+    }
+
+    const actingMember = await findOrganizationMemberByOrganizationIdAndUserId(
+      organizationId,
+      userId,
+      {
+        role: true,
+      }
+    );
+
+    if (!canAssignWorkspaceRole(actingMember?.role, role)) {
+      return {
+        success: false,
+        error: {
+          message: WORKSPACE_ERROR_KEYS.workspaceRolePermissionDenied,
           code: HttpCodes.FORBIDDEN,
         },
       };
@@ -99,14 +125,14 @@ export const createWorkspaceInvitation = createProtectedActionWithInput<
     }
 
     try {
-      const createdInvitation = await auth.api.createInvitation({
+      const createdInvitation = (await auth.api.createInvitation({
         body: {
           organizationId,
           email,
-          role: "member",
+          role,
         },
         headers: await headers(),
-      });
+      })) as BetterAuthCreatedInvitation;
 
       updateWorkspaceInvitationCache({
         invitationId: createdInvitation.id,

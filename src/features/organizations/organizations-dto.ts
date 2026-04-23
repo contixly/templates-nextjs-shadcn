@@ -59,6 +59,7 @@ export const toOrganizationMemberListItemDto = (
   name: member.user.name,
   email: member.user.email,
   image: member.user.image ?? null,
+  role: member.role,
   roleLabels: parseRoleLabels(member.role),
   joinedAt: member.createdAt,
 });

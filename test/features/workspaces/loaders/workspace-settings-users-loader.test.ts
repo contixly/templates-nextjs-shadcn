@@ -4,6 +4,7 @@ const mockLoadCurrentUserId = jest.fn();
 const mockCountAccessibleOrganizationsByUserId = jest.fn();
 const mockFindWorkspaceDtoByKeyAndUserId = jest.fn();
 const mockFindManyAccessibleOrganizationMembersByIdAndUserId = jest.fn();
+const mockFindOrganizationMemberByOrganizationIdAndUserId = jest.fn();
 const mockHasWorkspacePermission = jest.fn();
 
 jest.mock("@features/accounts/accounts-actions", () => ({
@@ -17,6 +18,8 @@ jest.mock("@features/organizations/organizations-repository", () => ({
     mockFindWorkspaceDtoByKeyAndUserId(...args),
   findManyAccessibleOrganizationMembersByIdAndUserId: (...args: unknown[]) =>
     mockFindManyAccessibleOrganizationMembersByIdAndUserId(...args),
+  findOrganizationMemberByOrganizationIdAndUserId: (...args: unknown[]) =>
+    mockFindOrganizationMemberByOrganizationIdAndUserId(...args),
 }));
 
 jest.mock("@features/workspaces/workspaces-permissions", () => ({
@@ -40,6 +43,7 @@ describe("loadWorkspaceSettingsUsersPageContext", () => {
     mockCountAccessibleOrganizationsByUserId.mockReset();
     mockFindWorkspaceDtoByKeyAndUserId.mockReset();
     mockFindManyAccessibleOrganizationMembersByIdAndUserId.mockReset();
+    mockFindOrganizationMemberByOrganizationIdAndUserId.mockReset();
     mockHasWorkspacePermission.mockReset();
   });
 
@@ -57,6 +61,10 @@ describe("loadWorkspaceSettingsUsersPageContext", () => {
       isDefault: false,
     });
     mockHasWorkspacePermission.mockResolvedValue(true);
+    mockFindOrganizationMemberByOrganizationIdAndUserId.mockResolvedValue({
+      id: "member-current",
+      role: "owner",
+    });
     mockFindManyAccessibleOrganizationMembersByIdAndUserId.mockResolvedValue([
       {
         id: "member-1",
@@ -80,7 +88,10 @@ describe("loadWorkspaceSettingsUsersPageContext", () => {
       canCreateInvitations: true,
       canonicalOrganizationKey: "acme",
       currentUserId: "user-123",
+      currentMemberRole: "owner",
+      assignableWorkspaceRoles: ["member", "admin", "owner"],
       canAddMembers: true,
+      canUpdateMemberRoles: true,
       members: [
         expect.objectContaining({
           id: "member-1",
@@ -110,6 +121,10 @@ describe("loadWorkspaceSettingsUsersPageContext", () => {
       isDefault: false,
     });
     mockHasWorkspacePermission.mockResolvedValue(false);
+    mockFindOrganizationMemberByOrganizationIdAndUserId.mockResolvedValue({
+      id: "member-current",
+      role: "member",
+    });
     mockFindManyAccessibleOrganizationMembersByIdAndUserId.mockResolvedValue([]);
 
     await expect(loadWorkspaceSettingsUsersPageContext("org-42")).resolves.toEqual({
@@ -123,7 +138,10 @@ describe("loadWorkspaceSettingsUsersPageContext", () => {
       canCreateInvitations: false,
       canonicalOrganizationKey: "acme",
       currentUserId: "user-123",
+      currentMemberRole: "member",
+      assignableWorkspaceRoles: [],
       canAddMembers: false,
+      canUpdateMemberRoles: false,
       members: [],
     });
   });

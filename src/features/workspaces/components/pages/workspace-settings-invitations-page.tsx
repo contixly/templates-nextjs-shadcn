@@ -16,12 +16,14 @@ import {
 } from "@components/ui/table";
 import { timeTools } from "@lib/time";
 import type { WorkspaceInvitationDto } from "@features/workspaces/workspaces-invitations-types";
+import type { WorkspaceManageableRole } from "@features/workspaces/workspaces-roles";
 import { WorkspaceCreateInvitationDialog } from "@features/workspaces/components/forms/workspace-create-invitation-dialog";
 
 interface WorkspaceSettingsInvitationsPageProps {
   organizationId: string;
   invitations: WorkspaceInvitationDto[];
   canCreateInvitations: boolean;
+  assignableWorkspaceRoles: WorkspaceManageableRole[];
 }
 
 const getStatusVariant = (status: WorkspaceInvitationDto["displayStatus"]) => {
@@ -42,6 +44,7 @@ export const WorkspaceSettingsInvitationsPage = ({
   organizationId,
   invitations,
   canCreateInvitations,
+  assignableWorkspaceRoles,
 }: WorkspaceSettingsInvitationsPageProps) => {
   const tCommon = useTranslations("common");
   const t = useTranslations("workspaces.ui.settingsInvitationsPage");
@@ -55,7 +58,10 @@ export const WorkspaceSettingsInvitationsPage = ({
           <CardDescription>{t("description")}</CardDescription>
         </div>
         {canCreateInvitations ? (
-          <WorkspaceCreateInvitationDialog organizationId={organizationId} />
+          <WorkspaceCreateInvitationDialog
+            organizationId={organizationId}
+            assignableRoles={assignableWorkspaceRoles}
+          />
         ) : null}
       </CardHeader>
       <CardContent>

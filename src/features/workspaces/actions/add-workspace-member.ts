@@ -1,10 +1,10 @@
 "use server";
 
 import { forbidden } from "next/navigation";
-import { Prisma } from "@/prisma/generated/client";
 import { HttpCodes } from "@typings/network";
 import { createProtectedActionWithInput } from "@lib/actions";
 import { updateTags } from "@lib/cache";
+import { auth } from "@server/auth";
 import prisma from "@server/prisma";
 import {
   findOrganizationMemberByOrganizationIdAndUserId,
@@ -17,6 +17,7 @@ import {
 } from "@features/workspaces/workspaces-invitations-schemas";
 import { hasWorkspacePermission } from "@features/workspaces/workspaces-permissions";
 import { WORKSPACE_ERROR_KEYS } from "@features/workspaces/workspaces-errors";
+import { canAssignWorkspaceRole } from "@features/workspaces/workspaces-roles";
 import { updateWorkspaceCache } from "@features/workspaces/workspaces-types";
 import { workspacesLogger } from "@features/workspaces/workspaces-logger";
 
@@ -25,7 +26,7 @@ export const addWorkspaceMember = createProtectedActionWithInput<
   { organizationId: string; userId: string }
 >(
   addWorkspaceMemberSchema,
-  async ({ organizationId, userId: targetUserId }, { userId }) => {
+  async ({ organizationId, userId: targetUserId, role }, { userId }) => {
     const workspace = await findWorkspaceDtoByIdAndUserId(organizationId, userId);
 
     if (!workspace) {
@@ -41,6 +42,24 @@ export const addWorkspaceMember = createProtectedActionWithInput<
         success: false,
         error: {
           message: WORKSPACE_ERROR_KEYS.memberPermissionDenied,
+          code: HttpCodes.FORBIDDEN,
+        },
+      };
+    }
+
+    const actingMember = await findOrganizationMemberByOrganizationIdAndUserId(
+      organizationId,
+      userId,
+      {
+        role: true,
+      }
+    );
+
+    if (!canAssignWorkspaceRole(actingMember?.role, role)) {
+      return {
+        success: false,
+        error: {
+          message: WORKSPACE_ERROR_KEYS.workspaceRolePermissionDenied,
           code: HttpCodes.FORBIDDEN,
         },
       };
@@ -81,18 +100,17 @@ export const addWorkspaceMember = createProtectedActionWithInput<
     }
 
     try {
-      await prisma.member.create({
-        data: {
+      await auth.api.addMember({
+        body: {
           organizationId,
           userId: targetUser.id,
-          role: "member",
+          role,
         },
       });
     } catch (error) {
-      if (
-        error instanceof Prisma.PrismaClientKnownRequestError ||
-        (error as Prisma.PrismaClientKnownRequestError | undefined)?.code === "P2002"
-      ) {
+      const message = error instanceof Error ? error.message : String(error);
+
+      if (message.includes("already a member") || message.includes("Unique constraint failed")) {
         return {
           success: false,
           error: {

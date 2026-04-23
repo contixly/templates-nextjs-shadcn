@@ -8,6 +8,8 @@ const mockLoadWorkspaceInvitationDecisionPageContext = jest.fn();
 const mockHasWorkspacePermission = jest.fn();
 const mockHeaders = jest.fn();
 const mockCreateInvitation = jest.fn();
+const mockAddMember = jest.fn();
+const mockUpdateMemberRole = jest.fn();
 const mockAcceptInvitation = jest.fn();
 const mockRejectInvitation = jest.fn();
 const mockMemberFindFirst = jest.fn();
@@ -68,6 +70,8 @@ jest.mock("@server/auth", () => ({
   auth: {
     api: {
       createInvitation: (...args: unknown[]) => mockCreateInvitation(...args),
+      addMember: (...args: unknown[]) => mockAddMember(...args),
+      updateMemberRole: (...args: unknown[]) => mockUpdateMemberRole(...args),
       acceptInvitation: (...args: unknown[]) => mockAcceptInvitation(...args),
       rejectInvitation: (...args: unknown[]) => mockRejectInvitation(...args),
     },
@@ -118,6 +122,7 @@ jest.mock("next/navigation", () => ({
 
 import { createWorkspaceInvitation } from "@features/workspaces/actions/create-workspace-invitation";
 import { addWorkspaceMember } from "@features/workspaces/actions/add-workspace-member";
+import { updateWorkspaceMemberRole } from "@features/workspaces/actions/update-workspace-member-role";
 import { acceptWorkspaceInvitation } from "@features/workspaces/actions/accept-workspace-invitation";
 import { rejectWorkspaceInvitation } from "@features/workspaces/actions/reject-workspace-invitation";
 
@@ -131,6 +136,8 @@ describe("workspace invitation actions", () => {
     mockHasWorkspacePermission.mockReset();
     mockHeaders.mockReset();
     mockCreateInvitation.mockReset();
+    mockAddMember.mockReset();
+    mockUpdateMemberRole.mockReset();
     mockAcceptInvitation.mockReset();
     mockRejectInvitation.mockReset();
     mockMemberFindFirst.mockReset();
@@ -141,6 +148,11 @@ describe("workspace invitation actions", () => {
 
     mockLoadCurrentUserId.mockResolvedValue("user1");
     mockHeaders.mockResolvedValue(new Headers([["x-test", "1"]]));
+    mockFindOrganizationMemberByOrganizationIdAndUserId.mockResolvedValue({
+      id: "member-actor",
+      role: "owner",
+      userId: "user1",
+    });
   });
 
   it("rejects invitation creation when a pending invitation already exists", async () => {
@@ -153,6 +165,7 @@ describe("workspace invitation actions", () => {
       createWorkspaceInvitation({
         organizationId: "org1",
         email: "alice@example.com",
+        role: "member",
       })
     ).resolves.toEqual({
       success: false,
@@ -164,16 +177,97 @@ describe("workspace invitation actions", () => {
     expect(mockCreateInvitation).not.toHaveBeenCalled();
   });
 
+  it("creates invitations with the selected assignable role", async () => {
+    mockFindWorkspaceDtoByIdAndUserId.mockResolvedValue({ id: "org1" });
+    mockFindOrganizationMemberByOrganizationIdAndUserId.mockResolvedValue({
+      id: "member-actor",
+      role: "owner",
+    });
+    mockHasWorkspacePermission.mockResolvedValue(true);
+    mockMemberFindFirst.mockResolvedValue(null);
+    mockInvitationFindFirst.mockResolvedValue(null);
+    mockCreateInvitation.mockResolvedValue({ id: "invite1" });
+    mockFindWorkspaceInvitationById.mockResolvedValue({
+      id: "invite1",
+      organizationId: "org1",
+      organizationName: "Acme",
+      organizationSlug: "acme",
+      email: "alice@example.com",
+      role: "admin",
+      roleLabels: ["admin"],
+      status: "pending",
+      displayStatus: "pending",
+      expiresAt: new Date("2026-04-25T10:00:00.000Z"),
+      createdAt: new Date("2026-04-20T10:00:00.000Z"),
+      inviterId: "user1",
+      inviterName: "Owner",
+      inviterEmail: "owner@example.com",
+      invitationUrl: "https://example.com/invite/invite1",
+    });
+
+    await expect(
+      createWorkspaceInvitation({
+        organizationId: "org1",
+        email: "alice@example.com",
+        role: "admin",
+      })
+    ).resolves.toEqual({
+      success: true,
+      data: expect.objectContaining({
+        id: "invite1",
+        role: "admin",
+      }),
+    });
+
+    expect(mockCreateInvitation).toHaveBeenCalledWith({
+      body: {
+        organizationId: "org1",
+        email: "alice@example.com",
+        role: "admin",
+      },
+      headers: expect.any(Headers),
+    });
+  });
+
+  it("rejects non-owner attempts to invite an owner before calling Better Auth", async () => {
+    mockFindWorkspaceDtoByIdAndUserId.mockResolvedValue({ id: "org1" });
+    mockFindOrganizationMemberByOrganizationIdAndUserId.mockResolvedValue({
+      id: "member-actor",
+      role: "admin",
+    });
+    mockHasWorkspacePermission.mockResolvedValue(true);
+
+    await expect(
+      createWorkspaceInvitation({
+        organizationId: "org1",
+        email: "alice@example.com",
+        role: "owner",
+      })
+    ).resolves.toEqual({
+      success: false,
+      error: {
+        message: "validation.errors.workspaceRolePermissionDenied",
+        code: 403,
+      },
+    });
+
+    expect(mockCreateInvitation).not.toHaveBeenCalled();
+  });
+
   it("rejects add-member requests when the user is already a member", async () => {
     mockFindWorkspaceDtoByIdAndUserId.mockResolvedValue({ id: "org1" });
     mockHasWorkspacePermission.mockResolvedValue(true);
     mockUserFindUnique.mockResolvedValue({ id: "user2" });
-    mockFindOrganizationMemberByOrganizationIdAndUserId.mockResolvedValue({ id: "member1" });
+    mockFindOrganizationMemberByOrganizationIdAndUserId.mockImplementation(
+      (_organizationId: string, userId: string) =>
+        userId === "user1" ? { id: "member-actor", role: "owner" } : { id: "member1" }
+    );
 
     await expect(
       addWorkspaceMember({
         organizationId: "org1",
         userId: "user2",
+        role: "member",
       })
     ).resolves.toEqual({
       success: false,
@@ -183,6 +277,148 @@ describe("workspace invitation actions", () => {
       },
     });
     expect(mockMemberCreate).not.toHaveBeenCalled();
+  });
+
+  it("adds members through Better Auth with the selected assignable role", async () => {
+    mockFindWorkspaceDtoByIdAndUserId.mockResolvedValue({ id: "org1" });
+    mockHasWorkspacePermission.mockResolvedValue(true);
+    mockUserFindUnique.mockResolvedValue({ id: "user2" });
+    mockFindOrganizationMemberByOrganizationIdAndUserId.mockImplementation(
+      (_organizationId: string, userId: string) =>
+        userId === "user1" ? { id: "member-actor", role: "owner" } : null
+    );
+    mockAddMember.mockResolvedValue({
+      id: "member2",
+      organizationId: "org1",
+      userId: "user2",
+      role: "admin",
+    });
+
+    await expect(
+      addWorkspaceMember({
+        organizationId: "org1",
+        userId: "user2",
+        role: "admin",
+      })
+    ).resolves.toEqual({
+      success: true,
+      data: {
+        organizationId: "org1",
+        userId: "user2",
+      },
+    });
+
+    expect(mockAddMember).toHaveBeenCalledWith({
+      body: {
+        organizationId: "org1",
+        userId: "user2",
+        role: "admin",
+      },
+    });
+    expect(mockMemberCreate).not.toHaveBeenCalled();
+  });
+
+  it("rejects non-owner attempts to directly add an owner before calling Better Auth", async () => {
+    mockFindWorkspaceDtoByIdAndUserId.mockResolvedValue({ id: "org1" });
+    mockHasWorkspacePermission.mockResolvedValue(true);
+    mockFindOrganizationMemberByOrganizationIdAndUserId.mockResolvedValue({
+      id: "member-actor",
+      role: "admin",
+    });
+
+    await expect(
+      addWorkspaceMember({
+        organizationId: "org1",
+        userId: "user2",
+        role: "owner",
+      })
+    ).resolves.toEqual({
+      success: false,
+      error: {
+        message: "validation.errors.workspaceRolePermissionDenied",
+        code: 403,
+      },
+    });
+
+    expect(mockAddMember).not.toHaveBeenCalled();
+  });
+
+  it("updates another member role through Better Auth when the row is editable", async () => {
+    mockFindWorkspaceDtoByIdAndUserId.mockResolvedValue({ id: "org1" });
+    mockFindOrganizationMemberByOrganizationIdAndUserId.mockResolvedValue({
+      id: "member-actor",
+      role: "owner",
+      userId: "user1",
+    });
+    mockHasWorkspacePermission.mockResolvedValue(true);
+    mockMemberFindFirst.mockResolvedValue({
+      id: "member2",
+      organizationId: "org1",
+      userId: "user2",
+      role: "member",
+    });
+    mockUpdateMemberRole.mockResolvedValue({
+      id: "member2",
+      organizationId: "org1",
+      userId: "user2",
+      role: "admin",
+    });
+
+    await expect(
+      updateWorkspaceMemberRole({
+        organizationId: "org1",
+        memberId: "member2",
+        role: "admin",
+      })
+    ).resolves.toEqual({
+      success: true,
+      data: {
+        organizationId: "org1",
+        memberId: "member2",
+        role: "admin",
+      },
+    });
+
+    expect(mockUpdateMemberRole).toHaveBeenCalledWith({
+      body: {
+        organizationId: "org1",
+        memberId: "member2",
+        role: "admin",
+      },
+      headers: expect.any(Headers),
+    });
+  });
+
+  it("rejects non-owner attempts to update a member to owner before calling Better Auth", async () => {
+    mockFindWorkspaceDtoByIdAndUserId.mockResolvedValue({ id: "org1" });
+    mockFindOrganizationMemberByOrganizationIdAndUserId.mockResolvedValue({
+      id: "member-actor",
+      role: "admin",
+      userId: "user1",
+    });
+    mockHasWorkspacePermission.mockResolvedValue(true);
+    mockMemberFindFirst.mockResolvedValue({
+      id: "member2",
+      organizationId: "org1",
+      userId: "user2",
+      role: "member",
+    });
+
+    await expect(
+      updateWorkspaceMemberRole({
+        organizationId: "org1",
+        memberId: "member2",
+        role: "owner",
+      })
+    ).resolves.toEqual({
+      success: false,
+      error: {
+        message: "validation.errors.workspaceRolePermissionDenied",
+        code: 403,
+      },
+    });
+
+    expect(mockUpdateMemberRole).not.toHaveBeenCalled();
   });
 
   it("accepts an invitation and returns the workspace payload", async () => {

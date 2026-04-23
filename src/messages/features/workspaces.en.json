@@ -93,7 +93,12 @@
       "memberIdRequired": "User ID is required",
       "memberNotFound": "No user was found for that ID",
       "memberAlreadyExists": "That user already belongs to this workspace",
-      "memberPermissionDenied": "You do not have permission to add users to this workspace"
+      "memberPermissionDenied": "You do not have permission to add users to this workspace",
+      "memberRoleUpdatePermissionDenied": "You do not have permission to update member roles in this workspace",
+      "memberRoleUpdateDenied": "This member role cannot be changed from this table",
+      "memberRoleUnchanged": "Choose a different role before saving",
+      "workspaceRoleInvalid": "Choose a supported workspace role",
+      "workspaceRolePermissionDenied": "You do not have permission to assign that workspace role"
     }
   },
   "ui": {
@@ -146,15 +151,18 @@
     },
     "settingsUsersPage": {
       "title": "Workspace Users",
-      "description": "Review the people who currently belong to this workspace. Role changes and removals stay out of scope for this release.",
+      "description": "Review the people who currently belong to this workspace and update built-in roles when permitted.",
       "addMemberAction": "Add Member",
-      "readOnlyNotice": "You can review workspace members here, but only admins and owners can add people in this release.",
+      "readOnlyNotice": "You can review workspace members here, but only admins and owners can add people or change roles in this release.",
       "currentUserSectionLabel": "Your workspace access",
       "currentUserBadge": "You",
       "otherUsersSectionLabel": "Other workspace users",
       "otherUsersTitle": "Other workspace users",
       "otherUsersDescription": "People other than you are shown in a table for faster scanning.",
       "joinedLabel": "Joined",
+      "roleUpdateSuccess": "Member role updated successfully",
+      "roleUpdateErrorTitle": "Update Member Role",
+      "roleUpdateUnknownError": "Unknown error",
       "emptyTitle": "No workspace users yet",
       "emptyDescription": "This workspace does not have any visible members yet.",
       "othersEmptyTitle": "No other workspace users",
@@ -164,8 +172,11 @@
           "user": "User",
           "email": "Email",
           "roles": "Roles",
+          "roleAction": "Role action",
           "joined": "Joined"
         },
+        "roleSelectLabel": "Role for {name}",
+        "readOnlyRole": "Read-only",
         "noRoles": "No roles"
       }
     },
@@ -196,11 +207,13 @@
     },
     "createInvitationDialog": {
       "title": "Invite By Email",
-      "description": "Create a shareable invitation link for someone who should join this workspace as a member.",
+      "description": "Create a shareable invitation link and choose the role this person should receive.",
       "trigger": "Invite By Email",
       "emailLabel": "Email",
       "emailPlaceholder": "person@example.com",
       "emailHint": "The invitation will require this verified primary email at acceptance time.",
+      "roleLabel": "Role",
+      "roleHint": "Choose the role this invitation will grant.",
       "createdTitle": "Invitation created",
       "createdDescription": "Copy this link and share it with the invited person.",
       "linkLabel": "Invitation link",
@@ -212,14 +225,23 @@
     },
     "addMemberDialog": {
       "title": "Add Existing User",
-      "description": "Add an existing account to this workspace immediately using their user ID.",
+      "description": "Add an existing account to this workspace immediately and choose their role.",
       "trigger": "Add Member",
       "userIdLabel": "User ID",
       "userIdPlaceholder": "ck123example",
       "userIdHint": "Use the exact internal user ID for the account you want to add.",
+      "roleLabel": "Role",
+      "roleHint": "Choose the role this user will receive.",
       "success": "Member added successfully",
       "errorTitle": "Add Member",
       "unknownError": "Unknown error"
+    },
+    "roles": {
+      "labels": {
+        "member": "Member",
+        "admin": "Admin",
+        "owner": "Owner"
+      }
     },
     "pendingInvitationsBlock": {
       "title": "Pending Workspace Invitations",
