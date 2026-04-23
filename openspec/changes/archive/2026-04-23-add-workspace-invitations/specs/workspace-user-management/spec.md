@@ -1,10 +1,19 @@
 ## MODIFIED Requirements
 
 ### Requirement: Workspace Users Settings Page Is Read-Only In The Initial Release
+The system MUST keep the workspace users settings page readable to all accessible workspace members while limiting
+management actions to the separately specified admin-only add-member workflow. Role edits and member removal MUST
+remain out of scope for this release.
+
 **Reason**: The users page now needs a limited admin add-member workflow without losing read-only visibility for regular
 members.
 **Migration**: Workspace members without member-create permission continue to use the users page as a read-only member
 directory, while admins and owners gain the add-member modal; role edits and member removal remain out of scope.
+
+#### Scenario: Regular members keep read-only access
+- **WHEN** an authenticated workspace member without member-create permission opens the users settings page
+- **THEN** the system renders the existing membership information in read-only mode
+- **AND** does not expose role-editing or member-removal controls
 
 ## ADDED Requirements
 

@@ -37,44 +37,26 @@ The system MUST create workspaces by creating Better Auth organizations from a u
 
 ### Requirement: Workspace Settings Support Name, Slug, and Default Context
 
-The system MUST allow users to manage organization-backed workspace settings on a dedicated workspace settings page,
-including renaming, slug updates, and default workspace selection.
+The system MUST let any accessible workspace member open the dedicated workspace settings page, while only members with
+organization-update permission can change organization-backed workspace settings from that page.
 
-#### Scenario: Opening workspace settings from workspace management
+#### Scenario: Regular member sees workspace settings in read-only mode
+- **WHEN** an authenticated workspace member without organization-update permission opens the dedicated workspace
+  settings page for an accessible workspace
+- **THEN** the system loads the current workspace name, slug, and default-workspace state
+- **AND** renders those values in a read-only presentation
+- **AND** does not expose a working submit path for workspace-setting mutations
 
-- **WHEN** an authenticated user chooses to configure an accessible workspace from the workspace management UI
-- **THEN** the system navigates the user to that workspace's dedicated workspace settings page
+#### Scenario: Authorized workspace admin can update settings
+- **WHEN** an authenticated workspace member with organization-update permission updates the name, slug, or
+  default-workspace state from the dedicated workspace settings page
+- **THEN** the system updates the underlying organization fields as requested
 
-#### Scenario: Loading current workspace values on the settings page
-
-- **WHEN** an authenticated user opens the dedicated workspace settings page for an accessible workspace
-- **THEN** the system loads the current workspace name, slug, and default-workspace state into the form
-
-#### Scenario: Renaming a workspace
-
-- **WHEN** an authenticated user updates the name of an accessible workspace from the dedicated workspace settings page
-- **THEN** the system updates the underlying organization name
-- **AND** the workspace management UI reflects the new name
-
-#### Scenario: Changing a workspace slug
-
-- **WHEN** an authenticated user updates a workspace slug from the dedicated workspace settings page
-- **AND** the slug is not already in use
-- **THEN** the system updates the underlying organization slug
-- **AND** subsequent generated workspace URLs use the updated slug
-
-#### Scenario: Rejecting an unavailable slug
-
-- **WHEN** an authenticated user updates a workspace slug from the dedicated workspace settings page to one that is
-  already in use
-- **THEN** the system rejects the change
-- **AND** returns a validation error without changing the workspace
-
-#### Scenario: Setting a default workspace
-
-- **WHEN** an authenticated user marks an accessible workspace as default from the dedicated workspace settings page
-- **THEN** the system persists `isDefault = true` on that organization
-- **AND** clears the default flag from the user's other accessible organizations
+#### Scenario: Unauthorized direct update is rejected
+- **WHEN** an authenticated workspace member without organization-update permission submits a workspace-settings update
+  request directly
+- **THEN** the system rejects the mutation
+- **AND** leaves the underlying organization unchanged
 
 ### Requirement: Workspace Switching Is Explicit
 The system MUST update active workspace context only through explicit user actions in workspace switching controls or settings.
@@ -88,4 +70,24 @@ The system MUST update active workspace context only through explicit user actio
 - **WHEN** an authenticated user is viewing `/:organizationKey/...`
 - **THEN** workspace switching controls label the current workspace using the accessible organization whose slug or ID matches that route key
 - **AND** do not label a different workspace just because `session.activeOrganizationId` points elsewhere
+
+### Requirement: Workspace Deletion Requires Organization Delete Permission
+
+The system MUST expose workspace deletion only to members who have organization-delete permission for that workspace.
+
+#### Scenario: Owner can access delete controls when other product rules allow deletion
+- **WHEN** an authenticated workspace member with organization-delete permission opens workspace management or workspace
+  settings for a workspace that satisfies the existing non-permission deletion rules
+- **THEN** the system renders the delete action for that workspace
+
+#### Scenario: Admin or regular member does not see delete controls
+- **WHEN** an authenticated workspace member without organization-delete permission opens workspace management or
+  workspace settings for an accessible workspace
+- **THEN** the system does not render the delete action for that workspace
+
+#### Scenario: Unauthorized direct delete is rejected
+- **WHEN** an authenticated workspace member without organization-delete permission submits a delete-workspace request
+  directly
+- **THEN** the system rejects the mutation
+- **AND** leaves the workspace unchanged
 
