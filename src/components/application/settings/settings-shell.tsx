@@ -11,7 +11,7 @@ export const SettingsContentRail = ({
     data-slot="settings-content-rail"
     className={cn("min-w-0 flex-1 px-2 md:mt-4 md:px-4 xl:px-6", className)}
   >
-    <div data-slot="settings-page-rail" className="w-full max-w-6xl space-y-6">
+    <div data-slot="settings-page-rail" className="mx-auto w-full max-w-6xl space-y-6">
       {children}
     </div>
   </div>

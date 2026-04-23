@@ -8,13 +8,13 @@ export const hasWorkspacePermission = async (
   permissions: Record<string, string[]>
 ) => {
   try {
-    const result = await auth.api.hasPermission({
+    const result = (await auth.api.hasPermission({
       body: {
         organizationId,
         permissions,
       },
       headers: await headers(),
-    });
+    })) as { success?: boolean } | undefined;
 
     return Boolean(result?.success);
   } catch {
