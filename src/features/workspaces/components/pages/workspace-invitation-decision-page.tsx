@@ -74,7 +74,7 @@ export const WorkspaceInvitationDecisionPage = ({
   };
 
   return (
-    <Card className="mx-auto w-full max-w-2xl">
+    <Card className="w-full">
       <CardHeader>
         <div className="flex flex-wrap items-center gap-2">
           <CardTitle>{t("title")}</CardTitle>

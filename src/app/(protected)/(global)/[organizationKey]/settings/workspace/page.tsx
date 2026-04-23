@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import type { Metadata } from "next";
+import { SettingsPageSection } from "@components/application/settings/settings-shell";
 import workspaceRoutes from "@features/workspaces/workspaces-routes";
 import { buildPageMetadata } from "@lib/metadata";
 import { WorkspaceSettingsPage } from "@features/workspaces/components/pages/workspace-settings-page";
@@ -25,5 +26,9 @@ export default async function WorkspaceSettingsSectionPage({ params }: Workspace
     );
   }
 
-  return <WorkspaceSettingsPage workspace={workspace} canChangeDefault={canChangeDefault} />;
+  return (
+    <SettingsPageSection mode="readable">
+      <WorkspaceSettingsPage workspace={workspace} canChangeDefault={canChangeDefault} />
+    </SettingsPageSection>
+  );
 }

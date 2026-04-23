@@ -9,6 +9,23 @@ jest.mock("../../src/features/workspaces/workspaces-invitations", () => ({
   loadWorkspaceInvitationDecisionPageContext: jest.fn(),
 }));
 
+jest.mock("../../src/components/application/settings/settings-shell", () => ({
+  SettingsContentRail: ({ children }: { children: React.ReactNode }) => (
+    <div data-testid="settings-content-rail">{children}</div>
+  ),
+  SettingsPageSection: ({
+    mode,
+    children,
+  }: {
+    mode: "wide" | "readable";
+    children: React.ReactNode;
+  }) => (
+    <div data-testid="settings-page-section" data-mode={mode}>
+      {children}
+    </div>
+  ),
+}));
+
 jest.mock("../../src/lib/metadata", () => ({
   buildPageMetadata: jest.fn(async () => ({ title: "Invitations" })),
 }));
@@ -75,6 +92,8 @@ describe("account invitation routes", () => {
 
     render(element);
 
+    expect(screen.getByTestId("settings-content-rail")).toBeInTheDocument();
+    expect(screen.getByTestId("settings-page-section")).toHaveAttribute("data-mode", "readable");
     expect(screen.getByTestId("workspace-invitation-decision-page")).toHaveTextContent("pending");
   });
 

@@ -17,6 +17,20 @@ jest.mock("../../src/features/workspaces/workspaces-invitations", () => ({
   loadWorkspaceSettingsInvitationsPageContext: jest.fn(),
 }));
 
+jest.mock("../../src/components/application/settings/settings-shell", () => ({
+  SettingsPageSection: ({
+    mode,
+    children,
+  }: {
+    mode: "wide" | "readable";
+    children: React.ReactNode;
+  }) => (
+    <div data-testid="settings-page-section" data-mode={mode}>
+      {children}
+    </div>
+  ),
+}));
+
 jest.mock(
   "../../src/features/workspaces/components/pages/workspace-settings-invitations-page",
   () => ({
@@ -37,6 +51,15 @@ jest.mock(
 jest.mock("../../src/features/workspaces/components/pages/workspace-settings-page", () => ({
   WorkspaceSettingsPage: () => null,
 }));
+
+jest.mock(
+  "../../src/features/workspaces/components/pages/workspace-settings-placeholder-page",
+  () => ({
+    WorkspaceSettingsPlaceholderPage: ({ section }: { section: string }) => (
+      <div data-testid="workspace-settings-placeholder-page">{section}</div>
+    ),
+  })
+);
 
 jest.mock("../../src/features/workspaces/components/pages/workspace-settings-users-page", () => ({
   WorkspaceSettingsUsersPage: ({
@@ -151,6 +174,7 @@ describe("workspace settings section routes", () => {
 
     render(element);
 
+    expect(screen.getByTestId("settings-page-section")).toHaveAttribute("data-mode", "wide");
     expect(screen.getByTestId("workspace-settings-users-page")).toHaveTextContent("user-123:1");
   });
 
@@ -176,6 +200,63 @@ describe("workspace settings section routes", () => {
 
     render(element);
 
+    expect(screen.getByTestId("settings-page-section")).toHaveAttribute("data-mode", "wide");
     expect(screen.getByTestId("workspace-settings-invitations-page")).toHaveTextContent("true:1");
+  });
+
+  it("renders the workspace settings form page inside a readable section", async () => {
+    (loadWorkspaceSettingsPageContext as jest.Mock).mockResolvedValue({
+      workspace: { id: "workspace-123", slug: "client-workspace" },
+      canChangeDefault: true,
+      canonicalOrganizationKey: "client-workspace",
+    });
+
+    const pageModule =
+      await import("../../src/app/(protected)/(global)/[organizationKey]/settings/workspace/page");
+    const element = await pageModule.default({
+      params: Promise.resolve({ organizationKey: "client-workspace" }),
+    });
+
+    render(element);
+
+    expect(screen.getByTestId("settings-page-section")).toHaveAttribute("data-mode", "readable");
+  });
+
+  it("renders the roles placeholder inside a readable section", async () => {
+    (loadWorkspaceSettingsPageContext as jest.Mock).mockResolvedValue({
+      workspace: { id: "workspace-123", slug: "client-workspace" },
+      canChangeDefault: true,
+      canonicalOrganizationKey: "client-workspace",
+    });
+
+    const pageModule =
+      await import("../../src/app/(protected)/(global)/[organizationKey]/settings/roles/page");
+    const element = await pageModule.default({
+      params: Promise.resolve({ organizationKey: "client-workspace" }),
+    });
+
+    render(element);
+
+    expect(screen.getByTestId("settings-page-section")).toHaveAttribute("data-mode", "readable");
+    expect(screen.getByTestId("workspace-settings-placeholder-page")).toHaveTextContent("roles");
+  });
+
+  it("renders the teams placeholder inside a readable section", async () => {
+    (loadWorkspaceSettingsPageContext as jest.Mock).mockResolvedValue({
+      workspace: { id: "workspace-123", slug: "client-workspace" },
+      canChangeDefault: true,
+      canonicalOrganizationKey: "client-workspace",
+    });
+
+    const pageModule =
+      await import("../../src/app/(protected)/(global)/[organizationKey]/settings/teams/page");
+    const element = await pageModule.default({
+      params: Promise.resolve({ organizationKey: "client-workspace" }),
+    });
+
+    render(element);
+
+    expect(screen.getByTestId("settings-page-section")).toHaveAttribute("data-mode", "readable");
+    expect(screen.getByTestId("workspace-settings-placeholder-page")).toHaveTextContent("teams");
   });
 });

@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import type { Metadata } from "next";
+import { SettingsPageSection } from "@components/application/settings/settings-shell";
 import workspaceRoutes from "@features/workspaces/workspaces-routes";
 import { buildPageMetadata } from "@lib/metadata";
 import { WorkspaceSettingsPlaceholderPage } from "@features/workspaces/components/pages/workspace-settings-placeholder-page";
@@ -28,5 +29,9 @@ export default async function WorkspaceSettingsRolesPage({
     );
   }
 
-  return <WorkspaceSettingsPlaceholderPage section="roles" />;
+  return (
+    <SettingsPageSection mode="readable">
+      <WorkspaceSettingsPlaceholderPage section="roles" />
+    </SettingsPageSection>
+  );
 }

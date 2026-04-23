@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { SettingsPageSection } from "@components/application/settings/settings-shell";
 import accountsRoutes from "@features/accounts/accounts-routes";
 import { buildPageMetadata } from "@lib/metadata";
 import { PendingWorkspaceInvitationsBlock } from "@features/workspaces/components/pending-workspace-invitations-block";
@@ -10,5 +11,9 @@ export const generateMetadata = async (): Promise<Metadata> =>
 export default async function UserInvitationsPage() {
   const invitations = await loadCurrentUserPendingWorkspaceInvitations();
 
-  return <PendingWorkspaceInvitationsBlock invitations={invitations} showEmptyState />;
+  return (
+    <SettingsPageSection mode="wide">
+      <PendingWorkspaceInvitationsBlock invitations={invitations} showEmptyState />
+    </SettingsPageSection>
+  );
 }

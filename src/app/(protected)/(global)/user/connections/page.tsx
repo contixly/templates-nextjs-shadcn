@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import React from "react";
+import { SettingsPageSection } from "@components/application/settings/settings-shell";
 import { UserConnections } from "@features/accounts/components/user-connections";
 import { loadCurrentUserAccounts } from "@features/accounts/accounts-actions";
 import { getFromCookie } from "@lib/cookies";
@@ -15,9 +16,11 @@ export default async function ConnectionsPage() {
   const getLastLoginPromise = getFromCookie(LAST_LOGIN_METHOD_KEY);
 
   return (
-    <UserConnections
-      loadCurrentUserAccountsPromise={loadCurrentUserAccountsPromise}
-      getLastLoginPromise={getLastLoginPromise}
-    />
+    <SettingsPageSection mode="readable">
+      <UserConnections
+        loadCurrentUserAccountsPromise={loadCurrentUserAccountsPromise}
+        getLastLoginPromise={getLastLoginPromise}
+      />
+    </SettingsPageSection>
   );
 }

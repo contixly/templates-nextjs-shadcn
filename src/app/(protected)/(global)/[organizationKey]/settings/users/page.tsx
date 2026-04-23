@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import type { Metadata } from "next";
+import { SettingsPageSection } from "@components/application/settings/settings-shell";
 import workspaceRoutes from "@features/workspaces/workspaces-routes";
 import { buildPageMetadata } from "@lib/metadata";
 import { WorkspaceSettingsUsersPage } from "@features/workspaces/components/pages/workspace-settings-users-page";
@@ -30,11 +31,13 @@ export default async function WorkspaceSettingsUsersRoutePage({
   }
 
   return (
-    <WorkspaceSettingsUsersPage
-      organizationId={workspace.id}
-      currentUserId={currentUserId}
-      members={members}
-      canAddMembers={canAddMembers}
-    />
+    <SettingsPageSection mode="wide">
+      <WorkspaceSettingsUsersPage
+        organizationId={workspace.id}
+        currentUserId={currentUserId}
+        members={members}
+        canAddMembers={canAddMembers}
+      />
+    </SettingsPageSection>
   );
 }

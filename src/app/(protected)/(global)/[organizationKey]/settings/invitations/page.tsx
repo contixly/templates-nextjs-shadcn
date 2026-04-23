@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import type { Metadata } from "next";
+import { SettingsPageSection } from "@components/application/settings/settings-shell";
 import workspaceRoutes from "@features/workspaces/workspaces-routes";
 import { buildPageMetadata } from "@lib/metadata";
 import { WorkspaceSettingsInvitationsPage as WorkspaceSettingsInvitationsContent } from "@features/workspaces/components/pages/workspace-settings-invitations-page";
@@ -30,10 +31,12 @@ export default async function WorkspaceSettingsInvitationsPage({
   }
 
   return (
-    <WorkspaceSettingsInvitationsContent
-      organizationId={workspace.id}
-      invitations={invitations}
-      canCreateInvitations={canCreateInvitations}
-    />
+    <SettingsPageSection mode="wide">
+      <WorkspaceSettingsInvitationsContent
+        organizationId={workspace.id}
+        invitations={invitations}
+        canCreateInvitations={canCreateInvitations}
+      />
+    </SettingsPageSection>
   );
 }

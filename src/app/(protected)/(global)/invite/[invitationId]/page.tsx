@@ -1,5 +1,9 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
+import {
+  SettingsContentRail,
+  SettingsPageSection,
+} from "@components/application/settings/settings-shell";
 import accountsRoutes from "@features/accounts/accounts-routes";
 import { buildPageMetadata } from "@lib/metadata";
 import { WorkspaceInvitationDecisionPage } from "@features/workspaces/components/pages/workspace-invitation-decision-page";
@@ -24,5 +28,11 @@ export default async function WorkspaceInvitationDecisionRoutePage({
     notFound();
   }
 
-  return <WorkspaceInvitationDecisionPage context={context} />;
+  return (
+    <SettingsContentRail>
+      <SettingsPageSection mode="readable">
+        <WorkspaceInvitationDecisionPage context={context} />
+      </SettingsPageSection>
+    </SettingsContentRail>
+  );
 }

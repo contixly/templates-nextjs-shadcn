@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import React from "react";
+import { SettingsPageSection } from "@components/application/settings/settings-shell";
 import { loadCurrentUser } from "@features/accounts/accounts-actions";
 import { UserProfile } from "@features/accounts/components/user-profile";
 import { buildPageMetadata } from "@lib/metadata";
@@ -11,5 +12,9 @@ export const generateMetadata = async (): Promise<Metadata> =>
 export default function ProfilePage() {
   const loadCurrentUserPromise = loadCurrentUser();
 
-  return <UserProfile loadCurrentUserPromise={loadCurrentUserPromise} />;
+  return (
+    <SettingsPageSection mode="readable">
+      <UserProfile loadCurrentUserPromise={loadCurrentUserPromise} />
+    </SettingsPageSection>
+  );
 }
