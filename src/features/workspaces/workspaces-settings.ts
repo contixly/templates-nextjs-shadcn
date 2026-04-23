@@ -14,7 +14,10 @@ import type { WorkspaceWithCounts } from "@features/workspaces/workspaces-types"
 
 export interface WorkspaceSettingsPageContext {
   workspace: WorkspaceWithCounts;
+  canUpdateWorkspace: boolean;
   canChangeDefault: boolean;
+  canDeleteWorkspace: boolean;
+  canCreateInvitations: boolean;
   canonicalOrganizationKey: string;
 }
 
@@ -37,18 +40,31 @@ const loadWorkspaceSettingsPageContextForUser = async (
   organizationKey: string,
   userId: string
 ): Promise<WorkspaceSettingsPageContext> => {
-  const [workspace, accessibleOrganizationsCount] = await Promise.all([
-    findWorkspaceDtoByKeyAndUserId(organizationKey, userId),
-    countAccessibleOrganizationsByUserId(userId),
-  ]);
+  const workspace = await findWorkspaceDtoByKeyAndUserId(organizationKey, userId);
 
   if (!workspace) {
     forbidden();
   }
 
+  const [
+    accessibleOrganizationsCount,
+    canUpdateWorkspace,
+    canDeleteWorkspace,
+    canCreateInvitations,
+  ] = await Promise.all([
+    countAccessibleOrganizationsByUserId(userId),
+    hasWorkspacePermission(workspace.id, { organization: ["update"] }),
+    hasWorkspacePermission(workspace.id, { organization: ["delete"] }),
+    hasWorkspacePermission(workspace.id, { invitation: ["create"] }),
+  ]);
+
   return {
     workspace: workspace as WorkspaceWithCounts,
-    canChangeDefault: accessibleOrganizationsCount > 1,
+    canUpdateWorkspace,
+    canChangeDefault: canUpdateWorkspace && accessibleOrganizationsCount > 1,
+    canDeleteWorkspace:
+      canDeleteWorkspace && accessibleOrganizationsCount > 1 && !workspace.isDefault,
+    canCreateInvitations,
     canonicalOrganizationKey: getOrganizationRouteKey(workspace),
   };
 };

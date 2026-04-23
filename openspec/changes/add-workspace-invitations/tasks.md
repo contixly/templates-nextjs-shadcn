@@ -16,11 +16,11 @@
   modal, and copy-link actions.
 - [x] 2.3 Extend the workspace users settings page with an admin-only add-member-by-user-ID modal while keeping role
   edits and removals out of scope.
-- [ ] 2.4 Make the workspace settings page capability-aware so members without `organization:update` can still open it
+- [x] 2.4 Make the workspace settings page capability-aware so members without `organization:update` can still open it
   in read-only mode while admins and owners can edit.
-- [ ] 2.5 Keep the users page readable to all members, but treat add-member as an admin-only action and keep the
+- [x] 2.5 Keep the users page readable to all members, but treat add-member as an admin-only action and keep the
   member-without-permission state explicitly read-only.
-- [ ] 2.6 Make the invitations settings route, navigation entry, table, and copy-link actions admin-only, and keep
+- [x] 2.6 Make the invitations settings route, navigation entry, table, and copy-link actions admin-only, and keep
   workspace deletion owner-only across workspace settings and workspace management entry points.
 
 ## 3. Recipient Invitation Flows
@@ -40,5 +40,5 @@
   invitations page, invitation decision route, and welcome/onboarding invitation block.
 - [x] 4.3 Run the focused lint and test suites covering workspace settings, primary-email invitation matching, and
   invitation recipient flows.
-- [ ] 4.4 Add or update tests for workspace-settings read-only mode for regular members, users-page read-only member
+- [x] 4.4 Add or update tests for workspace-settings read-only mode for regular members, users-page read-only member
   states, admin-only invitation route/navigation visibility, and owner-only delete affordances.

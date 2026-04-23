@@ -15,8 +15,13 @@ export const generateMetadata = async ({ params }: WorkspaceSettingsPageProps): 
 
 export default async function WorkspaceSettingsSectionPage({ params }: WorkspaceSettingsPageProps) {
   const { organizationKey } = await params;
-  const { workspace, canChangeDefault, canonicalOrganizationKey } =
-    await loadWorkspaceSettingsPageContext(organizationKey);
+  const {
+    workspace,
+    canUpdateWorkspace,
+    canChangeDefault,
+    canDeleteWorkspace,
+    canonicalOrganizationKey,
+  } = await loadWorkspaceSettingsPageContext(organizationKey);
 
   if (organizationKey !== canonicalOrganizationKey) {
     redirect(
@@ -28,7 +33,12 @@ export default async function WorkspaceSettingsSectionPage({ params }: Workspace
 
   return (
     <SettingsPageSection mode="readable">
-      <WorkspaceSettingsPage workspace={workspace} canChangeDefault={canChangeDefault} />
+      <WorkspaceSettingsPage
+        workspace={workspace}
+        canUpdateWorkspace={canUpdateWorkspace}
+        canChangeDefault={canChangeDefault}
+        canDeleteWorkspace={canDeleteWorkspace}
+      />
     </SettingsPageSection>
   );
 }

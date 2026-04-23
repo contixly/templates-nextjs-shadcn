@@ -94,5 +94,26 @@ describe("WorkspaceCard", () => {
       "href",
       "/client-workspace"
     );
+    expect(screen.queryByTestId("workspace-delete-dialog")).not.toBeInTheDocument();
+  });
+
+  it("renders the delete affordance only when delete access is explicitly enabled", () => {
+    render(
+      <WorkspaceCard
+        workspace={{
+          id: "org-42",
+          name: "Client Workspace",
+          slug: "client-workspace",
+          logo: null,
+          metadata: null,
+          createdAt: new Date("2026-04-20T10:00:00.000Z"),
+          updatedAt: new Date("2026-04-20T10:00:00.000Z"),
+          isDefault: false,
+        }}
+        canDelete
+      />
+    );
+
+    expect(screen.getByTestId("workspace-delete-dialog")).toBeInTheDocument();
   });
 });

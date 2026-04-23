@@ -73,10 +73,12 @@
       "nameUnchanged": "New workspace name must be different from current name",
       "duplicateName": "A workspace with this name already exists",
       "duplicateSlug": "A workspace with this slug already exists",
+      "updatePermissionDenied": "You do not have permission to update this workspace",
       "confirmationRequired": "Confirmation text is required",
       "confirmationMismatch": "Confirmation text does not match workspace name",
       "atLeastOneWorkspace": "You must have at least one workspace",
       "defaultWorkspaceDeletionForbidden": "Cannot delete default workspace. Set another workspace as default first.",
+      "deletePermissionDenied": "You do not have permission to delete this workspace",
       "invitationEmailRequired": "Invitation email is required",
       "invitationEmailInvalid": "Invitation email must be valid",
       "invitationAlreadyExists": "A pending invitation for this email already exists",
@@ -125,7 +127,10 @@
     },
     "settingsPage": {
       "title": "Workspace Settings",
-      "description": "Update the basic workspace details and default workspace preference."
+      "description": "Update the basic workspace details and default workspace preference.",
+      "readOnlyNotice": "You can review these workspace details, but only admins and owners can update them.",
+      "dangerZoneTitle": "Delete Workspace",
+      "dangerZoneDescription": "Delete this workspace permanently when the existing product rules allow it."
     },
     "settingsForm": {
       "nameLabel": "Workspace Name",
@@ -143,6 +148,7 @@
       "title": "Workspace Users",
       "description": "Review the people who currently belong to this workspace. Role changes and removals stay out of scope for this release.",
       "addMemberAction": "Add Member",
+      "readOnlyNotice": "You can review workspace members here, but only admins and owners can add people in this release.",
       "currentUserSectionLabel": "Your workspace access",
       "currentUserBadge": "You",
       "otherUsersSectionLabel": "Other workspace users",

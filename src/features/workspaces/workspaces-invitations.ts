@@ -1,6 +1,6 @@
 import "server-only";
 
-import { unauthorized } from "next/navigation";
+import { forbidden, unauthorized } from "next/navigation";
 import { loadCurrentUser, loadCurrentUserId } from "@features/accounts/accounts-actions";
 import {
   findManyAccessibleOrganizationsByUserId,
@@ -17,7 +17,6 @@ import {
   normalizeWorkspaceInvitationEmail,
   withResolvedWorkspaceInvitationDisplayStatus,
 } from "@features/workspaces/workspaces-invitations-types";
-import { hasWorkspacePermission } from "@features/workspaces/workspaces-permissions";
 import {
   loadWorkspaceSettingsPageContext,
   type WorkspaceSettingsPageContext,
@@ -56,10 +55,14 @@ export const loadWorkspaceSettingsInvitationsPageContext = async (
     loadWorkspaceSettingsPageContext(organizationKey),
   ]);
 
-  const [invitations, canCreateInvitations] = await Promise.all([
-    findManyWorkspaceInvitationsByOrganizationIdAndUserId(workspaceContext.workspace.id, userId),
-    hasWorkspacePermission(workspaceContext.workspace.id, { invitation: ["create"] }),
-  ]);
+  if (!workspaceContext.canCreateInvitations) {
+    forbidden();
+  }
+
+  const invitations = await findManyWorkspaceInvitationsByOrganizationIdAndUserId(
+    workspaceContext.workspace.id,
+    userId
+  );
   const now = new Date();
 
   return {
@@ -67,7 +70,6 @@ export const loadWorkspaceSettingsInvitationsPageContext = async (
     invitations: invitations.map((invitation) =>
       withResolvedWorkspaceInvitationDisplayStatus(invitation, now)
     ),
-    canCreateInvitations,
   };
 };
 

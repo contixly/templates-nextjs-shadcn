@@ -65,7 +65,7 @@ describe("NavWorkspaceSettings", () => {
   });
 
   it("uses localized labels and marks the active section from the current route", () => {
-    render(<NavWorkspaceSettings organizationKey="acme" />);
+    render(<NavWorkspaceSettings organizationKey="acme" canCreateInvitations />);
 
     expect(screen.getByTestId("document-sidebar")).toHaveAttribute(
       "data-header-name",
@@ -78,5 +78,11 @@ describe("NavWorkspaceSettings", () => {
     expect(
       screen.getByRole("link", { name: "Пользователи" }).closest("[data-active='true']")
     ).not.toBeNull();
+  });
+
+  it("hides the invitations section when the acting member cannot manage invitations", () => {
+    render(<NavWorkspaceSettings organizationKey="acme" canCreateInvitations={false} />);
+
+    expect(screen.queryByRole("link", { name: "Приглашения" })).not.toBeInTheDocument();
   });
 });

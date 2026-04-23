@@ -44,6 +44,9 @@ jest.mock("../../src/lib/environment", () => ({
 }));
 
 jest.mock("next/navigation", () => ({
+  forbidden: jest.fn(() => {
+    throw new Error("forbidden");
+  }),
   unauthorized: jest.fn(() => {
     throw new Error("unauthorized");
   }),
@@ -171,7 +174,10 @@ describe("workspace invitation loaders", () => {
     mockLoadCurrentUserId.mockResolvedValue("user-1");
     mockLoadWorkspaceSettingsPageContext.mockResolvedValue({
       workspace: { id: "org-1", slug: "acme" },
+      canUpdateWorkspace: true,
       canChangeDefault: true,
+      canDeleteWorkspace: false,
+      canCreateInvitations: true,
       canonicalOrganizationKey: "acme",
     });
     mockFindManyWorkspaceInvitationsByOrganizationIdAndUserId.mockResolvedValue([
@@ -199,5 +205,20 @@ describe("workspace invitation loaders", () => {
       canCreateInvitations: true,
       invitations: [expect.objectContaining({ id: "invite-1" })],
     });
+  });
+
+  it("rejects the workspace invitations route for members without invitation permissions", async () => {
+    mockLoadCurrentUserId.mockResolvedValue("user-1");
+    mockLoadWorkspaceSettingsPageContext.mockResolvedValue({
+      workspace: { id: "org-1", slug: "acme" },
+      canUpdateWorkspace: false,
+      canChangeDefault: false,
+      canDeleteWorkspace: false,
+      canCreateInvitations: false,
+      canonicalOrganizationKey: "acme",
+    });
+
+    await expect(loadWorkspaceSettingsInvitationsPageContext("acme")).rejects.toThrow("forbidden");
+    expect(mockFindManyWorkspaceInvitationsByOrganizationIdAndUserId).not.toHaveBeenCalled();
   });
 });

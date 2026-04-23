@@ -10,11 +10,13 @@ import { getMenuItem } from "@lib/ui";
 
 interface NavWorkspaceSettingsProps {
   organizationKey: string;
+  canCreateInvitations?: boolean;
   hideGroupLabel?: boolean;
 }
 
 export const NavWorkspaceSettings = ({
   organizationKey,
+  canCreateInvitations = false,
   hideGroupLabel = false,
 }: NavWorkspaceSettingsProps) => {
   const pathname = usePathname();
@@ -29,9 +31,6 @@ export const NavWorkspaceSettings = ({
     getMenuItem(routes.workspaces.pages.settings_workspace, workspaceTranslations.title, {
       organizationKey,
     }),
-    getMenuItem(routes.workspaces.pages.settings_invitations, invitationsTranslations.title, {
-      organizationKey,
-    }),
     getMenuItem(routes.workspaces.pages.settings_users, usersTranslations.title, {
       organizationKey,
     }),
@@ -42,6 +41,16 @@ export const NavWorkspaceSettings = ({
       organizationKey,
     }),
   ];
+
+  if (canCreateInvitations) {
+    navItems.splice(
+      1,
+      0,
+      getMenuItem(routes.workspaces.pages.settings_invitations, invitationsTranslations.title, {
+        organizationKey,
+      })
+    );
+  }
 
   return (
     <DocumentSidebar

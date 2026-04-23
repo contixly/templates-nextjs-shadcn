@@ -182,4 +182,28 @@ describe("WorkspaceSettingsForm", () => {
       expect(screen.getByRole("button", { name: "Сохранить" })).not.toBeDisabled();
     });
   });
+
+  it("renders the form in read-only mode when workspace updates are not allowed", () => {
+    render(
+      <WorkspaceSettingsForm
+        workspace={{
+          id: WORKSPACE_ID,
+          name: "Client Workspace",
+          slug: "client-workspace",
+          logo: null,
+          metadata: null,
+          createdAt: new Date("2026-04-20T10:00:00.000Z"),
+          updatedAt: new Date("2026-04-20T10:00:00.000Z"),
+          isDefault: false,
+        }}
+        canUpdateWorkspace={false}
+        canChangeDefault={false}
+      />
+    );
+
+    expect(screen.getByLabelText("Название рабочего пространства")).toBeDisabled();
+    expect(screen.getByLabelText("Slug рабочего пространства")).toBeDisabled();
+    expect(screen.getByLabelText("Сделать рабочим пространством по умолчанию")).toBeDisabled();
+    expect(screen.queryByRole("button", { name: "Сохранить" })).not.toBeInTheDocument();
+  });
 });

@@ -47,6 +47,9 @@ export const WorkspaceSettingsUsersPage = ({
         <div className="space-y-1.5">
           <CardTitle>{t("title")}</CardTitle>
           <CardDescription>{t("description")}</CardDescription>
+          {!canAddMembers ? (
+            <p className="text-muted-foreground text-sm">{t("readOnlyNotice")}</p>
+          ) : null}
         </div>
         {canAddMembers ? (
           <WorkspaceAddMemberDialog

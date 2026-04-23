@@ -22,6 +22,7 @@ import { useAnyTranslations } from "@/src/i18n/use-any-translations";
 
 interface WorkspaceSettingsFormProps {
   workspace: WorkspaceWithCounts;
+  canUpdateWorkspace?: boolean;
   canChangeDefault?: boolean;
   onSuccess?: () => void;
   onCancel?: () => void;
@@ -38,6 +39,7 @@ const getDefaultValues = (workspace: WorkspaceWithCounts): UpdateWorkspaceInput 
 
 export const WorkspaceSettingsForm = ({
   workspace,
+  canUpdateWorkspace = true,
   canChangeDefault,
   onSuccess,
   onCancel,
@@ -110,7 +112,7 @@ export const WorkspaceSettingsForm = ({
                   aria-invalid={fieldState.invalid}
                   placeholder={tWorkspaces("namePlaceholder")}
                   maxLength={50}
-                  disabled={isPending}
+                  disabled={isPending || !canUpdateWorkspace}
                   autoFocus={autoFocusNameField}
                   autoComplete="off"
                 />
@@ -132,7 +134,7 @@ export const WorkspaceSettingsForm = ({
                   aria-invalid={fieldState.invalid}
                   placeholder={tWorkspaces("slugPlaceholder")}
                   maxLength={50}
-                  disabled={isPending}
+                  disabled={isPending || !canUpdateWorkspace}
                   autoComplete="off"
                 />
                 <FieldDescription className="text-xs">{tWorkspaces("slugHint")}</FieldDescription>
@@ -171,10 +173,16 @@ export const WorkspaceSettingsForm = ({
               {tCommon("words.verbs.cancel")}
             </Button>
           )}
-          <Button type="submit" disabled={isPending || !isDirty || !isValid} className="min-w-fit">
-            {isPending && <Spinner data-icon="inline-start" />}
-            {tCommon("words.verbs.save")}
-          </Button>
+          {canUpdateWorkspace ? (
+            <Button
+              type="submit"
+              disabled={isPending || !isDirty || !isValid}
+              className="min-w-fit"
+            >
+              {isPending && <Spinner data-icon="inline-start" />}
+              {tCommon("words.verbs.save")}
+            </Button>
+          ) : null}
         </Field>
       </FieldGroup>
     </form>

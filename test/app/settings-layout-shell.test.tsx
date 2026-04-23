@@ -12,17 +12,21 @@ jest.mock("../../src/features/workspaces/components/nav/nav-workspace-settings",
   ),
 }));
 
+jest.mock("../../src/features/workspaces/workspaces-permissions", () => ({
+  hasWorkspacePermission: jest.fn(async () => true),
+}));
+
 jest.mock("../../src/features/organizations/components/organization-route-guard", () => ({
-  OrganizationRouteGuard: ({
-    children,
-  }: {
-    children: (organization: { id: string; slug: string }) => React.ReactNode;
-  }) => <>{children({ id: "org-1", slug: "acme" })}</>,
+  loadAccessibleOrganization: jest.fn(async () => ({ id: "org-1", slug: "acme" })),
 }));
 
 jest.mock("../../src/features/organizations/organizations-context", () => ({
   getOrganizationRouteKey: (organization: { slug?: string; id: string }) =>
     organization.slug ?? organization.id,
+}));
+
+jest.mock("../../src/features/workspaces/components/ui/workspace-onboarding-guard", () => ({
+  WorkspaceOnboardingGuard: () => <div data-testid="workspace-onboarding-guard" />,
 }));
 
 jest.mock("../../src/components/application/settings/settings-shell", () => ({

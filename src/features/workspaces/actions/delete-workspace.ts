@@ -13,6 +13,7 @@ import {
   countAccessibleOrganizationsByUserId,
   findFirstAccessibleOrganizationByIdAndUserId,
 } from "@features/organizations/organizations-repository";
+import { hasWorkspacePermission } from "@features/workspaces/workspaces-permissions";
 
 /** Deletes a workspace row after ownership checks (see Prisma schema for cascade rules). */
 export const deleteWorkspace = createProtectedActionWithInput<DeleteWorkspaceInput, void>(
@@ -28,6 +29,20 @@ export const deleteWorkspace = createProtectedActionWithInput<DeleteWorkspaceInp
 
     if (!workspaceToDelete) {
       forbidden();
+    }
+
+    const canDeleteWorkspace = await hasWorkspacePermission(id, {
+      organization: ["delete"],
+    });
+
+    if (!canDeleteWorkspace) {
+      return {
+        success: false,
+        error: {
+          message: WORKSPACE_ERROR_KEYS.deletePermissionDenied,
+          code: HttpCodes.FORBIDDEN,
+        },
+      };
     }
 
     const workspaceCount = await countAccessibleOrganizationsByUserId(userId);

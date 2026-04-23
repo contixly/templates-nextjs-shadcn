@@ -2,12 +2,15 @@
 
 const mockLoadCurrentUserId = jest.fn();
 const mockFindManyAccessibleOrganizationsByUserId = jest.fn();
+const mockCountAccessibleOrganizationsByUserId = jest.fn();
 const mockFindWorkspaceDtoByIdAndUserId = jest.fn();
 const mockFindFirstAccessibleOrganizationByIdAndUserId = jest.fn();
 const mockGenerateOrganizationSlug = jest.fn();
 const mockCreateOrganization = jest.fn();
 const mockSetActiveOrganization = jest.fn();
 const mockUpdateOrganization = jest.fn();
+const mockDeleteOrganization = jest.fn();
+const mockHasWorkspacePermission = jest.fn();
 const mockHeaders = jest.fn();
 const mockOrganizationUpdateMany = jest.fn();
 
@@ -43,10 +46,16 @@ jest.mock("../../src/features/accounts/accounts-actions", () => ({
 jest.mock("../../src/features/organizations/organizations-repository", () => ({
   findManyAccessibleOrganizationsByUserId: (...args: unknown[]) =>
     mockFindManyAccessibleOrganizationsByUserId(...args),
+  countAccessibleOrganizationsByUserId: (...args: unknown[]) =>
+    mockCountAccessibleOrganizationsByUserId(...args),
   findWorkspaceDtoByIdAndUserId: (...args: unknown[]) => mockFindWorkspaceDtoByIdAndUserId(...args),
   findFirstAccessibleOrganizationByIdAndUserId: (...args: unknown[]) =>
     mockFindFirstAccessibleOrganizationByIdAndUserId(...args),
   generateOrganizationSlug: (...args: unknown[]) => mockGenerateOrganizationSlug(...args),
+}));
+
+jest.mock("../../src/features/workspaces/workspaces-permissions", () => ({
+  hasWorkspacePermission: (...args: unknown[]) => mockHasWorkspacePermission(...args),
 }));
 
 jest.mock("../../src/server/auth", () => ({
@@ -55,6 +64,7 @@ jest.mock("../../src/server/auth", () => ({
       createOrganization: (...args: unknown[]) => mockCreateOrganization(...args),
       setActiveOrganization: (...args: unknown[]) => mockSetActiveOrganization(...args),
       updateOrganization: (...args: unknown[]) => mockUpdateOrganization(...args),
+      deleteOrganization: (...args: unknown[]) => mockDeleteOrganization(...args),
     },
   },
 }));
@@ -92,6 +102,7 @@ jest.mock("next/navigation", () => ({
 
 import { loadUserWorkspaces } from "@features/workspaces/actions/load-user-workspaces";
 import { createWorkspace } from "@features/workspaces/actions/create-workspace";
+import { deleteWorkspace } from "@features/workspaces/actions/delete-workspace";
 import { updateWorkspace } from "@features/workspaces/actions/update-workspace";
 
 const ORGANIZATION_ID = "d6qzollaqro6y66v7j52bhqo";
@@ -101,16 +112,20 @@ describe("workspace management actions", () => {
   beforeEach(() => {
     mockLoadCurrentUserId.mockReset();
     mockFindManyAccessibleOrganizationsByUserId.mockReset();
+    mockCountAccessibleOrganizationsByUserId.mockReset();
     mockFindWorkspaceDtoByIdAndUserId.mockReset();
     mockFindFirstAccessibleOrganizationByIdAndUserId.mockReset();
     mockGenerateOrganizationSlug.mockReset();
     mockCreateOrganization.mockReset();
     mockSetActiveOrganization.mockReset();
     mockUpdateOrganization.mockReset();
+    mockDeleteOrganization.mockReset();
+    mockHasWorkspacePermission.mockReset();
     mockHeaders.mockReset();
     mockOrganizationUpdateMany.mockReset();
 
     mockLoadCurrentUserId.mockResolvedValue("user-123");
+    mockHasWorkspacePermission.mockResolvedValue(true);
     mockHeaders.mockResolvedValue(new Headers([["x-test", "1"]]));
   });
 
@@ -298,5 +313,80 @@ describe("workspace management actions", () => {
       },
     });
     expect(mockUpdateOrganization).not.toHaveBeenCalled();
+  });
+
+  it("rejects workspace updates when the current member lacks update permission", async () => {
+    mockFindFirstAccessibleOrganizationByIdAndUserId.mockResolvedValue({
+      id: ORGANIZATION_ID,
+      name: "Primary Workspace",
+      slug: "primary",
+      isDefault: false,
+    });
+    mockHasWorkspacePermission.mockResolvedValue(false);
+
+    const result = await updateWorkspace({
+      id: ORGANIZATION_ID,
+      name: "Renamed Workspace",
+    });
+
+    expect(result).toEqual({
+      success: false,
+      error: {
+        message: "validation.errors.updatePermissionDenied",
+        code: 403,
+      },
+    });
+    expect(mockUpdateOrganization).not.toHaveBeenCalled();
+  });
+
+  it("rejects workspace deletion when the current member lacks delete permission", async () => {
+    mockFindFirstAccessibleOrganizationByIdAndUserId.mockResolvedValue({
+      id: ORGANIZATION_ID,
+      name: "Primary Workspace",
+      isDefault: false,
+    });
+    mockHasWorkspacePermission.mockResolvedValue(false);
+
+    const result = await deleteWorkspace({
+      id: ORGANIZATION_ID,
+      name: "Primary Workspace",
+      confirmationText: "Primary Workspace",
+    });
+
+    expect(result).toEqual({
+      success: false,
+      error: {
+        message: "validation.errors.deletePermissionDenied",
+        code: 403,
+      },
+    });
+    expect(mockDeleteOrganization).not.toHaveBeenCalled();
+  });
+
+  it("deletes a non-default workspace when the owner has permission and passes confirmation", async () => {
+    mockFindFirstAccessibleOrganizationByIdAndUserId.mockResolvedValue({
+      id: ORGANIZATION_ID,
+      name: "Primary Workspace",
+      isDefault: false,
+    });
+    mockCountAccessibleOrganizationsByUserId.mockResolvedValue(2);
+    mockDeleteOrganization.mockResolvedValue(undefined);
+
+    const result = await deleteWorkspace({
+      id: ORGANIZATION_ID,
+      name: "Primary Workspace",
+      confirmationText: "Primary Workspace",
+    });
+
+    expect(mockDeleteOrganization).toHaveBeenCalledWith({
+      body: {
+        organizationId: ORGANIZATION_ID,
+      },
+      headers: expect.any(Headers),
+    });
+    expect(result).toEqual({
+      success: true,
+      data: undefined,
+    });
   });
 });

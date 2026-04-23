@@ -16,6 +16,7 @@ import {
   findWorkspaceDtoByIdAndUserId,
   generateOrganizationSlug,
 } from "@features/organizations/organizations-repository";
+import { hasWorkspacePermission } from "@features/workspaces/workspaces-permissions";
 
 export const updateWorkspace = createProtectedActionWithInput<
   UpdateWorkspaceInput,
@@ -32,6 +33,20 @@ export const updateWorkspace = createProtectedActionWithInput<
 
     if (!existingWorkspace) {
       forbidden();
+    }
+
+    const canUpdateWorkspace = await hasWorkspacePermission(id, {
+      organization: ["update"],
+    });
+
+    if (!canUpdateWorkspace) {
+      return {
+        success: false,
+        error: {
+          message: WORKSPACE_ERROR_KEYS.updatePermissionDenied,
+          code: HttpCodes.FORBIDDEN,
+        },
+      };
     }
 
     if (name && name !== existingWorkspace.name) {

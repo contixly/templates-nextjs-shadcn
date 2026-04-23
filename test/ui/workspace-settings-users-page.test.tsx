@@ -19,6 +19,8 @@ jest.mock("next-intl", () => ({
             title: "Workspace Users",
             description: "Review workspace users",
             addMemberAction: "Add Member",
+            readOnlyNotice:
+              "You can review workspace members here, but only admins and owners can add people in this release.",
             currentUserSectionLabel: "Your workspace access",
             currentUserBadge: "You",
             otherUsersSectionLabel: "Other workspace users",
@@ -129,6 +131,34 @@ describe("WorkspaceSettingsUsersPage", () => {
       screen.getByText("This workspace does not have any visible members yet.")
     ).toBeInTheDocument();
     expect(screen.queryByRole("table")).not.toBeInTheDocument();
+  });
+
+  it("renders an explicit read-only notice for members without add-member access", () => {
+    render(
+      <WorkspaceSettingsUsersPage
+        organizationId="org-1"
+        currentUserId="user-123"
+        canAddMembers={false}
+        members={[
+          {
+            id: "member-1",
+            userId: "user-123",
+            name: "Alice Adams",
+            email: "alice@example.com",
+            image: null,
+            roleLabels: ["member"],
+            joinedAt: new Date("2026-04-20T10:00:00.000Z"),
+          },
+        ]}
+      />
+    );
+
+    expect(
+      screen.getByText(
+        "You can review workspace members here, but only admins and owners can add people in this release."
+      )
+    ).toBeInTheDocument();
+    expect(screen.queryByTestId("workspace-add-member-dialog")).not.toBeInTheDocument();
   });
 
   it("keeps the current user outside the table and shows a separate empty state for other users", () => {

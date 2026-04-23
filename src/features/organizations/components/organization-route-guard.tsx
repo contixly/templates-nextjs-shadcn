@@ -10,10 +10,7 @@ interface OrganizationRouteGuardProps {
   children: React.ReactNode | ((organization: OrganizationWorkspaceDto) => React.ReactNode);
 }
 
-export const OrganizationRouteGuard = async ({
-  organizationKey,
-  children,
-}: OrganizationRouteGuardProps) => {
+export const loadAccessibleOrganization = async (organizationKey: string) => {
   const userId = await loadCurrentUserId();
   if (!userId) {
     unauthorized();
@@ -22,7 +19,7 @@ export const OrganizationRouteGuard = async ({
   const accessibleOrganizations = await findManyAccessibleOrganizationsByUserId(userId);
 
   if (accessibleOrganizations.length === 0) {
-    return <WorkspaceOnboardingGuard />;
+    return null;
   }
 
   const accessibleOrganization = findOrganizationByRouteKey(
@@ -32,6 +29,19 @@ export const OrganizationRouteGuard = async ({
 
   if (!accessibleOrganization) {
     forbidden();
+  }
+
+  return accessibleOrganization;
+};
+
+export const OrganizationRouteGuard = async ({
+  organizationKey,
+  children,
+}: OrganizationRouteGuardProps) => {
+  const accessibleOrganization = await loadAccessibleOrganization(organizationKey);
+
+  if (!accessibleOrganization) {
+    return <WorkspaceOnboardingGuard />;
   }
 
   return typeof children === "function" ? children(accessibleOrganization) : children;
