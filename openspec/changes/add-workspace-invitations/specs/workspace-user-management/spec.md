@@ -1,10 +1,10 @@
-## REMOVED Requirements
+## MODIFIED Requirements
 
 ### Requirement: Workspace Users Settings Page Is Read-Only In The Initial Release
-**Reason**: The users page now needs a limited management workflow so workspace admins can add an existing user by ID
-without leaving the page.
-**Migration**: Use the new add-member modal on the users settings surface for direct membership additions; role edits and
-member removal remain out of scope.
+**Reason**: The users page now needs a limited admin add-member workflow without losing read-only visibility for regular
+members.
+**Migration**: Workspace members without member-create permission continue to use the users page as a read-only member
+directory, while admins and owners gain the add-member modal; role edits and member removal remain out of scope.
 
 ## ADDED Requirements
 
@@ -30,7 +30,8 @@ settings surface by providing a user ID.
 
 #### Scenario: Unauthorized workspace member cannot add users directly
 - **WHEN** an authenticated workspace member without member-create permission opens the users settings page
-- **THEN** the system does not render the add-member-by-user-ID control
+- **THEN** the system still renders the current membership information in read-only mode
+- **AND** does not render the add-member-by-user-ID control
 - **AND** does not allow the direct add-member mutation to succeed
 
 #### Scenario: Role edits and removals remain out of scope

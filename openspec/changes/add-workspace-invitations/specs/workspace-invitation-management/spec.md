@@ -2,26 +2,34 @@
 
 ### Requirement: Workspace Invitations Settings Page Lists Workspace Invitations
 The system MUST render the workspace invitations settings section from the Better Auth organization invitations
-associated with the current workspace.
+associated with the current workspace only for members who have invitation-create permission for that workspace.
 
-#### Scenario: Accessible workspace renders invitations table
-- **WHEN** an authenticated user opens the invitations settings page for a workspace they can access
+#### Scenario: Authorized workspace admin renders invitations table
+- **WHEN** an authenticated workspace member with invitation-create permission opens the invitations settings page for a
+  workspace they can access
 - **THEN** the system loads invitations for the underlying organization
 - **AND** renders them in a table with recipient email, role, inviter, created-at, expires-at, and status information
 
 #### Scenario: Invitation statuses are derived consistently
-- **WHEN** the invitations list contains pending, accepted, rejected, canceled, or expired invitations
+- **WHEN** an authorized workspace member views an invitations list that contains pending, accepted, rejected,
+  canceled, or expired invitations
 - **THEN** the system renders a status value for each invitation row
 - **AND** treats pending invitations past their expiration time as expired in the UI even if the stored status remains
   pending
 
 #### Scenario: Invitation links can be copied from the table
-- **WHEN** an authenticated user views an invitation row
+- **WHEN** an authorized workspace member views an invitation row
 - **THEN** the system exposes a copy-invitation-link action for that invitation
 - **AND** the copied URL resolves to the application's invitation decision route
 
+#### Scenario: Regular members cannot access the workspace invitations admin surface
+- **WHEN** an authenticated workspace member without invitation-create permission opens the invitations settings page
+- **THEN** the system rejects access to that route
+- **AND** does not render the invitation table or copy-link actions
+
 #### Scenario: No invitations exist for the workspace
-- **WHEN** the invitations settings page loads for an accessible workspace and no invitations are returned
+- **WHEN** the invitations settings page loads for an accessible workspace and no invitations are returned for an
+  authorized workspace member
 - **THEN** the system renders an explicit empty state
 - **AND** does not render the generic placeholder copy used before this change
 
@@ -47,7 +55,7 @@ by entering the invited user's email address.
 
 #### Scenario: Unauthorized member cannot create invitation
 - **WHEN** an authenticated workspace member without invitation-create permission opens the invitations settings page
-- **THEN** the system does not render the create-invitation control
+- **THEN** the system rejects access to the invitations admin surface
 - **AND** does not allow the create-invitation mutation to succeed
 
 ### Requirement: Invitation Links Resolve To An Authenticated Decision Surface

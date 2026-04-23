@@ -23,6 +23,10 @@ does not drift away from Better Auth behavior or the project’s FSD-style struc
 **Goals:**
 - Replace the workspace invitations placeholder with a functional admin page for listing and creating invitations.
 - Add a direct add-member-by-user-ID flow on the workspace users page.
+- Keep the workspace settings and workspace users pages readable to all workspace members while making only the
+  mutation controls role-aware.
+- Restrict the workspace invitations settings surface to admins and owners.
+- Keep workspace deletion owner-only across settings and workspace management affordances.
 - Provide a dedicated invitation route that survives login redirects and lets a user accept or reject an invitation.
 - Let users review pending invitations addressed to their primary account email on a personal page and on the
   welcome page.
@@ -119,21 +123,45 @@ Alternatives considered:
 
 ### 5. Permission checks will align with Better Auth organization access semantics
 
-The app will treat invitation creation and direct member addition as privileged workspace administration actions. The
-server actions should allow them only when the acting member has the corresponding Better Auth permission:
-- invitation creation: `invitation:create`
-- direct add-member: `member:create`
+The app will align workspace-facing routes, UI states, and server actions with Better Auth organization permissions,
+while adding app-owned gates for product rules that Better Auth does not express directly.
 
-Under the default Better Auth organization roles, this means owners and admins can use these actions, while regular
-members cannot.
+This means:
+- `/settings/workspace` remains accessible to any current workspace member, but only members with
+  `organization:update` can edit workspace name, slug, or default-workspace state; everyone else sees the same values
+  in a read-only presentation.
+- `/settings/users` remains accessible to any current workspace member, but only members with `member:create` can add
+  existing users.
+- `/settings/invitations` becomes an admin surface. Members without `invitation:create` should not see its navigation
+  entry and should receive a forbidden response if they open the route directly.
+- Workspace deletion controls remain available only to members with `organization:delete`.
+- Server actions should allow privileged mutations only when the acting member has the corresponding Better Auth
+  permission:
+  - workspace settings update: `organization:update`
+  - workspace deletion: `organization:delete`
+  - invitation page access, invitation list visibility, invitation link copying, and invitation creation:
+    `invitation:create`
+  - direct add-member: `member:create`
+
+Under the default Better Auth organization roles, this means owners and admins can update workspace settings, add
+members, and manage workspace invitations; only owners can delete the workspace; regular members can read the
+workspace and users pages but cannot use administrative settings flows.
 
 Rationale:
-- The built-in invitation endpoint already enforces `invitation:create`.
-- The built-in `addMember` endpoint is looser than the app needs, so the app must make the permission rule explicit.
+- The built-in workspace update and delete endpoints already enforce `organization:update` and `organization:delete`,
+  so the app should surface those capabilities explicitly in the UI instead of letting members discover them only via a
+  failed mutation.
+- The built-in invitation list endpoint only checks organization membership and does not model a separate
+  invitation-read permission, so the app must enforce the stricter admin-only invitations surface in loaders,
+  navigation, and UI.
+- The built-in `addMember` endpoint is looser than the app needs, so the app must make the permission rule explicit
+  for direct adds.
 
 Alternatives considered:
-- Let any current workspace member invite or add others. Rejected because it weakens the current organization access
-  model and would be surprising relative to Better Auth defaults.
+- Let any current workspace member invite or review invitation history. Rejected because it exposes invitation
+  administration artifacts, including shareable links, to regular members.
+- Make the workspace and users pages admin-only too. Rejected because members still need to inspect workspace metadata
+  and membership without being able to mutate them.
 
 ### 6. Derive display status and invitation links in the app layer
 
@@ -173,20 +201,23 @@ Alternatives considered:
 - [Invitation lists can diverge between Better Auth helper methods and app repositories] → Make the app repository the
   canonical source for UI surfaces, while keeping its filtering rules aligned with Better Auth’s pending-invitation
   semantics where applicable.
+- [Role-aware route gating can drift from UI capability flags] → Derive the relevant workspace capability flags in page
+  loaders and use them consistently for navigation, page rendering, and mutation entry points.
 
 ## Migration Plan
 
 1. Add the Prisma migration for the composite unique constraint on workspace memberships
    `(organizationId, userId)`.
-2. Implement repositories, DTOs, and protected server actions for workspace invitation management, direct member
-   addition, and invitation acceptance/rejection around the existing Better Auth invitation schema.
+2. Implement repositories, DTOs, loaders, and protected server actions for workspace invitation management, direct
+   member addition, capability-aware workspace settings surfaces, and invitation acceptance/rejection around the
+   existing Better Auth invitation schema.
 3. Update Better Auth invitation acceptance configuration or server-action checks so only a verified primary email can
    accept or reject invitations.
-4. Replace the invitations placeholder page, add the personal invitations page and invite route, and mount the reusable
-   pending-invitations block on welcome.
-5. Add/update tests for workspace settings, invitation decision flows, primary-email verification, duplicate-membership
-   protection, and welcome/account invitation
-   surfaces.
+4. Replace the invitations placeholder page, add the personal invitations page and invite route, mount the reusable
+   pending-invitations block on welcome, and make the workspace settings shell role-aware.
+5. Add/update tests for workspace settings read-only behavior, admin-only invitation surfaces, owner-only deletion
+   affordances, invitation decision flows, primary-email verification, duplicate-membership protection, and
+   welcome/account invitation surfaces.
 
 Rollback path:
 1. Restore the invitations placeholder and remove the new user-facing routes/actions.
