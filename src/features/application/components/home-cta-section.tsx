@@ -6,6 +6,7 @@ import { IconArrowRight } from "@tabler/icons-react";
 import { use } from "react";
 import { useTranslations } from "next-intl";
 import routes from "@features/routes";
+import { sanitizeRedirectPath } from "@lib/routes";
 
 interface HomeCTASectionProps {
   searchParams: Promise<{ redirect?: string }>;
@@ -14,7 +15,9 @@ interface HomeCTASectionProps {
 export const HomeCTASection = ({ searchParams }: HomeCTASectionProps) => {
   const t = useTranslations("application.ui.homeCta");
   const { redirect } = use(searchParams);
-  const redirectUrl = redirect || routes.dashboard.pages.application_dashboard.path();
+  const redirectUrl = sanitizeRedirectPath(
+    redirect || routes.dashboard.pages.application_dashboard.path()
+  );
 
   return (
     <section className="flex flex-col items-center gap-6 px-6 py-16 text-center md:py-24">

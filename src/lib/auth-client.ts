@@ -12,6 +12,7 @@ import { BetterAuthClientOptions } from "@better-auth/core";
 import { SocialProviderType } from "@typings/auth";
 import { createAuthClient } from "better-auth/client";
 import type { auth } from "@server/auth";
+import { sanitizeRedirectPath } from "@lib/routes";
 
 /**
  * An authentication client instance for handling user authentication and authorization.
@@ -56,6 +57,9 @@ export const signIn = async (
   redirectUrl?: string | null,
   type?: SocialProviderType
 ) => {
+  const safeRedirectUrl = sanitizeRedirectPath(redirectUrl ?? "/dashboard");
+  const safeNewUserRedirectUrl = sanitizeRedirectPath(redirectUrl ?? "/");
+
   const config = {
     provider,
     providerId: provider,
@@ -63,7 +67,7 @@ export const signIn = async (
      * A URL to redirect after the user authenticates with the provider
      * @default "/"
      */
-    callbackURL: redirectUrl ?? "/dashboard",
+    callbackURL: safeRedirectUrl,
     /**
      * A URL to redirect if an error occurs during the sign-in process
      */
@@ -72,7 +76,7 @@ export const signIn = async (
      * A URL to redirect if the user is newly registered
      */
     newUserCallbackURL: routes.accounts.pages.welcome.path({
-      query: { redirect: redirectUrl ?? "/" },
+      query: { redirect: safeNewUserRedirectUrl },
     }),
   };
 
