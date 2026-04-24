@@ -12,18 +12,11 @@ The system MUST treat `/dashboard` as a global entry point that resolves an orga
 - **THEN** the system resolves that organization
 - **AND** redirects the user to `/:organizationKey/dashboard` using the organization's slug when available
 
-#### Scenario: Dashboard falls back to the default organization
+#### Scenario: Dashboard falls back deterministically when no valid active organization exists
 - **WHEN** an authenticated user opens `/dashboard`
-- **AND** their session has no valid `activeOrganizationId`
-- **AND** they have an accessible organization with `isDefault = true`
-- **THEN** the system resolves that default organization
-- **AND** redirects the user to `/:organizationKey/dashboard` using the organization's slug when available
-
-#### Scenario: Dashboard falls back deterministically when no active or default organization exists
-- **WHEN** an authenticated user opens `/dashboard`
-- **AND** they have accessible organizations
-- **AND** none of them is selected as active or default
-- **THEN** the system selects one organization deterministically
+- **AND** their session has no `activeOrganizationId` or has an `activeOrganizationId` that is not accessible
+- **AND** they have at least one accessible organization
+- **THEN** the system selects the first organization from the deterministic accessible-organization order
 - **AND** redirects the user to `/:organizationKey/dashboard` using that organization's slug when available
 
 #### Scenario: Dashboard sends users without workspaces to welcome
