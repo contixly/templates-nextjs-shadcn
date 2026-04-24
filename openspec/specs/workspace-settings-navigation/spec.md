@@ -13,6 +13,8 @@ menu on the left and the selected section content on the right.
 - **WHEN** an authenticated user opens any workspace settings route for an accessible workspace
 - **THEN** the system renders the workspace settings shell with a left-side vertical menu
 - **AND** renders the selected section page in the main content area
+- **AND** that section page follows the shared settings-surface composition with a contextual intro before section
+  islands
 
 #### Scenario: Workspace settings root resolves to the first section
 
