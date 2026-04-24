@@ -24,25 +24,25 @@ describe("workspace switch navigation", () => {
   it("preserves registered base workspace routes with only an organization key segment", () => {
     expect(
       resolveWorkspaceSwitchHref({
-        currentPathname: "/acme/settings/invitations",
+        currentPathname: "/w/acme/settings/invitations",
         workspace: { id: "workspace-2", slug: "client-workspace" },
       })
-    ).toBe("/client-workspace/settings/invitations");
+    ).toBe("/w/client-workspace/settings/invitations");
   });
 
   it("falls back to the selected workspace dashboard for unknown routes", () => {
     expect(
       resolveWorkspaceSwitchHref({
-        currentPathname: "/acme/settings/invitations/invitation-1",
+        currentPathname: "/w/acme/settings/invitations/invitation-1",
         workspace: { id: "workspace-2", slug: "client-workspace" },
       })
-    ).toBe("/client-workspace/dashboard");
+    ).toBe("/w/client-workspace/dashboard");
   });
 
   it("falls back when a matched route has dynamic identifiers beyond organizationKey", () => {
     expect(
       isWorkspaceSwitchPreservableRoute(
-        fakePage("/[organizationKey]/projects/[projectId]/settings")
+        fakePage("/w/[organizationKey]/projects/[projectId]/settings")
       )
     ).toBe(false);
   });
@@ -50,9 +50,9 @@ describe("workspace switch navigation", () => {
   it("uses the workspace id for the dashboard fallback when a workspace has no slug", () => {
     expect(
       resolveWorkspaceSwitchHref({
-        currentPathname: "/workspace-1/not-registered",
+        currentPathname: "/w/workspace-1/not-registered",
         workspace: { id: "workspace-2", slug: null },
       })
-    ).toBe("/workspace-2/dashboard");
+    ).toBe("/w/workspace-2/dashboard");
   });
 });

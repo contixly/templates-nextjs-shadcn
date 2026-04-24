@@ -52,7 +52,7 @@ describe("settings layouts", () => {
 
   it("renders the workspace settings layout through the shared shell", async () => {
     const layoutModule =
-      await import("../../../../src/app/(protected)/(global)/[organizationKey]/settings/layout");
+      await import("../../../../src/app/(protected)/(global)/w/[organizationKey]/settings/layout");
     const element = await layoutModule.default({
       children: <div>workspace-page</div>,
       params: Promise.resolve({ organizationKey: "acme" }),

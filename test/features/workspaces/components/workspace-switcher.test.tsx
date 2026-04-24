@@ -162,7 +162,7 @@ describe("WorkspaceSwitcher", () => {
 
   it("changes the active workspace and preserves a base workspace route", async () => {
     mockUseParams.mockReturnValue({ organizationKey: "default-workspace" });
-    mockUsePathname.mockReturnValue("/default-workspace/settings/invitations");
+    mockUsePathname.mockReturnValue("/w/default-workspace/settings/invitations");
     (setActiveOrganization as jest.Mock).mockResolvedValue({
       success: true,
       data: { organizationId: "workspace-2" },
@@ -208,7 +208,7 @@ describe("WorkspaceSwitcher", () => {
     });
 
     expect(setActiveOrganization).toHaveBeenCalledWith({ organizationId: "workspace-2" });
-    expect(mockPush).toHaveBeenCalledWith("/client-workspace/settings/invitations");
+    expect(mockPush).toHaveBeenCalledWith("/w/client-workspace/settings/invitations");
     expect(mockRefresh).toHaveBeenCalled();
   });
 });

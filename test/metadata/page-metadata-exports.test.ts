@@ -38,7 +38,7 @@ describe("login page metadata export", () => {
 describe("workspace og image export", () => {
   it("forwards workspace params to buildPageMetadata", async () => {
     const pageModule =
-      await import("../../src/app/(protected)/(global)/[organizationKey]/opengraph-image");
+      await import("../../src/app/(protected)/(global)/w/[organizationKey]/opengraph-image");
     const mockedBuildPageMetadata = buildPageMetadata as jest.MockedFunction<
       typeof buildPageMetadata
     >;
@@ -52,7 +52,7 @@ describe("workspace og image export", () => {
 
   it("forwards workspace settings params to buildPageMetadata", async () => {
     const pageModule =
-      await import("../../src/app/(protected)/(global)/[organizationKey]/settings/workspace/opengraph-image");
+      await import("../../src/app/(protected)/(global)/w/[organizationKey]/settings/workspace/opengraph-image");
     const mockedBuildPageMetadata = buildPageMetadata as jest.MockedFunction<
       typeof buildPageMetadata
     >;

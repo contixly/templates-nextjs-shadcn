@@ -215,7 +215,7 @@ describe("WorkspaceCreateDialog", () => {
     });
 
     await waitFor(() => {
-      expect(mockPush).toHaveBeenCalledWith("/acme-team/dashboard");
+      expect(mockPush).toHaveBeenCalledWith("/w/acme-team/dashboard");
       expect(mockRefresh).toHaveBeenCalled();
     });
   });

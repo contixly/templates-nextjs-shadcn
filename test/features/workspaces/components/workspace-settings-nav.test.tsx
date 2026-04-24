@@ -44,7 +44,7 @@ jest.mock("@components/ui/sidebar", () => ({
 
 describe("NavWorkspaceSettings", () => {
   beforeEach(() => {
-    mockUsePathname.mockReturnValue("/acme/settings/users");
+    mockUsePathname.mockReturnValue("/w/acme/settings/users");
     mockUsePageTranslations.mockImplementation((page: { pageKey: string }) => {
       const titles: Record<string, string> = {
         settings: "Настройки рабочего пространства",
@@ -73,7 +73,7 @@ describe("NavWorkspaceSettings", () => {
     );
     expect(screen.getByRole("link", { name: "Пользователи" })).toHaveAttribute(
       "href",
-      "/acme/settings/users"
+      "/w/acme/settings/users"
     );
     expect(
       screen.getByRole("link", { name: "Пользователи" }).closest("[data-active='true']")

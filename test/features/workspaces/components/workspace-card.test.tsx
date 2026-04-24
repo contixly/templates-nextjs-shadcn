@@ -87,11 +87,11 @@ describe("WorkspaceCard", () => {
     expect(screen.getByText("client-workspace")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Settings" })).toHaveAttribute(
       "href",
-      "/client-workspace/settings/workspace"
+      "/w/client-workspace/settings/workspace"
     );
     expect(screen.getByRole("link", { name: "Open workspace" })).toHaveAttribute(
       "href",
-      "/client-workspace"
+      "/w/client-workspace"
     );
     expect(screen.queryByTestId("workspace-delete-dialog")).not.toBeInTheDocument();
   });

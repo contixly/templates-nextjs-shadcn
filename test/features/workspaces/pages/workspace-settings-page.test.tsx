@@ -96,7 +96,7 @@ describe("workspace settings root route", () => {
     });
 
     const pageModule =
-      await import("../../../../src/app/(protected)/(global)/[organizationKey]/settings/page");
+      await import("../../../../src/app/(protected)/(global)/w/[organizationKey]/settings/page");
 
     await expect(
       pageModule.default({
@@ -130,7 +130,7 @@ describe("workspace settings section routes", () => {
     });
 
     const pageModule =
-      await import("../../../../src/app/(protected)/(global)/[organizationKey]/settings/users/page");
+      await import("../../../../src/app/(protected)/(global)/w/[organizationKey]/settings/users/page");
 
     await expect(
       pageModule.default({
@@ -166,7 +166,7 @@ describe("workspace settings section routes", () => {
     });
 
     const pageModule =
-      await import("../../../../src/app/(protected)/(global)/[organizationKey]/settings/users/page");
+      await import("../../../../src/app/(protected)/(global)/w/[organizationKey]/settings/users/page");
 
     const element = await pageModule.default({
       params: Promise.resolve({ organizationKey: "client-workspace" }),
@@ -193,7 +193,7 @@ describe("workspace settings section routes", () => {
     });
 
     const pageModule =
-      await import("../../../../src/app/(protected)/(global)/[organizationKey]/settings/invitations/page");
+      await import("../../../../src/app/(protected)/(global)/w/[organizationKey]/settings/invitations/page");
 
     const element = await pageModule.default({
       params: Promise.resolve({ organizationKey: "client-workspace" }),
@@ -215,7 +215,7 @@ describe("workspace settings section routes", () => {
     });
 
     const pageModule =
-      await import("../../../../src/app/(protected)/(global)/[organizationKey]/settings/workspace/page");
+      await import("../../../../src/app/(protected)/(global)/w/[organizationKey]/settings/workspace/page");
     const element = await pageModule.default({
       params: Promise.resolve({ organizationKey: "client-workspace" }),
     });
@@ -235,7 +235,7 @@ describe("workspace settings section routes", () => {
     });
 
     const pageModule =
-      await import("../../../../src/app/(protected)/(global)/[organizationKey]/settings/roles/page");
+      await import("../../../../src/app/(protected)/(global)/w/[organizationKey]/settings/roles/page");
     const element = await pageModule.default({
       params: Promise.resolve({ organizationKey: "client-workspace" }),
     });
@@ -256,7 +256,7 @@ describe("workspace settings section routes", () => {
     });
 
     const pageModule =
-      await import("../../../../src/app/(protected)/(global)/[organizationKey]/settings/teams/page");
+      await import("../../../../src/app/(protected)/(global)/w/[organizationKey]/settings/teams/page");
     const element = await pageModule.default({
       params: Promise.resolve({ organizationKey: "client-workspace" }),
     });

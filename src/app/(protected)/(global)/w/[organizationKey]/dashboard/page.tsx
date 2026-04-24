@@ -6,7 +6,7 @@ import { OrganizationRouteGuard } from "@features/organizations/components/organ
 import { SectionCards } from "@features/dashboard/ui/template/section-cards";
 import { ChartAreaInteractive } from "@features/dashboard/ui/template/chart-area-interactive";
 import { DataTable } from "@features/dashboard/ui/template/data-table";
-import data from "../../dashboard/data.json";
+import data from "../../../dashboard/data.json";
 
 interface OrganizationDashboardPageProps {
   params: Promise<{ organizationKey: string }>;

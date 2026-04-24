@@ -136,7 +136,7 @@ describe("WorkspaceSidebarSwitcher", () => {
 
   it("changes the active workspace and navigates to its dashboard when the user selects another workspace", async () => {
     mockUseParams.mockReturnValue({ organizationKey: "default-workspace" });
-    mockUsePathname.mockReturnValue("/default-workspace/unknown");
+    mockUsePathname.mockReturnValue("/w/default-workspace/unknown");
     (setActiveOrganization as jest.Mock).mockResolvedValue({
       success: true,
       data: { organizationId: "workspace-2" },
@@ -182,14 +182,14 @@ describe("WorkspaceSidebarSwitcher", () => {
 
     await waitFor(() => {
       expect(setActiveOrganization).toHaveBeenCalledWith({ organizationId: "workspace-2" });
-      expect(mockPush).toHaveBeenCalledWith("/client-workspace/dashboard");
+      expect(mockPush).toHaveBeenCalledWith("/w/client-workspace/dashboard");
       expect(mockRefresh).toHaveBeenCalled();
     });
   });
 
   it("changes the active workspace and preserves a base workspace route", async () => {
     mockUseParams.mockReturnValue({ organizationKey: "default-workspace" });
-    mockUsePathname.mockReturnValue("/default-workspace/settings/invitations");
+    mockUsePathname.mockReturnValue("/w/default-workspace/settings/invitations");
     (setActiveOrganization as jest.Mock).mockResolvedValue({
       success: true,
       data: { organizationId: "workspace-2" },
@@ -235,7 +235,7 @@ describe("WorkspaceSidebarSwitcher", () => {
 
     await waitFor(() => {
       expect(setActiveOrganization).toHaveBeenCalledWith({ organizationId: "workspace-2" });
-      expect(mockPush).toHaveBeenCalledWith("/client-workspace/settings/invitations");
+      expect(mockPush).toHaveBeenCalledWith("/w/client-workspace/settings/invitations");
       expect(mockRefresh).toHaveBeenCalled();
     });
   });
