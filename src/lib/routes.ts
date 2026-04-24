@@ -75,7 +75,7 @@ export const sanitizeRedirectPath = (path: string): string => {
   const cleanPath = path.replace(/^[^:]*:\/\/[^/]*\//, "/");
 
   // Ensure it's a relative path starting with /
-  if (!cleanPath.startsWith("/")) {
+  if (!cleanPath.startsWith("/") || cleanPath.startsWith("//")) {
     return "/";
   }
 
