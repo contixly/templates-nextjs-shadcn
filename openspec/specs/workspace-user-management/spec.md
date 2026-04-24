@@ -30,47 +30,90 @@ the current workspace.
 
 ### Requirement: Workspace Users Settings Page Is Read-Only In The Initial Release
 The system MUST keep the workspace users settings page readable to all accessible workspace members while limiting
-management actions to the separately specified admin-only add-member workflow. Role edits and member removal MUST
-remain out of scope for this release.
+management actions to authorized direct-add and role-update workflows. Member removal MUST remain out of scope for this
+release.
 
-**Reason**: The users page now needs a limited admin add-member workflow without losing read-only visibility for regular
-members.
-**Migration**: Workspace members without member-create permission continue to use the users page as a read-only member
-directory, while admins and owners gain the add-member modal; role edits and member removal remain out of scope.
+**Reason**: Workspace administrators now need role assignment and role updates, but regular members must still retain a
+read-only directory view and member removal is still deferred.
+**Migration**: Workspace members without `member:create` and `member:update` permission continue to use the users page
+as a read-only member directory. Members with those permissions gain only the controls their permission set allows.
 
 #### Scenario: Regular members keep read-only access
-- **WHEN** an authenticated workspace member without member-create permission opens the users settings page
+- **WHEN** an authenticated workspace member without `member:create` and `member:update` permission opens the users
+  settings page
 - **THEN** the system renders the existing membership information in read-only mode
-- **AND** does not expose role-editing or member-removal controls
+- **AND** does not expose add-member or role-edit controls
+
+#### Scenario: Authorized member sees only the controls they can use
+- **WHEN** an authenticated workspace member with `member:create` or `member:update` permission opens the users
+  settings page
+- **THEN** the system keeps the full membership directory visible
+- **AND** renders add-member controls only if the member has `member:create` permission
+- **AND** renders role-update controls only for editable member rows if the member has `member:update` permission
+
+#### Scenario: Member removal remains out of scope
+- **WHEN** an authenticated user opens the users settings page after this change
+- **THEN** the system does not render member-removal controls
+- **AND** does not allow a member-removal workflow from this surface
 
 ### Requirement: Workspace Users Settings Page Supports Direct Member Addition
 The system MUST allow an authorized workspace member to add an existing user to the workspace directly from the users
-settings surface by providing a user ID.
+settings surface by providing a user ID and choosing one built-in role already supported by the application
+configuration.
 
 #### Scenario: Authorized workspace admin sees add-member control
-- **WHEN** an authenticated workspace member with member-create permission opens the users settings page
+- **WHEN** an authenticated workspace member with `member:create` permission opens the users settings page
 - **THEN** the system renders an add-member-by-user-ID control within the users management surface
-- **AND** the control opens a modal that accepts a user ID
+- **AND** the control opens a modal that accepts a user ID and role selection
 
-#### Scenario: Adding an existing user succeeds
+#### Scenario: Adding an existing user succeeds with the selected role
 - **WHEN** an authorized workspace member submits the ID of an existing user who is not yet a member of the workspace
-- **THEN** the system adds that user to the underlying organization with the default `member` role
-- **AND** refreshes the users page so the new member appears in the member list
+- **AND** selects a built-in role they are allowed to assign
+- **THEN** the system adds that user to the underlying organization with the selected role
+- **AND** refreshes the users page so the new member appears in the member list with that role
 
-#### Scenario: Invalid or redundant add-member request is rejected
-- **WHEN** an authorized workspace member submits a user ID that does not exist or already belongs to a current
-  workspace member
+#### Scenario: Invalid, redundant, or disallowed add-member request is rejected
+- **WHEN** an authorized workspace member submits a user ID that does not exist, already belongs to a current
+  workspace member, or is paired with a role they are not allowed to assign
 - **THEN** the system rejects the request
 - **AND** surfaces a validation error without creating a duplicate membership
 
 #### Scenario: Unauthorized workspace member cannot add users directly
-- **WHEN** an authenticated workspace member without member-create permission opens the users settings page
+- **WHEN** an authenticated workspace member without `member:create` permission opens the users settings page
 - **THEN** the system still renders the current membership information in read-only mode
 - **AND** does not render the add-member-by-user-ID control
 - **AND** does not allow the direct add-member mutation to succeed
 
-#### Scenario: Role edits and removals remain out of scope
-- **WHEN** an authenticated user opens the users settings page after this change
-- **THEN** the system still does not render controls for changing member roles or removing members
-- **AND** keeps those workflows for later changes
+### Requirement: Workspace Users Settings Page Supports Member Role Updates
+The system MUST allow an authorized workspace member to update another workspace member's role directly from the users
+table using the built-in roles already supported by the application configuration.
+
+#### Scenario: Current user summary remains informational
+- **WHEN** an authenticated user opens the users settings page
+- **THEN** the system keeps the dedicated current-user summary as an informational view
+- **AND** renders role-changing controls only within the other-users table
+
+#### Scenario: Authorized workspace admin sees row-level role controls
+- **WHEN** an authenticated workspace member with `member:update` permission opens the users settings page
+- **THEN** the system renders a role-changing control inside the existing roles column for editable rows in the users
+  table
+- **AND** limits the selectable roles to the built-in roles that member is allowed to assign
+- **AND** does not render a separate role-action column
+- **AND** keeps non-editable, unsupported, or multi-role rows as read-only role labels in that same roles column
+
+#### Scenario: Changing a member role succeeds
+- **WHEN** an authorized workspace member selects a different allowed role for an editable member row
+- **THEN** the system updates that workspace membership to the selected role
+- **AND** refreshes the users page so the new role appears in the roles column
+
+#### Scenario: Disallowed or redundant role change is rejected
+- **WHEN** an authorized workspace member attempts to set a role they are not allowed to assign, modify a protected
+  owner membership without owner privileges, or submit the member's current role again
+- **THEN** the system rejects the request
+- **AND** surfaces a validation error without changing the stored membership
+
+#### Scenario: Unauthorized workspace member cannot update roles
+- **WHEN** an authenticated workspace member without `member:update` permission opens the users settings page
+- **THEN** the system does not render row-level role controls
+- **AND** does not allow the member-role update mutation to succeed
 
