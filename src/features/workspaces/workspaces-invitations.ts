@@ -127,11 +127,7 @@ export const loadWorkspaceInvitationDecisionPageContext = async (
   }
 
   if (resolvedInvitation.email !== normalizeWorkspaceInvitationEmail(user.email)) {
-    return {
-      invitation: resolvedInvitation,
-      state: "recipient-mismatch",
-      canRespond: false,
-    };
+    return null;
   }
 
   if (!user.emailVerified) {
