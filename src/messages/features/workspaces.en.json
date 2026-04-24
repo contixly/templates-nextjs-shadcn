@@ -172,11 +172,9 @@
           "user": "User",
           "email": "Email",
           "roles": "Roles",
-          "roleAction": "Role action",
           "joined": "Joined"
         },
         "roleSelectLabel": "Role for {name}",
-        "readOnlyRole": "Read-only",
         "noRoles": "No roles"
       }
     },

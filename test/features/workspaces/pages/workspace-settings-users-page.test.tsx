@@ -1,5 +1,5 @@
 import "@testing-library/jest-dom";
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import React from "react";
 import { WorkspaceSettingsUsersPage } from "@features/workspaces/components/pages/workspace-settings-users-page";
 
@@ -56,12 +56,10 @@ jest.mock("next-intl", () => ({
                 user: "User",
                 email: "Email",
                 roles: "Roles",
-                roleAction: "Role action",
                 joined: "Joined",
               },
               roleSelectLabel: "Role for {name}",
               noRoles: "No roles",
-              readOnlyRole: "Read-only",
             },
           },
           roles: {
@@ -126,6 +124,15 @@ describe("WorkspaceSettingsUsersPage", () => {
             roleLabels: ["member"],
             joinedAt: new Date("2026-04-21T10:00:00.000Z"),
           },
+          {
+            id: "member-3",
+            userId: "user-789",
+            name: "Casey Clark",
+            email: "casey@example.com",
+            image: null,
+            roleLabels: ["owner", "billing"],
+            joinedAt: new Date("2026-04-22T10:00:00.000Z"),
+          },
         ]}
       />
     );
@@ -134,8 +141,8 @@ describe("WorkspaceSettingsUsersPage", () => {
     expect(screen.getByTestId("workspace-add-member-dialog")).toHaveTextContent("Add Member");
     expect(screen.getByText("Alice Adams")).toBeInTheDocument();
     expect(screen.getByText("alice@example.com")).toBeInTheDocument();
-    expect(screen.getByText("Owner")).toBeInTheDocument();
-    expect(screen.getByText("billing")).toBeInTheDocument();
+    expect(screen.getAllByText("Owner").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("billing").length).toBeGreaterThan(0);
     expect(screen.getByText("You")).toBeInTheDocument();
     expect(screen.getByText("formatted:2026-04-20T10:00:00.000Z")).toBeInTheDocument();
 
@@ -144,13 +151,23 @@ describe("WorkspaceSettingsUsersPage", () => {
     expect(screen.getByRole("columnheader", { name: "User" })).toBeInTheDocument();
     expect(screen.getByRole("columnheader", { name: "Email" })).toBeInTheDocument();
     expect(screen.getByRole("columnheader", { name: "Roles" })).toBeInTheDocument();
-    expect(screen.getByRole("columnheader", { name: "Role action" })).toBeInTheDocument();
+    expect(screen.queryByRole("columnheader", { name: "Role action" })).not.toBeInTheDocument();
     expect(screen.getByRole("columnheader", { name: "Joined" })).toBeInTheDocument();
+    expect(screen.getAllByRole("columnheader")).toHaveLength(4);
     expect(screen.getByText("Bob Brown")).toBeInTheDocument();
     expect(screen.getByText("bob@example.com")).toBeInTheDocument();
     expect(screen.getAllByText("Member").length).toBeGreaterThan(0);
-    expect(screen.getByRole("combobox", { name: "Role for Bob Brown" })).toBeInTheDocument();
+    const bobRow = screen.getByText("Bob Brown").closest("tr");
+    expect(bobRow).not.toBeNull();
+    expect(
+      within(bobRow as HTMLTableRowElement).getByRole("combobox", { name: "Role for Bob Brown" })
+    ).toBeInTheDocument();
     expect(screen.getByText("formatted:2026-04-21T10:00:00.000Z")).toBeInTheDocument();
+    expect(screen.getByText("Casey Clark")).toBeInTheDocument();
+    expect(screen.getByText("casey@example.com")).toBeInTheDocument();
+    expect(screen.getAllByText("Owner").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("billing").length).toBeGreaterThan(0);
+    expect(screen.queryByText("Read-only")).not.toBeInTheDocument();
   });
 
   it("renders an explicit empty state instead of the placeholder copy", () => {
@@ -190,6 +207,15 @@ describe("WorkspaceSettingsUsersPage", () => {
             roleLabels: ["member"],
             joinedAt: new Date("2026-04-20T10:00:00.000Z"),
           },
+          {
+            id: "member-2",
+            userId: "user-456",
+            name: "Bob Brown",
+            email: "bob@example.com",
+            image: null,
+            roleLabels: ["member"],
+            joinedAt: new Date("2026-04-21T10:00:00.000Z"),
+          },
         ]}
       />
     );
@@ -200,6 +226,9 @@ describe("WorkspaceSettingsUsersPage", () => {
       )
     ).toBeInTheDocument();
     expect(screen.queryByTestId("workspace-add-member-dialog")).not.toBeInTheDocument();
+    expect(screen.getByRole("columnheader", { name: "Roles" })).toBeInTheDocument();
+    expect(screen.queryByRole("columnheader", { name: "Role action" })).not.toBeInTheDocument();
+    expect(screen.getAllByText("Member").length).toBeGreaterThan(0);
     expect(screen.queryByRole("combobox")).not.toBeInTheDocument();
   });
 

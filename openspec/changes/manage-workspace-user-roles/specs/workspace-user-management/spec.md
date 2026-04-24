@@ -69,13 +69,16 @@ table using the built-in roles already supported by the application configuratio
 
 #### Scenario: Authorized workspace admin sees row-level role controls
 - **WHEN** an authenticated workspace member with `member:update` permission opens the users settings page
-- **THEN** the system renders a role-changing control for editable rows in the users table
+- **THEN** the system renders a role-changing control inside the existing roles column for editable rows in the users
+  table
 - **AND** limits the selectable roles to the built-in roles that member is allowed to assign
+- **AND** does not render a separate role-action column
+- **AND** keeps non-editable, unsupported, or multi-role rows as read-only role labels in that same roles column
 
 #### Scenario: Changing a member role succeeds
 - **WHEN** an authorized workspace member selects a different allowed role for an editable member row
 - **THEN** the system updates that workspace membership to the selected role
-- **AND** refreshes the users page so the new role appears in the table
+- **AND** refreshes the users page so the new role appears in the roles column
 
 #### Scenario: Disallowed or redundant role change is rejected
 - **WHEN** an authorized workspace member attempts to set a role they are not allowed to assign, modify a protected

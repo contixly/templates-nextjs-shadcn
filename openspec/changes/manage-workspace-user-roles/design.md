@@ -102,20 +102,27 @@ Alternatives considered:
 - Call Better Auth directly from client components. Rejected because it would bypass the app's action result pattern,
   validation, logging, and cache invalidation rules.
 
-### 4. Put role changes on user-table rows and keep the current-user panel informational
+### 4. Put role changes in the users table roles column and keep the current-user panel informational
 
 The users page will keep the current user in the existing dedicated summary panel. Role-changing controls will appear
-on rows in the "other workspace users" table for rows the acting member is allowed to update.
+in the existing roles column of the "other workspace users" table for rows the acting member is allowed to update.
+Editable single-role rows will use a select as the role display itself. Non-editable rows, unsupported roles, and
+multi-role values will continue to render defensive read-only role labels in the same column.
 
 Rationale:
 - The request explicitly asks for role changes in the users table.
 - Keeping the self card informational avoids mixing self-management edge cases into the first release, including
   demoting the only owner or editing the active user's own permissions inline.
-- The table already concentrates repeated member attributes, so it is the natural place for a row-level role control.
+- The table already concentrates repeated member attributes, and the roles column is the natural place to both inspect
+  and change a member role. A separate action column would duplicate the same role concept and make the table wider
+  without adding capability.
 
 Alternatives considered:
 - Move everyone into the same editable table. Rejected because it regresses the existing current-user treatment and
   adds risky self-edit semantics.
+- Render a separate role-action column. Rejected because role display and role edit are the same workflow for editable
+  rows; keeping them in one column is denser and clearer while preserving read-only labels for rows that cannot be
+  edited safely.
 - Create a separate roles page now. Rejected because the request is specifically about management from the users table,
   and the current roles route can remain a future placeholder.
 
@@ -160,8 +167,8 @@ Deployment path:
 1. Add the shared workspace role helper and update schemas/types to carry a selected role through add-member and
    invitation forms.
 2. Update the add-member and create-invitation server actions, and add the new member-role update action.
-3. Extend workspace settings loaders and page components so authorized admins can see role selectors and row-level role
-   controls.
+3. Extend workspace settings loaders and page components so authorized admins can see role selectors in the roles
+   column for editable member rows.
 4. Update translations and Jest coverage for role selection, role-change success paths, and rejection paths.
 
 Rollback path:

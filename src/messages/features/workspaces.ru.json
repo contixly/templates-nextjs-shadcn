@@ -172,11 +172,9 @@
           "user": "Пользователь",
           "email": "Email",
           "roles": "Роли",
-          "roleAction": "Изменение роли",
           "joined": "Присоединился"
         },
         "roleSelectLabel": "Роль для {name}",
-        "readOnlyRole": "Только просмотр",
         "noRoles": "Ролей нет"
       }
     },
