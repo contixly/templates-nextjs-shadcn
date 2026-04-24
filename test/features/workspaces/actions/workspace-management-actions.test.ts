@@ -5,6 +5,7 @@ const mockFindManyAccessibleOrganizationsByUserId = jest.fn();
 const mockCountAccessibleOrganizationsByUserId = jest.fn();
 const mockFindWorkspaceDtoByIdAndUserId = jest.fn();
 const mockFindFirstAccessibleOrganizationByIdAndUserId = jest.fn();
+const mockFindOrganizationBySlug = jest.fn();
 const mockGenerateOrganizationSlug = jest.fn();
 const mockCreateOrganization = jest.fn();
 const mockSetActiveOrganization = jest.fn();
@@ -51,6 +52,7 @@ jest.mock("@features/organizations/organizations-repository", () => ({
   findWorkspaceDtoByIdAndUserId: (...args: unknown[]) => mockFindWorkspaceDtoByIdAndUserId(...args),
   findFirstAccessibleOrganizationByIdAndUserId: (...args: unknown[]) =>
     mockFindFirstAccessibleOrganizationByIdAndUserId(...args),
+  findOrganizationBySlug: (...args: unknown[]) => mockFindOrganizationBySlug(...args),
   generateOrganizationSlug: (...args: unknown[]) => mockGenerateOrganizationSlug(...args),
 }));
 
@@ -115,6 +117,7 @@ describe("workspace management actions", () => {
     mockCountAccessibleOrganizationsByUserId.mockReset();
     mockFindWorkspaceDtoByIdAndUserId.mockReset();
     mockFindFirstAccessibleOrganizationByIdAndUserId.mockReset();
+    mockFindOrganizationBySlug.mockReset();
     mockGenerateOrganizationSlug.mockReset();
     mockCreateOrganization.mockReset();
     mockSetActiveOrganization.mockReset();
@@ -272,12 +275,48 @@ describe("workspace management actions", () => {
         slug: "shared",
       },
     ]);
+    mockFindOrganizationBySlug.mockResolvedValue({
+      id: SECOND_ORGANIZATION_ID,
+    });
 
     const result = await updateWorkspace({
       id: ORGANIZATION_ID,
       slug: "shared",
     });
 
+    expect(result).toEqual({
+      success: false,
+      error: {
+        message: "validation.errors.duplicateSlug",
+        code: 409,
+      },
+    });
+    expect(mockUpdateOrganization).not.toHaveBeenCalled();
+  });
+
+  it("rejects a slug used by an inaccessible organization without updating the organization", async () => {
+    mockFindFirstAccessibleOrganizationByIdAndUserId.mockResolvedValue({
+      id: ORGANIZATION_ID,
+      name: "Primary Workspace",
+      slug: "primary",
+    });
+    mockFindManyAccessibleOrganizationsByUserId.mockResolvedValue([
+      {
+        id: ORGANIZATION_ID,
+        name: "Primary Workspace",
+        slug: "primary",
+      },
+    ]);
+    mockFindOrganizationBySlug.mockResolvedValue({
+      id: "unrelated-org",
+    });
+
+    const result = await updateWorkspace({
+      id: ORGANIZATION_ID,
+      slug: "global-slug",
+    });
+
+    expect(mockFindOrganizationBySlug).toHaveBeenCalledWith("global-slug", { id: true });
     expect(result).toEqual({
       success: false,
       error: {

@@ -12,6 +12,7 @@ import { WORKSPACE_ERROR_KEYS } from "@features/workspaces/workspaces-errors";
 import {
   findFirstAccessibleOrganizationByIdAndUserId,
   findManyAccessibleOrganizationsByUserId,
+  findOrganizationBySlug,
   findWorkspaceDtoByIdAndUserId,
   generateOrganizationSlug,
 } from "@features/organizations/organizations-repository";
@@ -65,11 +66,9 @@ export const updateWorkspace = createProtectedActionWithInput<
     }
 
     if (slug && slug !== existingWorkspace.slug) {
-      const duplicateSlugWorkspace = (await findManyAccessibleOrganizationsByUserId(userId)).find(
-        (workspace) => workspace.id !== id && workspace.slug === slug
-      );
+      const duplicateSlugWorkspace = await findOrganizationBySlug(slug, { id: true });
 
-      if (duplicateSlugWorkspace) {
+      if (duplicateSlugWorkspace && duplicateSlugWorkspace.id !== id) {
         return {
           success: false,
           error: {

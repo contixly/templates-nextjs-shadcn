@@ -270,6 +270,17 @@ export const countAccessibleOrganizationsByUserId = async (userId: string) =>
     },
   });
 
+export const findOrganizationBySlug = async (slug: string, select?: Prisma.OrganizationSelect) =>
+  prisma.organization.findUnique({
+    where: {
+      slug,
+    },
+    select: {
+      id: true,
+      ...(select ?? {}),
+    },
+  });
+
 export const generateOrganizationSlug = async (
   name: string,
   options?: { excludeOrganizationId?: string }
