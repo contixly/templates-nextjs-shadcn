@@ -2,70 +2,70 @@
   "pages": {
     "home": {
       "title": "Home",
-      "description": "A neutral starting point for the template application with shared UI, auth flows, and reusable layout patterns.",
+      "description": "A Next.js template with organization-backed workspaces, invitations, member roles, shared settings surfaces, and reusable product scaffolding.",
       "openGraph": {
         "title": "Home",
-        "description": "A template application ready to be adapted into your own service."
+        "description": "A template application with organization-backed workspace and collaboration flows."
       },
-      "heroBadge": "Template application",
-      "heroTitlePrefix": "A neutral starting point for",
+      "heroBadge": "Organization-ready template",
+      "heroTitlePrefix": "Workspace collaboration for",
       "heroTitleEmphasis": "your next service",
-      "heroDescription": "This template includes authentication, routing, persistence, and shared UI patterns so you can adapt it into a custom service without rebuilding the foundation.",
-      "heroSecurity": "Social login only, no passwords",
-      "featuresTitle": "What ships with this template",
-      "featuresDescription": "Opinionated defaults you can rename, extend, or remove — edit this section to describe your product.",
-      "extensionsBadge": "Extension points",
-      "extensionsTitle": "Where to plug in your own logic",
-      "extensionsDescription": "Placeholder ideas — replace with integrations, partners, or workflows your users care about.",
+      "heroDescription": "This template now includes Better Auth organizations, slug-aware workspace routing, member directories, invitation flows, and role-aware settings so you can start from a real multi-tenant foundation.",
+      "heroSecurity": "OAuth login, verified invitation acceptance, role-aware permissions",
+      "featuresTitle": "Organization and workspace flows are included",
+      "featuresDescription": "The branch now ships the core collaboration surface most SaaS products need before domain-specific features begin.",
+      "extensionsBadge": "Management surfaces",
+      "extensionsTitle": "Workspace administration is ready to extend",
+      "extensionsDescription": "Dedicated settings pages, invitation handling, and role-aware controls give product teams concrete places to add billing, teams, custom roles, or audit trails.",
       "stackTitle": "Built with",
       "ctaTitle": "Start from here",
-      "ctaDescription": "Clone the template, create your first workspace, and shape the app around your domain.",
+      "ctaDescription": "Create a workspace, invite collaborators, assign roles, and shape the app around your domain.",
       "footer": "© 2026 Application Template. All rights reserved.",
       "logoAlt": "Application template logo",
       "featureBlocks": {
         "routing": {
           "badge": "Included",
-          "title": "App Router & layouts",
-          "description": "Route groups, metadata, and shared shells you can reshape for marketing, auth, and authenticated areas."
+          "title": "Organization-scoped routing",
+          "description": "Global dashboard entry resolves active, default, or fallback organization context and redirects into slug-preferred workspace URLs."
         },
         "actions": {
           "badge": "Included",
-          "title": "Server actions & validation",
-          "description": "Typed mutations with Zod, protected actions, and cache invalidation patterns ready to extend."
+          "title": "Protected workspace actions",
+          "description": "Create, update, delete, switch, and default workspace mutations use protected server actions with validation and cache invalidation."
         },
         "database": {
           "badge": "Included",
-          "title": "Prisma & PostgreSQL",
-          "description": "Schema, migrations, and a singleton data layer — point DATABASE_URL at your database and evolve the model."
+          "title": "Organization-backed data model",
+          "description": "Prisma models now include organizations, members, invitations, active organization sessions, indexes, and repository cache tags."
         },
         "auth": {
           "badge": "Included",
-          "title": "Better Auth & OAuth",
-          "description": "Session handling and social providers; configure secrets and callback URLs for your environments."
+          "title": "Better Auth organizations",
+          "description": "Workspaces preserve the product language while using Better Auth organization APIs for membership and permission checks."
         },
         "features": {
           "badge": "Included",
-          "title": "Feature-sliced modules",
-          "description": "Business logic grouped under features/ with repositories, actions, and routes to mirror your domain."
+          "title": "Invitations and onboarding",
+          "description": "Admins can create shareable workspace invitations, users can accept or reject them, and zero-workspace onboarding stays actionable."
         },
         "ui": {
           "badge": "Included",
-          "title": "shadcn/ui & Tailwind",
-          "description": "Accessible primitives and tokens — swap themes, add screens, and keep UI consistent as you grow."
+          "title": "Settings and member management",
+          "description": "Workspace settings include general settings, user lists, direct member adds, role edits, invitations, and placeholder sections for teams and roles."
         }
       },
       "extensionBlocks": {
         "clients": {
-          "title": "REST or GraphQL clients",
-          "description": "Add SDKs or fetch wrappers for the APIs your product depends on."
+          "title": "Workspace settings sections",
+          "description": "Extend the settings shell with billing, domains, audit logs, or other organization-level controls."
         },
         "webhooks": {
-          "title": "Inbound webhooks",
-          "description": "Expose routes that turn provider events into your own domain records."
+          "title": "Invitation lifecycle",
+          "description": "Build on pending, accepted, rejected, canceled, and expired invitation states with email delivery or notifications."
         },
         "storage": {
-          "title": "File & object storage",
-          "description": "Optional S3-style storage hooks for uploads when your feature needs blobs."
+          "title": "Role-aware permissions",
+          "description": "The owner, admin, and member model can evolve into custom roles while keeping assignment rules centralized."
         }
       }
     },

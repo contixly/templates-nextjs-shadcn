@@ -4,11 +4,12 @@
 
 [![Use this template](https://img.shields.io/badge/Use%20this%20template-2ea44f?style=for-the-badge&logo=github)](https://github.com/new?template_name=templates-nextjs-shadcn&template_owner=contixly)
 
-A localized starting point for building custom services with Next.js, TypeScript, Tailwind CSS v4, Better Auth, Prisma,
-`next-intl`, and shadcn/ui.
+A localized, organization-ready starting point for building custom services with Next.js, TypeScript, Tailwind CSS v4,
+Better Auth, Prisma, `next-intl`, and shadcn/ui.
 
 The template ships with public and protected application flows, feature-sliced modules, server actions, Prisma-backed
-persistence, social authentication, and bilingual UI/message infrastructure for English and Russian.
+persistence, social authentication, bilingual UI/message infrastructure for English and Russian, and collaboration
+flows built around organization-backed workspaces.
 
 **After generating a new repo from this template**, follow **[TEMPLATE.md](./TEMPLATE.md)** for environment variables,
 auth, and domain setup.
@@ -16,19 +17,41 @@ auth, and domain setup.
 ## What This Template Includes
 
 - Authentication with protected and public routes
+- Better Auth organizations used as the backing model for workspaces
+- Organization-scoped workspace routes with slug-preferred URLs and active/default workspace resolution
+- Workspace management, settings, member directory, and invitation surfaces
+- Role-aware owner/admin/member controls for adding members and updating member roles
+- Invitation lifecycle: create, list, copy link, accept, reject, expire, and personal pending-invitation entry points
+- Zero-workspace onboarding that keeps workspace creation and invitation review available
 - Internationalization with `next-intl` and typed message catalogs
 - Feature Slice Design structure for isolating business logic
 - Server actions, validation, and cache invalidation patterns
 - Shared UI primitives and layout scaffolding
 - Localized metadata, sitemap, robots, manifest, and OG image setup
-- Example modules for workspaces, accounts, and dashboard flows
+- Example modules for accounts, organizations, workspaces, invitations, settings, and dashboard flows
 
 ## Technology Stack
 
 - **Frontend**: Next.js 16, React 19, TypeScript, Tailwind CSS v4, shadcn/ui
 - **Backend**: Next.js Server Actions, Prisma ORM, PostgreSQL
-- **Auth**: Better Auth
+- **Auth**: Better Auth with OAuth providers and the organization plugin
 - **Localization**: `next-intl`
+
+## Workspace and Organization Model
+
+Workspaces are the product-facing concept, while Better Auth organizations provide the underlying membership and
+permission model. Routes under `/:organizationKey/...` resolve either an organization slug or id, and the global
+`/dashboard` route redirects to the best available workspace context: active organization, default organization, or a
+deterministic fallback.
+
+Workspace settings include general workspace details, users, invitations, and placeholder sections for teams and roles.
+Authorized users can create workspaces, update workspace details, switch the active workspace, mark a default workspace,
+add existing users by id, create shareable invitations, and update assignable member roles. Regular members retain
+read-only access to the directory and settings context where they do not have management permissions.
+
+Invitations are stored in PostgreSQL, tied to organizations, and exposed through both admin and current-user flows.
+Invitees can open a dedicated invitation route after authentication, review the inviter, workspace, role, and expiration
+details, then accept or reject when their verified primary email matches the invitation.
 
 ## Getting Started
 

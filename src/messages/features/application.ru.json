@@ -2,70 +2,70 @@
   "pages": {
     "home": {
       "title": "Главная",
-      "description": "Нейтральная отправная точка для шаблона приложения с общим UI, потоками авторизации и переиспользуемыми layout-паттернами.",
+      "description": "Next.js-шаблон с рабочими пространствами на базе организаций, приглашениями, ролями участников, общими настройками и готовым продуктовым каркасом.",
       "openGraph": {
         "title": "Главная",
-        "description": "Шаблон приложения, готовый к адаптации под ваш сервис."
+        "description": "Шаблон приложения с рабочими пространствами и совместной работой на базе организаций."
       },
-      "heroBadge": "Шаблон приложения",
-      "heroTitlePrefix": "Нейтральная отправная точка для",
+      "heroBadge": "Шаблон с организациями",
+      "heroTitlePrefix": "Совместная работа в workspace для",
       "heroTitleEmphasis": "вашего следующего сервиса",
-      "heroDescription": "В этом шаблоне уже есть аутентификация, маршрутизация, хранение данных и общие UI-паттерны, чтобы вы могли адаптировать его под свой сервис без пересборки основы.",
-      "heroSecurity": "Только вход через соцсети, без паролей",
-      "featuresTitle": "Что входит в этот шаблон",
-      "featuresDescription": "Готовые базовые решения, которые можно переименовать, расширить или удалить — отредактируйте этот раздел под свой продукт.",
-      "extensionsBadge": "Точки расширения",
-      "extensionsTitle": "Куда встраивать свою логику",
-      "extensionsDescription": "Заглушки для идей — замените их интеграциями, партнёрами или сценариями, которые важны вашим пользователям.",
+      "heroDescription": "В шаблоне теперь есть Better Auth organizations, workspace-маршруты со slug, списки участников, приглашения и настройки с учетом ролей, чтобы начинать с полноценной multi-tenant основы.",
+      "heroSecurity": "OAuth-вход, проверка email для приглашений, permissions по ролям",
+      "featuresTitle": "Потоки организаций и workspace уже включены",
+      "featuresDescription": "Ветка поставляет базовый слой совместной работы, который нужен большинству SaaS-продуктов до добавления предметной логики.",
+      "extensionsBadge": "Поверхности управления",
+      "extensionsTitle": "Администрирование workspace готово к развитию",
+      "extensionsDescription": "Отдельные страницы настроек, обработка приглашений и role-aware controls дают понятные места для биллинга, команд, кастомных ролей или аудита.",
       "stackTitle": "Построено на",
       "ctaTitle": "Стартуйте отсюда",
-      "ctaDescription": "Клонируйте шаблон, создайте первое рабочее пространство и адаптируйте приложение под свою предметную область.",
+      "ctaDescription": "Создайте workspace, пригласите участников, назначьте роли и адаптируйте приложение под свою предметную область.",
       "footer": "© 2026 Шаблон приложения. Все права защищены.",
       "logoAlt": "Логотип шаблона приложения",
       "featureBlocks": {
         "routing": {
           "badge": "Включено",
-          "title": "App Router и layout-слои",
-          "description": "Группы маршрутов, metadata и общие оболочки, которые можно адаптировать для маркетинга, auth и защищённых зон."
+          "title": "Маршруты в контексте организации",
+          "description": "Глобальный dashboard выбирает active, default или fallback organization context и ведет в workspace URL со slug."
         },
         "actions": {
           "badge": "Включено",
-          "title": "Server actions и валидация",
-          "description": "Типизированные мутации с Zod, защищённые actions и паттерны инвалидирования кэша, готовые к расширению."
+          "title": "Защищенные workspace actions",
+          "description": "Создание, обновление, удаление, переключение и выбор default workspace используют protected server actions, валидацию и инвалидирование кэша."
         },
         "database": {
           "badge": "Включено",
-          "title": "Prisma и PostgreSQL",
-          "description": "Схема, миграции и singleton data layer — укажите DATABASE_URL на свою базу и развивайте модель."
+          "title": "Модель данных на организациях",
+          "description": "В Prisma добавлены organizations, members, invitations, active organization в сессиях, индексы и repository cache tags."
         },
         "auth": {
           "badge": "Включено",
-          "title": "Better Auth и OAuth",
-          "description": "Управление сессиями и социальные провайдеры; настройте секреты и callback URL для своих окружений."
+          "title": "Better Auth organizations",
+          "description": "В UI сохраняется термин workspace, а membership и permission checks выполняются через organization APIs Better Auth."
         },
         "features": {
           "badge": "Включено",
-          "title": "Feature-sliced модули",
-          "description": "Бизнес-логика сгруппирована в features/ вместе с repository, actions и routes, чтобы повторять вашу доменную модель."
+          "title": "Приглашения и onboarding",
+          "description": "Администраторы создают shareable workspace invitations, пользователи принимают или отклоняют их, а zero-workspace onboarding остается actionable."
         },
         "ui": {
           "badge": "Включено",
-          "title": "shadcn/ui и Tailwind",
-          "description": "Доступные примитивы и токены — меняйте темы, добавляйте экраны и сохраняйте единообразный интерфейс по мере роста."
+          "title": "Настройки и участники",
+          "description": "Workspace settings включают общие настройки, список пользователей, прямое добавление участников, смену ролей, приглашения и заглушки Teams/Roles."
         }
       },
       "extensionBlocks": {
         "clients": {
-          "title": "REST или GraphQL клиенты",
-          "description": "Добавьте SDK или fetch-обёртки для API, от которых зависит ваш продукт."
+          "title": "Разделы настроек workspace",
+          "description": "Расширяйте settings shell биллингом, доменами, аудитом или другими organization-level controls."
         },
         "webhooks": {
-          "title": "Входящие вебхуки",
-          "description": "Откройте маршруты, которые будут превращать события провайдеров в записи вашей доменной модели."
+          "title": "Жизненный цикл приглашений",
+          "description": "Используйте статусы pending, accepted, rejected, canceled и expired для email-доставки или уведомлений."
         },
         "storage": {
-          "title": "Файлы и object storage",
-          "description": "Опциональные S3-подобные хуки для загрузок, когда вашей функции нужны бинарные объекты."
+          "title": "Permissions по ролям",
+          "description": "Модель owner, admin и member можно развить в кастомные роли, сохраняя правила назначения в одном месте."
         }
       }
     },
