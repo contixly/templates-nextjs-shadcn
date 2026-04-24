@@ -33,7 +33,6 @@ jest.mock("@features/organizations/organizations-logger", () => ({
 }));
 
 import {
-  findDefaultOrganizationByUserId,
   findFirstAccessibleOrganizationByIdAndUserId,
   findFirstAccessibleOrganizationByKeyAndUserId,
   findManyAccessibleOrganizationsByUserId,
@@ -59,7 +58,6 @@ describe("organization repository cache tags", () => {
         slug: "acme",
         logo: null,
         metadata: null,
-        isDefault: true,
         createdAt: new Date("2026-04-20T10:00:00.000Z"),
         updatedAt: new Date("2026-04-20T10:00:00.000Z"),
       },
@@ -69,7 +67,6 @@ describe("organization repository cache tags", () => {
         slug: "beta",
         logo: null,
         metadata: null,
-        isDefault: false,
         createdAt: new Date("2026-04-20T10:00:00.000Z"),
         updatedAt: new Date("2026-04-20T10:00:00.000Z"),
       },
@@ -83,6 +80,12 @@ describe("organization repository cache tags", () => {
       CACHE_OrganizationByIdTag("org_1"),
       CACHE_OrganizationByIdTag("org_2")
     );
+    expect(findManyMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        orderBy: [{ name: "asc" }, { id: "asc" }],
+      })
+    );
+    expect(findManyMock.mock.calls[0]?.[0]?.select).not.toHaveProperty("is" + "Default");
   });
 
   it("tags organization lookups by id with both the user scope and organization scope", async () => {
@@ -107,11 +110,20 @@ describe("organization repository cache tags", () => {
     );
   });
 
-  it("keeps user scoped invalidation for default-organization lookups even when none exists", async () => {
+  it("queries the first accessible organization with deterministic ordering", async () => {
     findFirstMock.mockResolvedValue(null);
 
-    await findDefaultOrganizationByUserId("user_1");
+    const { findFirstAccessibleOrganizationForUser } =
+      await import("@features/organizations/organizations-repository");
 
+    await findFirstAccessibleOrganizationForUser("user_1");
+
+    expect(findFirstMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        orderBy: [{ name: "asc" }, { id: "asc" }],
+      })
+    );
+    expect(findFirstMock.mock.calls[0]?.[0]?.select).not.toHaveProperty("is" + "Default");
     expect(cacheTagMock).toHaveBeenCalledWith(CACHE_OrganizationsByUserIdTag("user_1"));
   });
 });

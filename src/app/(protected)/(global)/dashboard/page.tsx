@@ -3,15 +3,11 @@ import { redirect, unauthorized } from "next/navigation";
 import { buildPageMetadata } from "@lib/metadata";
 import dashboardRoutes from "@features/dashboard/dashboard-routes";
 import { loadCurrentSession, loadCurrentUserId } from "@features/accounts/accounts-actions";
-import {
-  findDefaultOrganizationByUserId,
-  findFirstAccessibleOrganizationForUser,
-  findManyAccessibleOrganizationsByUserId,
-} from "@features/organizations/organizations-repository";
+import { findManyAccessibleOrganizationsByUserId } from "@features/organizations/organizations-repository";
 import {
   getActiveOrganizationId,
   getOrganizationRouteKey,
-  resolveDefaultOrganizationId,
+  resolveDashboardOrganizationId,
 } from "@features/organizations/organizations-context";
 import routes from "@features/routes";
 import accountsRoutes from "@features/accounts/accounts-routes";
@@ -26,19 +22,15 @@ export default async function GlobalDashboardPage() {
     unauthorized();
   }
 
-  const [session, accessibleOrganizations, defaultOrganization, fallbackOrganization] =
-    await Promise.all([
-      loadCurrentSession(),
-      findManyAccessibleOrganizationsByUserId(userId),
-      findDefaultOrganizationByUserId(userId),
-      findFirstAccessibleOrganizationForUser(userId),
-    ]);
+  const [session, accessibleOrganizations] = await Promise.all([
+    loadCurrentSession(),
+    findManyAccessibleOrganizationsByUserId(userId),
+  ]);
 
-  const organizationId = resolveDefaultOrganizationId({
+  const organizationId = resolveDashboardOrganizationId({
     accessibleOrganizationIds: accessibleOrganizations.map((organization) => organization.id),
     activeOrganizationId: getActiveOrganizationId(session as OrganizationSessionContext),
-    defaultOrganizationId: defaultOrganization?.id,
-    fallbackOrganizationId: fallbackOrganization?.id,
+    fallbackOrganizationId: accessibleOrganizations[0]?.id,
   });
 
   if (!organizationId) {

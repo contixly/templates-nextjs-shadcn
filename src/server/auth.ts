@@ -71,15 +71,6 @@ export const auth = betterAuth({
             activeOrganizationId: "activeOrganizationId",
           },
         },
-        organization: {
-          additionalFields: {
-            isDefault: {
-              type: "boolean",
-              required: false,
-              defaultValue: false,
-            },
-          },
-        },
       },
     }),
     genericOAuth({

@@ -97,15 +97,6 @@ export const WorkspaceDeleteDialog = ({
     >
       <form onSubmit={handleSubmit(submit)} className="space-y-4">
         <FieldGroup>
-          {workspace.isDefault ? (
-            <div className="border-destructive/50 bg-destructive/10 rounded-lg border p-4">
-              <p className="text-sm font-medium">{workspace.name}</p>
-              <p className="text-muted-foreground mt-2 text-sm">
-                {tWorkspaces("defaultWorkspaceNotice")}
-              </p>
-            </div>
-          ) : null}
-
           <Controller
             name="confirmationText"
             control={control}

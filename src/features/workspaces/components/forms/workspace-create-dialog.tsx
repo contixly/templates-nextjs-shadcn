@@ -5,7 +5,6 @@ import { toast } from "sonner";
 import React, { DispatchWithoutAction, useEffect, useState, useTransition } from "react";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import { Button } from "@components/ui/button";
-import { Checkbox } from "@components/ui/checkbox";
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@components/ui/field";
 import { Input } from "@components/ui/input";
 import {
@@ -59,7 +58,6 @@ export const WorkspaceCreateDialog = ({
     mode: "all",
     defaultValues: {
       name: "",
-      isDefault: false,
     },
   });
 
@@ -133,26 +131,6 @@ export const WorkspaceCreateDialog = ({
                   <FieldDescription className="text-xs">{tWorkspaces("nameHint")}</FieldDescription>
                   {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                 </Field>
-              )}
-            />
-            <Controller
-              name="isDefault"
-              control={control}
-              render={({ field, fieldState }) => (
-                <FieldGroup data-slot="checkbox-group">
-                  <Field orientation="horizontal" data-invalid={fieldState.invalid}>
-                    <Checkbox
-                      id="is-default"
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                      disabled={isPending}
-                    />
-                    <FieldLabel htmlFor="is-default" className="cursor-pointer text-sm font-normal">
-                      {tWorkspaces("defaultLabel")}
-                    </FieldLabel>
-                  </Field>
-                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                </FieldGroup>
               )}
             />
           </FieldGroup>

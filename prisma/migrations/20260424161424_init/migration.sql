@@ -1,6 +1,3 @@
--- CreateSchema
-CREATE SCHEMA IF NOT EXISTS "public";
-
 -- CreateTable
 CREATE TABLE "users" (
     "id" TEXT NOT NULL,
@@ -67,7 +64,6 @@ CREATE TABLE "organizations" (
     "slug" TEXT NOT NULL,
     "logo" TEXT,
     "metadata" TEXT,
-    "isDefault" BOOLEAN NOT NULL DEFAULT false,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3),
 
@@ -127,6 +123,9 @@ CREATE INDEX "members_organizationId_idx" ON "members"("organizationId");
 CREATE INDEX "members_userId_idx" ON "members"("userId");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "members_organizationId_userId_key" ON "members"("organizationId", "userId");
+
+-- CreateIndex
 CREATE INDEX "invitations_organizationId_idx" ON "invitations"("organizationId");
 
 -- CreateIndex
@@ -152,4 +151,3 @@ ALTER TABLE "invitations" ADD CONSTRAINT "invitations_organizationId_fkey" FOREI
 
 -- AddForeignKey
 ALTER TABLE "invitations" ADD CONSTRAINT "invitations_inviterId_fkey" FOREIGN KEY ("inviterId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-

@@ -10,13 +10,13 @@ jest.mock("next-intl", () => ({
         pages: {
           settings_workspace: {
             title: "Workspace Settings",
-            description: "Update the workspace name, slug, and default workspace preference.",
+            description: "Update the workspace name and slug.",
           },
         },
         ui: {
           settingsPage: {
             identityTitle: "Workspace identity",
-            identityDescription: "Update the workspace name, slug, and default preference.",
+            identityDescription: "Update the workspace name and slug.",
             readOnlyNotice:
               "You can review these workspace details, but only admins and owners can update them.",
             dangerZoneTitle: "Delete Workspace",
@@ -41,16 +41,8 @@ jest.mock("next-intl", () => ({
 }));
 
 jest.mock("@features/workspaces/components/forms/workspace-settings-form", () => ({
-  WorkspaceSettingsForm: ({
-    canUpdateWorkspace,
-    canChangeDefault,
-  }: {
-    canUpdateWorkspace?: boolean;
-    canChangeDefault?: boolean;
-  }) => (
-    <div data-testid="workspace-settings-form">
-      {String(canUpdateWorkspace)}:{String(canChangeDefault)}
-    </div>
+  WorkspaceSettingsForm: ({ canUpdateWorkspace }: { canUpdateWorkspace?: boolean }) => (
+    <div data-testid="workspace-settings-form">{String(canUpdateWorkspace)}</div>
   ),
 }));
 
@@ -67,16 +59,11 @@ describe("WorkspaceSettingsPage", () => {
     metadata: null,
     createdAt: new Date("2026-04-20T10:00:00.000Z"),
     updatedAt: new Date("2026-04-20T10:00:00.000Z"),
-    isDefault: false,
   };
 
   it("renders a read-only notice for members without update permission", () => {
     const { container } = render(
-      <WorkspaceSettingsPage
-        workspace={workspace}
-        canUpdateWorkspace={false}
-        canChangeDefault={false}
-      />
+      <WorkspaceSettingsPage workspace={workspace} canUpdateWorkspace={false} />
     );
 
     expect(container.firstElementChild).toHaveAttribute("data-slot", "settings-page-intro");
@@ -91,18 +78,13 @@ describe("WorkspaceSettingsPage", () => {
         "You can review these workspace details, but only admins and owners can update them."
       )
     ).toBeInTheDocument();
-    expect(screen.getByTestId("workspace-settings-form")).toHaveTextContent("false:false");
+    expect(screen.getByTestId("workspace-settings-form")).toHaveTextContent("false");
     expect(screen.queryByTestId("workspace-delete-dialog")).not.toBeInTheDocument();
   });
 
   it("renders the delete controls only when delete access is available", () => {
     const { container } = render(
-      <WorkspaceSettingsPage
-        workspace={workspace}
-        canUpdateWorkspace
-        canChangeDefault
-        canDeleteWorkspace
-      />
+      <WorkspaceSettingsPage workspace={workspace} canUpdateWorkspace canDeleteWorkspace />
     );
 
     expect(container.querySelectorAll('[data-slot="settings-section"]')).toHaveLength(2);

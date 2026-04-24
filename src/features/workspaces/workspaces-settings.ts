@@ -20,7 +20,6 @@ import type { WorkspaceWithCounts } from "@features/workspaces/workspaces-types"
 export interface WorkspaceSettingsPageContext {
   workspace: WorkspaceWithCounts;
   canUpdateWorkspace: boolean;
-  canChangeDefault: boolean;
   canDeleteWorkspace: boolean;
   canCreateInvitations: boolean;
   currentMemberRole: string | null;
@@ -72,9 +71,7 @@ const loadWorkspaceSettingsPageContextForUser = async (
   return {
     workspace: workspace as WorkspaceWithCounts,
     canUpdateWorkspace,
-    canChangeDefault: canUpdateWorkspace && accessibleOrganizationsCount > 1,
-    canDeleteWorkspace:
-      canDeleteWorkspace && accessibleOrganizationsCount > 1 && !workspace.isDefault,
+    canDeleteWorkspace: canDeleteWorkspace && accessibleOrganizationsCount > 1,
     canCreateInvitations,
     currentMemberRole,
     assignableWorkspaceRoles: getAssignableWorkspaceRoles(currentMemberRole),

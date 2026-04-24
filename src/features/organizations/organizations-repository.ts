@@ -24,13 +24,11 @@ const workspaceSelect = {
   slug: true,
   logo: true,
   metadata: true,
-  isDefault: true,
   createdAt: true,
   updatedAt: true,
 } satisfies Prisma.OrganizationSelect;
 
 const workspaceOrderBy = [
-  { isDefault: "desc" },
   { name: "asc" },
   { id: "asc" },
 ] satisfies Prisma.OrganizationOrderByWithRelationInput[];
@@ -173,28 +171,6 @@ export const findFirstAccessibleOrganizationByKeyAndUserId = async (
   tagAccessibleOrganizationsCache(userId, [organization?.id]);
 
   return organization;
-};
-
-export const findDefaultOrganizationByUserId = async (userId: string) => {
-  "use cache";
-  cacheLife("hours");
-
-  const organization = await prisma.organization.findFirst({
-    where: {
-      isDefault: true,
-      members: {
-        some: {
-          userId,
-        },
-      },
-    },
-    orderBy: workspaceOrderBy,
-    select: workspaceSelect,
-  });
-
-  tagAccessibleOrganizationsCache(userId, [organization?.id]);
-
-  return organization ? toWorkspaceDto(organization) : null;
 };
 
 export const findFirstAccessibleOrganizationForUser = async (userId: string) => {

@@ -58,7 +58,6 @@ describe("loadWorkspaceSettingsUsersPageContext", () => {
       metadata: null,
       createdAt: new Date("2026-04-20T10:00:00.000Z"),
       updatedAt: new Date("2026-04-20T10:00:00.000Z"),
-      isDefault: false,
     });
     mockHasWorkspacePermission.mockResolvedValue(true);
     mockFindOrganizationMemberByOrganizationIdAndUserId.mockResolvedValue({
@@ -83,7 +82,6 @@ describe("loadWorkspaceSettingsUsersPageContext", () => {
         slug: "acme",
       }),
       canUpdateWorkspace: true,
-      canChangeDefault: true,
       canDeleteWorkspace: true,
       canCreateInvitations: true,
       canonicalOrganizationKey: "acme",
@@ -118,7 +116,6 @@ describe("loadWorkspaceSettingsUsersPageContext", () => {
       metadata: null,
       createdAt: new Date("2026-04-20T10:00:00.000Z"),
       updatedAt: new Date("2026-04-20T10:00:00.000Z"),
-      isDefault: false,
     });
     mockHasWorkspacePermission.mockResolvedValue(false);
     mockFindOrganizationMemberByOrganizationIdAndUserId.mockResolvedValue({
@@ -133,7 +130,6 @@ describe("loadWorkspaceSettingsUsersPageContext", () => {
         slug: "acme",
       }),
       canUpdateWorkspace: false,
-      canChangeDefault: false,
       canDeleteWorkspace: false,
       canCreateInvitations: false,
       canonicalOrganizationKey: "acme",

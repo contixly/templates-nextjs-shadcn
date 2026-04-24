@@ -26,12 +26,12 @@
         "routing": {
           "badge": "Included",
           "title": "Organization-scoped routing",
-          "description": "Global dashboard entry resolves active, default, or fallback organization context and redirects into slug-preferred workspace URLs."
+          "description": "Global dashboard entry resolves active or deterministic fallback organization context and redirects into slug-preferred workspace URLs."
         },
         "actions": {
           "badge": "Included",
           "title": "Protected workspace actions",
-          "description": "Create, update, delete, switch, and default workspace mutations use protected server actions with validation and cache invalidation."
+          "description": "Create, update, delete, and switch workspace mutations use protected server actions with validation and cache invalidation."
         },
         "database": {
           "badge": "Included",
@@ -77,8 +77,8 @@
       "stepsTitle": "Get started in 3 steps",
       "steps": {
         "explore": {
-          "title": "Explore the default workspace",
-          "description": "A default workspace is ready. Find it in the sidebar."
+          "title": "Open your workspace",
+          "description": "Use the workspace switcher in the sidebar to find your current workspace."
         },
         "customize": {
           "title": "Customize the codebase",

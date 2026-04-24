@@ -2,7 +2,6 @@
 
 import { Suspense, use, useState, useTransition } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Badge } from "@components/ui/badge";
 import {
   SidebarMenu,
   SidebarMenuButton,
@@ -57,10 +56,7 @@ const WorkspaceSidebarSwitcherComponent = ({
   const { data } = use(loadUserWorkspacesPromise);
   const workspaces = data ?? [];
   const currentWorkspace =
-    findOrganizationByRouteKey(workspaces, organizationKey) ??
-    workspaces.find((workspace) => workspace.isDefault) ??
-    workspaces[0] ??
-    null;
+    findOrganizationByRouteKey(workspaces, organizationKey) ?? workspaces[0] ?? null;
 
   const navigateTo = (href: string) => {
     setOpen(false);
@@ -140,9 +136,7 @@ const WorkspaceSidebarSwitcherComponent = ({
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-medium">{currentWorkspace.name}</span>
                 <span className="text-muted-foreground truncate text-xs">
-                  {currentWorkspace.isDefault
-                    ? t("defaultBadge")
-                    : (currentWorkspace.slug ?? t("fallback"))}
+                  {currentWorkspace.slug ?? t("fallback")}
                 </span>
               </div>
               <IconSelector className="ml-auto size-4" />
@@ -173,11 +167,6 @@ const WorkspaceSidebarSwitcherComponent = ({
                     {workspace.slug ?? t("fallback")}
                   </span>
                 </div>
-                {workspace.isDefault ? (
-                  <Badge variant="secondary" className="text-[10px]">
-                    {t("defaultBadge")}
-                  </Badge>
-                ) : null}
                 <IconCheck
                   className={cn(
                     "size-4",

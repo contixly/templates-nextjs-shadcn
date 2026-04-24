@@ -15,7 +15,6 @@ export interface OrganizationRouteIdentity {
 export interface OrganizationWorkspaceDto extends OrganizationRouteIdentity {
   id: string;
   name: string;
-  isDefault: boolean;
   createdAt: Date;
   updatedAt: Date;
   slug?: string | null;
@@ -59,14 +58,11 @@ export interface BetterAuthOrganizationRecord {
   metadata?: string | Record<string, unknown> | null;
 }
 
-export interface OrganizationWorkspaceRecord extends BetterAuthOrganizationRecord {
-  isDefault: boolean;
-}
+export type OrganizationWorkspaceRecord = BetterAuthOrganizationRecord;
 
-export interface ResolveDefaultOrganizationIdOptions {
+export interface ResolveDashboardOrganizationIdOptions {
   accessibleOrganizationIds: string[];
   activeOrganizationId?: string | null;
-  defaultOrganizationId?: string | null;
   fallbackOrganizationId?: string | null;
 }
 

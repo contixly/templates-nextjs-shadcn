@@ -30,7 +30,6 @@ const messages = {
         nameLabel: "Workspace name",
         namePlaceholder: "Acme",
         nameHint: "Maximum 50 characters",
-        defaultLabel: "Set as default",
         success: "Workspace created",
         errorTitle: "Create workspace",
         unknownError: "Unknown error",

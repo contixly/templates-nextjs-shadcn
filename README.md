@@ -18,7 +18,7 @@ auth, and domain setup.
 
 - Authentication with protected and public routes
 - Better Auth organizations used as the backing model for workspaces
-- Organization-scoped workspace routes with slug-preferred URLs and active/default workspace resolution
+- Organization-scoped workspace routes with slug-preferred URLs and active/fallback workspace resolution
 - Workspace management, settings, member directory, and invitation surfaces
 - Role-aware owner/admin/member controls for adding members and updating member roles
 - Invitation lifecycle: create, list, copy link, accept, reject, expire, and personal pending-invitation entry points
@@ -41,12 +41,11 @@ auth, and domain setup.
 
 Workspaces are the product-facing concept, while Better Auth organizations provide the underlying membership and
 permission model. Routes under `/:organizationKey/...` resolve either an organization slug or id, and the global
-`/dashboard` route redirects to the best available workspace context: active organization, default organization, or a
-deterministic fallback.
+`/dashboard` route redirects to the best available workspace context: active organization or a deterministic fallback.
 
 Workspace settings include general workspace details, users, invitations, and placeholder sections for teams and roles.
-Authorized users can create workspaces, update workspace details, switch the active workspace, mark a default workspace,
-add existing users by id, create shareable invitations, and update assignable member roles. Regular members retain
+Authorized users can create workspaces, update workspace details, switch the active workspace, add existing users by id,
+create shareable invitations, and update assignable member roles. Regular members retain
 read-only access to the directory and settings context where they do not have management permissions.
 
 Invitations are stored in PostgreSQL, tied to organizations, and exposed through both admin and current-user flows.

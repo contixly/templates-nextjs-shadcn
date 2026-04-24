@@ -7,7 +7,6 @@ jest.mock("next-intl", () => ({
   useTranslations: (namespace: string) => (key: string) => {
     const messages: Record<string, Record<string, string>> = {
       "workspaces.ui.card": {
-        default: "Default workspace",
         custom: "Custom workspace",
         settings: "Settings",
         slugLabel: "Slug",
@@ -78,12 +77,12 @@ describe("WorkspaceCard", () => {
           metadata: null,
           createdAt: new Date("2026-04-20T10:00:00.000Z"),
           updatedAt: new Date("2026-04-20T10:00:00.000Z"),
-          isDefault: false,
         }}
       />
     );
 
     expect(screen.getByText("Client Workspace")).toBeInTheDocument();
+    expect(screen.queryByText("Custom workspace")).not.toBeInTheDocument();
     expect(screen.getByText("Slug")).toBeInTheDocument();
     expect(screen.getByText("client-workspace")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Settings" })).toHaveAttribute(
@@ -108,7 +107,6 @@ describe("WorkspaceCard", () => {
           metadata: null,
           createdAt: new Date("2026-04-20T10:00:00.000Z"),
           updatedAt: new Date("2026-04-20T10:00:00.000Z"),
-          isDefault: false,
         }}
         canDelete
       />

@@ -7,7 +7,6 @@ import { createProtectedActionWithInput } from "@lib/actions";
 import { forbidden } from "next/navigation";
 import { auth } from "@server/auth";
 import { headers } from "next/headers";
-import prisma from "@server/prisma";
 import { workspacesLogger } from "@features/workspaces/workspaces-logger";
 import { WORKSPACE_ERROR_KEYS } from "@features/workspaces/workspaces-errors";
 import {
@@ -24,10 +23,9 @@ export const updateWorkspace = createProtectedActionWithInput<
 >(
   updateWorkspaceSchema,
   async (input: UpdateWorkspaceInput, { userId, logger }) => {
-    const { id, name, slug, isDefault } = input;
+    const { id, name, slug } = input;
     const existingWorkspace = await findFirstAccessibleOrganizationByIdAndUserId(id, userId, {
       name: true,
-      isDefault: true,
       slug: true,
     });
 
@@ -82,25 +80,6 @@ export const updateWorkspace = createProtectedActionWithInput<
       }
     }
 
-    if (isDefault === true) {
-      await prisma.organization.updateMany({
-        where: {
-          id: {
-            not: id,
-          },
-          isDefault: true,
-          members: {
-            some: {
-              userId,
-            },
-          },
-        },
-        data: {
-          isDefault: false,
-        },
-      });
-    }
-
     await auth.api.updateOrganization({
       body: {
         organizationId: id,
@@ -117,7 +96,6 @@ export const updateWorkspace = createProtectedActionWithInput<
                 excludeOrganizationId: id,
               })),
           }),
-          ...(isDefault !== undefined ? { isDefault } : {}),
         },
       },
       headers: await headers(),

@@ -26,12 +26,12 @@
         "routing": {
           "badge": "Включено",
           "title": "Маршруты в контексте организации",
-          "description": "Глобальный dashboard выбирает active, default или fallback organization context и ведет в workspace URL со slug."
+          "description": "Глобальный dashboard выбирает active или deterministic fallback organization context и ведет в workspace URL со slug."
         },
         "actions": {
           "badge": "Включено",
           "title": "Защищенные workspace actions",
-          "description": "Создание, обновление, удаление, переключение и выбор default workspace используют protected server actions, валидацию и инвалидирование кэша."
+          "description": "Создание, обновление, удаление и переключение workspace используют protected server actions, валидацию и инвалидирование кэша."
         },
         "database": {
           "badge": "Включено",
@@ -77,8 +77,8 @@
       "stepsTitle": "Начните за 3 шага",
       "steps": {
         "explore": {
-          "title": "Изучите рабочее пространство по умолчанию",
-          "description": "Рабочее пространство уже готово. Найдите его в боковой панели."
+          "title": "Откройте рабочее пространство",
+          "description": "Используйте переключатель в боковой панели, чтобы найти текущее рабочее пространство."
         },
         "customize": {
           "title": "Настройте кодовую базу",

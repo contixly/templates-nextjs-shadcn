@@ -12,14 +12,12 @@ import type { WorkspaceWithCounts } from "@features/workspaces/workspaces-types"
 interface WorkspaceSettingsPageProps {
   workspace: WorkspaceWithCounts;
   canUpdateWorkspace?: boolean;
-  canChangeDefault?: boolean;
   canDeleteWorkspace?: boolean;
 }
 
 export const WorkspaceSettingsPage = ({
   workspace,
   canUpdateWorkspace = true,
-  canChangeDefault,
   canDeleteWorkspace = false,
 }: WorkspaceSettingsPageProps) => {
   const tPage = useTranslations("workspaces.pages.settings_workspace");
@@ -35,11 +33,7 @@ export const WorkspaceSettingsPage = ({
             <p className="text-muted-foreground text-sm">{t("readOnlyNotice")}</p>
           ) : null}
 
-          <WorkspaceSettingsForm
-            workspace={workspace}
-            canUpdateWorkspace={canUpdateWorkspace}
-            canChangeDefault={canChangeDefault}
-          />
+          <WorkspaceSettingsForm workspace={workspace} canUpdateWorkspace={canUpdateWorkspace} />
         </div>
       </SettingsSection>
 

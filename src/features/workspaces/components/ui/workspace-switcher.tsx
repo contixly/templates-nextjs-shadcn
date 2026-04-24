@@ -3,7 +3,6 @@
 import * as React from "react";
 import { Suspense, use, useState, useTransition } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Badge } from "@components/ui/badge";
 import { BreadcrumbEllipsis, BreadcrumbItem, BreadcrumbSeparator } from "@components/ui/breadcrumb";
 import {
   DropdownMenu,
@@ -35,7 +34,7 @@ interface WorkspaceSwitcherProps {
  *
  * Features:
  * - Displays current active workspace in trigger
- * - Lists all user's workspaces with default badge
+ * - Lists all user's workspaces
  * - Handles workspace selection and context switching
  * - Shows loading state during switch
  * - Links to workspaces management page
@@ -104,11 +103,6 @@ const WorkspaceSwitcherComponent = ({ loadUserWorkspacesPromise }: WorkspaceSwit
                   )}
                 />
                 <span className="flex-1 truncate">{workspace.name}</span>
-                {workspace.isDefault && (
-                  <Badge variant="secondary" className="ml-2 text-xs">
-                    {t("defaultBadge")}
-                  </Badge>
-                )}
               </DropdownMenuItem>
             ))}
           </div>

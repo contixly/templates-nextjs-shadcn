@@ -175,7 +175,6 @@ describe("workspace invitation loaders", () => {
     mockLoadWorkspaceSettingsPageContext.mockResolvedValue({
       workspace: { id: "org-1", slug: "acme" },
       canUpdateWorkspace: true,
-      canChangeDefault: true,
       canDeleteWorkspace: false,
       canCreateInvitations: true,
       canonicalOrganizationKey: "acme",
@@ -216,7 +215,6 @@ describe("workspace invitation loaders", () => {
     mockLoadWorkspaceSettingsPageContext.mockResolvedValue({
       workspace: { id: "org-1", slug: "acme" },
       canUpdateWorkspace: false,
-      canChangeDefault: false,
       canDeleteWorkspace: false,
       canCreateInvitations: false,
       canonicalOrganizationKey: "acme",

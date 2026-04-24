@@ -13,7 +13,6 @@ jest.mock("next-intl", () => ({
     const messages: Record<string, Record<string, string>> = {
       "workspaces.ui.switcher": {
         fallback: "Workspaces",
-        defaultBadge: "Default",
         myWorkspaces: "My Workspaces",
         manageWorkspaces: "Manage Workspaces",
         switchError: "Unable to switch workspaces right now.",
@@ -89,7 +88,7 @@ describe("WorkspaceSidebarSwitcher", () => {
     (setActiveOrganization as jest.Mock).mockReset();
   });
 
-  it("uses the workspace from the current URL context instead of the default workspace", async () => {
+  it("uses the workspace from the current URL context instead of the first accessible workspace", async () => {
     mockUseParams.mockReturnValue({ organizationKey: "client-workspace" });
 
     await act(async () => {
@@ -106,7 +105,6 @@ describe("WorkspaceSidebarSwitcher", () => {
                 metadata: null,
                 createdAt: new Date("2026-04-20T10:00:00.000Z"),
                 updatedAt: new Date("2026-04-20T10:00:00.000Z"),
-                isDefault: true,
               },
               {
                 id: "workspace-2",
@@ -116,7 +114,6 @@ describe("WorkspaceSidebarSwitcher", () => {
                 metadata: null,
                 createdAt: new Date("2026-04-20T10:00:00.000Z"),
                 updatedAt: new Date("2026-04-20T10:00:00.000Z"),
-                isDefault: false,
               },
             ],
           })}
@@ -151,7 +148,6 @@ describe("WorkspaceSidebarSwitcher", () => {
                 metadata: null,
                 createdAt: new Date("2026-04-20T10:00:00.000Z"),
                 updatedAt: new Date("2026-04-20T10:00:00.000Z"),
-                isDefault: true,
               },
               {
                 id: "workspace-2",
@@ -161,7 +157,6 @@ describe("WorkspaceSidebarSwitcher", () => {
                 metadata: null,
                 createdAt: new Date("2026-04-20T10:00:00.000Z"),
                 updatedAt: new Date("2026-04-20T10:00:00.000Z"),
-                isDefault: false,
               },
             ],
           })}

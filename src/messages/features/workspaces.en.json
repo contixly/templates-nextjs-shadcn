@@ -26,10 +26,10 @@
     },
     "settings_workspace": {
       "title": "Workspace Settings",
-      "description": "Update the workspace name, slug, and default workspace preference.",
+      "description": "Update the workspace name and slug.",
       "openGraph": {
         "title": "Workspace Settings",
-        "description": "Update the workspace name, slug, and default workspace preference."
+        "description": "Update the workspace name and slug."
       }
     },
     "settings_invitations": {
@@ -77,7 +77,6 @@
       "confirmationRequired": "Confirmation text is required",
       "confirmationMismatch": "Confirmation text does not match workspace name",
       "atLeastOneWorkspace": "You must have at least one workspace",
-      "defaultWorkspaceDeletionForbidden": "Cannot delete default workspace. Set another workspace as default first.",
       "deletePermissionDenied": "You do not have permission to delete this workspace",
       "invitationEmailRequired": "Invitation email is required",
       "invitationEmailInvalid": "Invitation email must be valid",
@@ -109,7 +108,6 @@
       "nameLabel": "Workspace Name",
       "namePlaceholder": "e.g., Work, Personal, Projects",
       "nameHint": "Maximum 50 characters",
-      "defaultLabel": "Set as default workspace",
       "success": "Workspace created successfully",
       "errorTitle": "Create New Workspace",
       "unknownError": "Unknown error",
@@ -125,14 +123,13 @@
       "slugLabel": "Workspace Slug",
       "slugPlaceholder": "e.g., work-personal-projects",
       "slugHint": "Lowercase letters, numbers, and hyphens only",
-      "defaultLabel": "Set as default workspace",
       "success": "Workspace updated successfully",
       "errorTitle": "Update Workspace",
       "unknownError": "Unknown error"
     },
     "settingsPage": {
       "identityTitle": "Workspace identity",
-      "identityDescription": "Update the workspace name, slug, and default workspace preference.",
+      "identityDescription": "Update the workspace name and slug.",
       "readOnlyNotice": "You can review these workspace details, but only admins and owners can update them.",
       "dangerZoneTitle": "Delete Workspace",
       "dangerZoneDescription": "Delete this workspace permanently when the existing product rules allow it."
@@ -144,7 +141,6 @@
       "slugLabel": "Workspace Slug",
       "slugPlaceholder": "e.g., work-personal-projects",
       "slugHint": "Lowercase letters, numbers, and hyphens only",
-      "defaultLabel": "Set as default workspace",
       "success": "Workspace updated successfully",
       "errorTitle": "Update Workspace",
       "unknownError": "Unknown error"
@@ -346,7 +342,6 @@
     "deleteDialog": {
       "title": "Delete Workspace?",
       "description": "This action cannot be undone. The workspace record will be permanently removed.",
-      "defaultWorkspaceNotice": "Default workspaces cannot be deleted. Set another workspace as default first.",
       "confirmationLabel": "To confirm, please type “{name}” below in the box below",
       "confirmationPlaceholder": "Type name of workspace to confirm deletion",
       "success": "Workspace deleted successfully",
@@ -373,8 +368,6 @@
       }
     },
     "card": {
-      "default": "Default workspace",
-      "custom": "Custom workspace",
       "settings": "Settings",
       "slugLabel": "Slug",
       "summary": "Use this card to summarize what lives under this workspace once you add your own entities.",
@@ -383,7 +376,6 @@
     "switcher": {
       "fallback": "Workspaces",
       "myWorkspaces": "My Workspaces",
-      "defaultBadge": "Default",
       "switchError": "Unable to switch workspaces right now.",
       "manageWorkspaces": "Manage Workspaces"
     },

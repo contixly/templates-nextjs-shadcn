@@ -90,7 +90,6 @@ describe("workspace settings root route", () => {
     (loadWorkspaceSettingsPageContext as jest.Mock).mockResolvedValue({
       workspace: { id: "workspace-123", slug: "client-workspace" },
       canUpdateWorkspace: true,
-      canChangeDefault: true,
       canDeleteWorkspace: false,
       canCreateInvitations: true,
       canonicalOrganizationKey: "client-workspace",
@@ -122,7 +121,6 @@ describe("workspace settings section routes", () => {
     (loadWorkspaceSettingsUsersPageContext as jest.Mock).mockResolvedValue({
       workspace: { id: "workspace-123", slug: "client-workspace" },
       canUpdateWorkspace: true,
-      canChangeDefault: true,
       canDeleteWorkspace: false,
       canCreateInvitations: false,
       canonicalOrganizationKey: "client-workspace",
@@ -149,7 +147,6 @@ describe("workspace settings section routes", () => {
     (loadWorkspaceSettingsUsersPageContext as jest.Mock).mockResolvedValue({
       workspace: { id: "workspace-123", slug: "client-workspace" },
       canUpdateWorkspace: true,
-      canChangeDefault: true,
       canDeleteWorkspace: false,
       canCreateInvitations: false,
       canonicalOrganizationKey: "client-workspace",
@@ -185,7 +182,6 @@ describe("workspace settings section routes", () => {
     (loadWorkspaceInvitationsContext as jest.Mock).mockResolvedValue({
       workspace: { id: "workspace-123", slug: "client-workspace" },
       canUpdateWorkspace: true,
-      canChangeDefault: true,
       canDeleteWorkspace: false,
       canonicalOrganizationKey: "client-workspace",
       invitations: [
@@ -213,7 +209,6 @@ describe("workspace settings section routes", () => {
     (loadWorkspaceSettingsPageContext as jest.Mock).mockResolvedValue({
       workspace: { id: "workspace-123", slug: "client-workspace" },
       canUpdateWorkspace: true,
-      canChangeDefault: true,
       canDeleteWorkspace: false,
       canCreateInvitations: true,
       canonicalOrganizationKey: "client-workspace",
@@ -234,7 +229,6 @@ describe("workspace settings section routes", () => {
     (loadWorkspaceSettingsPageContext as jest.Mock).mockResolvedValue({
       workspace: { id: "workspace-123", slug: "client-workspace" },
       canUpdateWorkspace: true,
-      canChangeDefault: true,
       canDeleteWorkspace: false,
       canCreateInvitations: true,
       canonicalOrganizationKey: "client-workspace",
@@ -256,7 +250,6 @@ describe("workspace settings section routes", () => {
     (loadWorkspaceSettingsPageContext as jest.Mock).mockResolvedValue({
       workspace: { id: "workspace-123", slug: "client-workspace" },
       canUpdateWorkspace: true,
-      canChangeDefault: true,
       canDeleteWorkspace: false,
       canCreateInvitations: true,
       canonicalOrganizationKey: "client-workspace",

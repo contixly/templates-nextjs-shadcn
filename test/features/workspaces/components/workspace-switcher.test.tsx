@@ -11,7 +11,6 @@ jest.mock("next-intl", () => ({
     const messages: Record<string, Record<string, string>> = {
       "workspaces.ui.switcher": {
         fallback: "Workspaces",
-        defaultBadge: "Default",
         myWorkspaces: "My Workspaces",
         manageWorkspaces: "Manage Workspaces",
         switchError: "Unable to switch workspaces right now.",
@@ -82,7 +81,6 @@ describe("WorkspaceSwitcher", () => {
                 metadata: null,
                 createdAt: new Date("2026-04-20T10:00:00.000Z"),
                 updatedAt: new Date("2026-04-20T10:00:00.000Z"),
-                isDefault: true,
               },
               {
                 id: "workspace-2",
@@ -92,7 +90,6 @@ describe("WorkspaceSwitcher", () => {
                 metadata: null,
                 createdAt: new Date("2026-04-20T10:00:00.000Z"),
                 updatedAt: new Date("2026-04-20T10:00:00.000Z"),
-                isDefault: false,
               },
             ],
           })}
@@ -121,7 +118,6 @@ describe("WorkspaceSwitcher", () => {
                 metadata: null,
                 createdAt: new Date("2026-04-20T10:00:00.000Z"),
                 updatedAt: new Date("2026-04-20T10:00:00.000Z"),
-                isDefault: true,
               },
               {
                 id: "workspace-2",
@@ -131,7 +127,6 @@ describe("WorkspaceSwitcher", () => {
                 metadata: null,
                 createdAt: new Date("2026-04-20T10:00:00.000Z"),
                 updatedAt: new Date("2026-04-20T10:00:00.000Z"),
-                isDefault: false,
               },
             ],
           })}

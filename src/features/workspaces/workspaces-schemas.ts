@@ -67,20 +67,17 @@ const slug = createWorkspaceSlugSchema();
 
 export const createWorkspaceSchema = z.object({
   name,
-  isDefault: z.boolean().default(false),
 });
 
 export const createWorkspaceFormSchema = (tAny: AnyTranslationsFn) =>
   z.object({
     name: createWorkspaceNameSchema(undefined, tAny),
-    isDefault: z.boolean().default(false),
   });
 
 export const updateWorkspaceSchema = z.object({
   id: organizationIdSchema,
   name: name.optional(),
   slug: slug.optional(),
-  isDefault: z.boolean().optional(),
 });
 
 export const createUpdateWorkspaceFormSchema = (previousName: string, tAny: AnyTranslationsFn) =>
@@ -88,7 +85,6 @@ export const createUpdateWorkspaceFormSchema = (previousName: string, tAny: AnyT
     id: organizationIdSchema,
     name: createWorkspaceNameSchema(previousName, tAny).optional(),
     slug: createWorkspaceSlugSchema(tAny).optional(),
-    isDefault: z.boolean().optional(),
   });
 
 const createDeleteWorkspaceSchema = (tAny?: AnyTranslationsFn) =>

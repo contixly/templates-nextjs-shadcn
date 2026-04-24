@@ -38,7 +38,6 @@ export const toWorkspaceDto = (
   metadata: parseMetadata(organization.metadata),
   createdAt: organization.createdAt,
   updatedAt: organization.updatedAt ?? organization.createdAt,
-  isDefault: organization.isDefault,
 });
 
 const parseRoleLabels = (role: string) =>

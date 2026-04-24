@@ -24,7 +24,6 @@ export const deleteWorkspace = createProtectedActionWithInput<DeleteWorkspaceInp
     // 3. Verify Workspace ownership and get Workspace data
     const workspaceToDelete = await findFirstAccessibleOrganizationByIdAndUserId(id, userId, {
       name: true,
-      isDefault: true,
     });
 
     if (!workspaceToDelete) {
@@ -57,18 +56,7 @@ export const deleteWorkspace = createProtectedActionWithInput<DeleteWorkspaceInp
       };
     }
 
-    // 5. Check if default Workspace
-    if (workspaceToDelete.isDefault) {
-      return {
-        success: false,
-        error: {
-          message: WORKSPACE_ERROR_KEYS.defaultWorkspaceDeletionForbidden,
-          code: HttpCodes.BAD_REQUEST,
-        },
-      };
-    }
-
-    // 6. Validate confirmation text matched Workspace name (case-sensitive)
+    // 5. Validate confirmation text matched Workspace name (case-sensitive)
     if (confirmationText !== workspaceToDelete.name) {
       return {
         success: false,

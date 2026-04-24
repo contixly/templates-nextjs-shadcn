@@ -6,7 +6,6 @@ import { updateWorkspaceCache, WorkspaceWithCounts } from "../workspaces-types";
 import { createProtectedActionWithInput } from "@lib/actions";
 import { auth } from "@server/auth";
 import { headers } from "next/headers";
-import prisma from "@server/prisma";
 import { workspacesLogger } from "@features/workspaces/workspaces-logger";
 import { WORKSPACE_ERROR_KEYS } from "@features/workspaces/workspaces-errors";
 import {
@@ -21,7 +20,7 @@ export const createWorkspace = createProtectedActionWithInput<
 >(
   createWorkspaceSchema,
   async (input, { userId, logger }) => {
-    const { name, isDefault } = input;
+    const { name } = input;
 
     const existingWorkspace = (await findManyAccessibleOrganizationsByUserId(userId)).find(
       (workspace) => workspace.name.trim().toLowerCase() === name.trim().toLowerCase()
@@ -35,33 +34,13 @@ export const createWorkspace = createProtectedActionWithInput<
     }
 
     const slug = await generateOrganizationSlug(name);
-    const organization = await auth.api.createOrganization({
+    const organization = (await auth.api.createOrganization({
       body: {
         name,
         slug,
-        isDefault: isDefault || false,
       },
       headers: await headers(),
-    });
-
-    if (isDefault) {
-      await prisma.organization.updateMany({
-        where: {
-          id: {
-            not: organization.id,
-          },
-          isDefault: true,
-          members: {
-            some: {
-              userId,
-            },
-          },
-        },
-        data: {
-          isDefault: false,
-        },
-      });
-    }
+    })) as { id: string };
 
     await auth.api.setActiveOrganization({
       body: {

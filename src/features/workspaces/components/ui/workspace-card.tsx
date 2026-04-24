@@ -1,15 +1,8 @@
-import { IconSettings, IconStarFilled } from "@tabler/icons-react";
+import { IconSettings } from "@tabler/icons-react";
 import NextLink from "next/link";
 import Link from "@components/ui/custom/animated-link";
 import { Button } from "@components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@components/ui/card";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@components/ui/card";
 import type { WorkspaceWithCounts } from "@features/workspaces/workspaces-types";
 import { Skeleton } from "@components/ui/skeleton";
 import { WorkspaceDeleteDialog } from "@features/workspaces/components/forms/workspace-delete-dialog";
@@ -31,11 +24,7 @@ export function WorkspaceCard({ workspace, canDelete }: WorkspaceCardProps) {
       <CardHeader>
         <div className="flex items-start justify-between">
           <div className="flex-1">
-            <CardTitle className="flex items-center gap-2">
-              {workspace.name}
-              {workspace.isDefault && <IconStarFilled className="size-4 text-yellow-500" />}
-            </CardTitle>
-            <CardDescription>{workspace.isDefault ? t("default") : t("custom")}</CardDescription>
+            <CardTitle>{workspace.name}</CardTitle>
           </div>
           <Button asChild variant="ghost" size="icon">
             <NextLink

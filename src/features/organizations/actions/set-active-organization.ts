@@ -17,7 +17,6 @@ export const setActiveOrganization = createProtectedActionWithInput<
 >(
   setActiveOrganizationSchema,
   async ({ organizationId }, { logger }) => {
-    // @ts-expect-error no types for this
     await auth.api.setActiveOrganization({
       body: {
         organizationId,

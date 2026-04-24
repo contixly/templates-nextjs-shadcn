@@ -61,11 +61,7 @@ const UserWorkspacesComponent = ({ loadUserWorkspacesPromise }: UserWorkspacesPr
               <WorkspaceCard
                 key={workspace.id}
                 workspace={workspace}
-                canDelete={
-                  workspaceItems.length > 1 &&
-                  !workspace.isDefault &&
-                  Boolean(deletePermissions[index])
-                }
+                canDelete={workspaceItems.length > 1 && Boolean(deletePermissions[index])}
               />
             ))}
           </div>

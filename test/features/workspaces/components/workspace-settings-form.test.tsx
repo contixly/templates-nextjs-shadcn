@@ -32,7 +32,6 @@ jest.mock("next-intl", () => ({
             slugLabel: "Slug рабочего пространства",
             slugPlaceholder: "Например: rabota",
             slugHint: "Только строчные буквы, цифры и дефисы",
-            defaultLabel: "Сделать рабочим пространством по умолчанию",
             success: "Рабочее пространство успешно обновлено",
             errorTitle: "Обновление рабочего пространства",
             unknownError: "Неизвестная ошибка",
@@ -98,9 +97,7 @@ describe("WorkspaceSettingsForm", () => {
           metadata: null,
           createdAt: new Date("2026-04-20T10:00:00.000Z"),
           updatedAt: new Date("2026-04-20T10:00:00.000Z"),
-          isDefault: true,
         }}
-        canChangeDefault
       />
     );
 
@@ -119,7 +116,6 @@ describe("WorkspaceSettingsForm", () => {
         metadata: null,
         createdAt: new Date("2026-04-20T10:00:00.000Z"),
         updatedAt: new Date("2026-04-21T10:00:00.000Z"),
-        isDefault: false,
       },
     });
 
@@ -133,7 +129,6 @@ describe("WorkspaceSettingsForm", () => {
           metadata: null,
           createdAt: new Date("2026-04-20T10:00:00.000Z"),
           updatedAt: new Date("2026-04-20T10:00:00.000Z"),
-          isDefault: false,
         }}
       />
     );
@@ -169,7 +164,6 @@ describe("WorkspaceSettingsForm", () => {
           metadata: null,
           createdAt: new Date("2026-04-20T10:00:00.000Z"),
           updatedAt: new Date("2026-04-20T10:00:00.000Z"),
-          isDefault: false,
         }}
       />
     );
@@ -194,16 +188,13 @@ describe("WorkspaceSettingsForm", () => {
           metadata: null,
           createdAt: new Date("2026-04-20T10:00:00.000Z"),
           updatedAt: new Date("2026-04-20T10:00:00.000Z"),
-          isDefault: false,
         }}
         canUpdateWorkspace={false}
-        canChangeDefault={false}
       />
     );
 
     expect(screen.getByLabelText("Название рабочего пространства")).toBeDisabled();
     expect(screen.getByLabelText("Slug рабочего пространства")).toBeDisabled();
-    expect(screen.getByLabelText("Сделать рабочим пространством по умолчанию")).toBeDisabled();
     expect(screen.queryByRole("button", { name: "Сохранить" })).not.toBeInTheDocument();
   });
 });

@@ -12,14 +12,12 @@ interface WorkspaceSettingsDialogProps {
   workspace: WorkspaceWithCounts | null;
   onSuccess?: () => void;
   canUpdateWorkspace?: boolean;
-  canChangeDefault?: boolean;
 }
 
 export function WorkspaceSettingsDialog({
   workspace,
   onSuccess,
   canUpdateWorkspace,
-  canChangeDefault,
   ...props
 }: WorkspaceSettingsDialogProps & Partial<ModalProps>) {
   const tWorkspaces = useTranslations("workspaces.ui.settingsDialog");
@@ -44,7 +42,6 @@ export function WorkspaceSettingsDialog({
       <WorkspaceSettingsForm
         workspace={workspace}
         canUpdateWorkspace={canUpdateWorkspace}
-        canChangeDefault={canChangeDefault}
         autoFocusNameField
         showCancelButton
         onCancel={() => onOpenChange(false)}

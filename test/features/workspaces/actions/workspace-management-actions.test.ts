@@ -139,7 +139,6 @@ describe("workspace management actions", () => {
         metadata: null,
         createdAt: new Date("2026-04-20T10:00:00.000Z"),
         updatedAt: new Date("2026-04-20T10:00:00.000Z"),
-        isDefault: true,
       },
     ]);
 
@@ -170,12 +169,10 @@ describe("workspace management actions", () => {
       metadata: null,
       createdAt: new Date("2026-04-20T10:00:00.000Z"),
       updatedAt: new Date("2026-04-20T10:00:00.000Z"),
-      isDefault: false,
     });
 
     const result = await createWorkspace({
       name: "Acme Team",
-      isDefault: false,
     });
 
     expect(mockGenerateOrganizationSlug).toHaveBeenCalledWith("Acme Team");
@@ -183,7 +180,6 @@ describe("workspace management actions", () => {
       body: {
         name: "Acme Team",
         slug: "acme-team",
-        isDefault: false,
       },
       headers: expect.any(Headers),
     });
@@ -203,12 +199,11 @@ describe("workspace management actions", () => {
     });
   });
 
-  it("updates workspace settings when renaming and marking a workspace as default", async () => {
+  it("updates workspace settings without sending obsolete preference state", async () => {
     mockFindFirstAccessibleOrganizationByIdAndUserId.mockResolvedValue({
       id: ORGANIZATION_ID,
       name: "Old Name",
       slug: "old-name",
-      isDefault: false,
     });
     mockFindManyAccessibleOrganizationsByUserId.mockResolvedValue([
       {
@@ -222,7 +217,6 @@ describe("workspace management actions", () => {
         slug: "shared",
       },
     ]);
-    mockOrganizationUpdateMany.mockResolvedValue({ count: 1 });
     mockGenerateOrganizationSlug.mockResolvedValue("new-name");
     mockUpdateOrganization.mockResolvedValue(undefined);
     mockFindWorkspaceDtoByIdAndUserId.mockResolvedValue({
@@ -233,38 +227,19 @@ describe("workspace management actions", () => {
       metadata: null,
       createdAt: new Date("2026-04-20T10:00:00.000Z"),
       updatedAt: new Date("2026-04-20T10:00:00.000Z"),
-      isDefault: true,
     });
 
     const result = await updateWorkspace({
       id: ORGANIZATION_ID,
       name: "New Name",
-      isDefault: true,
     });
 
-    expect(mockOrganizationUpdateMany).toHaveBeenCalledWith({
-      where: {
-        id: {
-          not: ORGANIZATION_ID,
-        },
-        isDefault: true,
-        members: {
-          some: {
-            userId: "user-123",
-          },
-        },
-      },
-      data: {
-        isDefault: false,
-      },
-    });
     expect(mockUpdateOrganization).toHaveBeenCalledWith({
       body: {
         organizationId: ORGANIZATION_ID,
         data: {
           name: "New Name",
           slug: "new-name",
-          isDefault: true,
         },
       },
       headers: expect.any(Headers),
@@ -275,7 +250,6 @@ describe("workspace management actions", () => {
         id: ORGANIZATION_ID,
         name: "New Name",
         slug: "new-name",
-        isDefault: true,
       }),
     });
   });
@@ -285,7 +259,6 @@ describe("workspace management actions", () => {
       id: ORGANIZATION_ID,
       name: "Primary Workspace",
       slug: "primary",
-      isDefault: false,
     });
     mockFindManyAccessibleOrganizationsByUserId.mockResolvedValue([
       {
@@ -320,7 +293,6 @@ describe("workspace management actions", () => {
       id: ORGANIZATION_ID,
       name: "Primary Workspace",
       slug: "primary",
-      isDefault: false,
     });
     mockHasWorkspacePermission.mockResolvedValue(false);
 
@@ -343,7 +315,6 @@ describe("workspace management actions", () => {
     mockFindFirstAccessibleOrganizationByIdAndUserId.mockResolvedValue({
       id: ORGANIZATION_ID,
       name: "Primary Workspace",
-      isDefault: false,
     });
     mockHasWorkspacePermission.mockResolvedValue(false);
 
@@ -363,11 +334,33 @@ describe("workspace management actions", () => {
     expect(mockDeleteOrganization).not.toHaveBeenCalled();
   });
 
-  it("deletes a non-default workspace when the owner has permission and passes confirmation", async () => {
+  it("rejects workspace deletion when it would remove the last accessible workspace", async () => {
     mockFindFirstAccessibleOrganizationByIdAndUserId.mockResolvedValue({
       id: ORGANIZATION_ID,
       name: "Primary Workspace",
-      isDefault: false,
+    });
+    mockCountAccessibleOrganizationsByUserId.mockResolvedValue(1);
+
+    const result = await deleteWorkspace({
+      id: ORGANIZATION_ID,
+      name: "Primary Workspace",
+      confirmationText: "Primary Workspace",
+    });
+
+    expect(result).toEqual({
+      success: false,
+      error: {
+        message: "validation.errors.atLeastOneWorkspace",
+        code: 400,
+      },
+    });
+    expect(mockDeleteOrganization).not.toHaveBeenCalled();
+  });
+
+  it("deletes a workspace when the owner has permission, another workspace remains, and confirmation matches", async () => {
+    mockFindFirstAccessibleOrganizationByIdAndUserId.mockResolvedValue({
+      id: ORGANIZATION_ID,
+      name: "Primary Workspace",
     });
     mockCountAccessibleOrganizationsByUserId.mockResolvedValue(2);
     mockDeleteOrganization.mockResolvedValue(undefined);

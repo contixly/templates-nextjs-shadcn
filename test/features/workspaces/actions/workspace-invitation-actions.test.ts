@@ -440,7 +440,6 @@ describe("workspace invitation actions", () => {
       metadata: null,
       createdAt: new Date("2026-04-20T10:00:00.000Z"),
       updatedAt: new Date("2026-04-20T10:00:00.000Z"),
-      isDefault: false,
     });
 
     const result = await acceptWorkspaceInvitation({ invitationId: "invite1" });

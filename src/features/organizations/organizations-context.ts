@@ -2,7 +2,7 @@ import type {
   OrganizationRouteIdentity,
   OrganizationRouteParams,
   OrganizationSessionContext,
-  ResolveDefaultOrganizationIdOptions,
+  ResolveDashboardOrganizationIdOptions,
 } from "@features/organizations/organizations-types";
 
 export const resolveUrlOrganizationKey = ({
@@ -31,19 +31,14 @@ export const getActiveOrganizationId = (
   session: OrganizationSessionContext | null | undefined
 ): string | null => session?.activeOrganizationId ?? null;
 
-export const resolveDefaultOrganizationId = ({
+export const resolveDashboardOrganizationId = ({
   accessibleOrganizationIds,
   activeOrganizationId,
-  defaultOrganizationId,
   fallbackOrganizationId,
-}: ResolveDefaultOrganizationIdOptions): string | null => {
+}: ResolveDashboardOrganizationIdOptions): string | null => {
   const accessibleOrganizationIdSet = new Set(accessibleOrganizationIds);
 
-  const preferredOrganizationIds = [
-    activeOrganizationId,
-    defaultOrganizationId,
-    fallbackOrganizationId,
-  ];
+  const preferredOrganizationIds = [activeOrganizationId, fallbackOrganizationId];
 
   for (const organizationId of preferredOrganizationIds) {
     if (organizationId && accessibleOrganizationIdSet.has(organizationId)) {

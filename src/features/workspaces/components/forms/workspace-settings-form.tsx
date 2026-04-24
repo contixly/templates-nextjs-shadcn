@@ -7,7 +7,6 @@ import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Button } from "@components/ui/button";
-import { Checkbox } from "@components/ui/checkbox";
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@components/ui/field";
 import { Input } from "@components/ui/input";
 import { Spinner } from "@components/ui/spinner";
@@ -23,7 +22,6 @@ import { useAnyTranslations } from "@/src/i18n/use-any-translations";
 interface WorkspaceSettingsFormProps {
   workspace: WorkspaceWithCounts;
   canUpdateWorkspace?: boolean;
-  canChangeDefault?: boolean;
   onSuccess?: () => void;
   onCancel?: () => void;
   showCancelButton?: boolean;
@@ -34,13 +32,11 @@ const getDefaultValues = (workspace: WorkspaceWithCounts): UpdateWorkspaceInput 
   id: workspace.id,
   name: workspace.name,
   slug: workspace.slug ?? "",
-  isDefault: workspace.isDefault,
 });
 
 export const WorkspaceSettingsForm = ({
   workspace,
   canUpdateWorkspace = true,
-  canChangeDefault,
   onSuccess,
   onCancel,
   showCancelButton = false,
@@ -140,29 +136,6 @@ export const WorkspaceSettingsForm = ({
                 <FieldDescription className="text-xs">{tWorkspaces("slugHint")}</FieldDescription>
                 {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
               </Field>
-            )}
-          />
-          <Controller
-            name="isDefault"
-            control={control}
-            render={({ field, fieldState }) => (
-              <FieldGroup data-slot="checkbox-group">
-                <Field orientation="horizontal" data-invalid={fieldState.invalid}>
-                  <Checkbox
-                    id="edit-is-default"
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                    disabled={isPending || !canChangeDefault}
-                  />
-                  <FieldLabel
-                    htmlFor="edit-is-default"
-                    className="cursor-pointer text-sm font-normal"
-                  >
-                    {tWorkspaces("defaultLabel")}
-                  </FieldLabel>
-                </Field>
-                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-              </FieldGroup>
             )}
           />
         </FieldGroup>

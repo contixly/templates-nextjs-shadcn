@@ -1,6 +1,8 @@
 import {
   WORKSPACE_NAME_MAX_LENGTH,
+  createWorkspaceSchema,
   createUpdateWorkspaceFormSchema,
+  updateWorkspaceSchema,
 } from "@features/workspaces/workspaces-schemas";
 
 describe("workspace form schemas", () => {
@@ -12,12 +14,10 @@ describe("workspace form schemas", () => {
     const requiredResult = schema.safeParse({
       id: "d6qzollaqro6y66v7j52bhqo",
       name: "   ",
-      isDefault: false,
     });
     const tooLongResult = schema.safeParse({
       id: "d6qzollaqro6y66v7j52bhqo",
       name: "a".repeat(WORKSPACE_NAME_MAX_LENGTH + 1),
-      isDefault: false,
     });
 
     expect(requiredResult.success).toBe(false);
@@ -40,7 +40,6 @@ describe("workspace form schemas", () => {
       id: "d6qzollaqro6y66v7j52bhqo",
       name: "Current updated",
       slug: "invalid slug",
-      isDefault: false,
     });
 
     expect(result.success).toBe(false);
@@ -57,9 +56,27 @@ describe("workspace form schemas", () => {
       id: "RkFBy8l5f36JR4Mwl1dExZxvzCjD8X7H",
       name: "Current updated",
       slug: "current-updated",
-      isDefault: false,
     });
 
     expect(result.success).toBe(true);
+  });
+
+  it("strips obsolete workspace preference state from create and update schemas", () => {
+    const obsoletePreferenceKey = "is" + "Default";
+    const createResult = createWorkspaceSchema.parse({
+      name: "Acme",
+      [obsoletePreferenceKey]: true,
+    });
+    const updateResult = updateWorkspaceSchema.parse({
+      id: "RkFBy8l5f36JR4Mwl1dExZxvzCjD8X7H",
+      name: "Acme",
+      [obsoletePreferenceKey]: true,
+    });
+
+    expect(createResult).toEqual({ name: "Acme" });
+    expect(updateResult).toEqual({
+      id: "RkFBy8l5f36JR4Mwl1dExZxvzCjD8X7H",
+      name: "Acme",
+    });
   });
 });

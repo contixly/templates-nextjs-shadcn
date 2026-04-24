@@ -9,7 +9,6 @@ export const WORKSPACE_ERROR_KEYS = {
   confirmationRequired: "validation.errors.confirmationRequired",
   confirmationMismatch: "validation.errors.confirmationMismatch",
   atLeastOneWorkspace: "validation.errors.atLeastOneWorkspace",
-  defaultWorkspaceDeletionForbidden: "validation.errors.defaultWorkspaceDeletionForbidden",
   deletePermissionDenied: "validation.errors.deletePermissionDenied",
   invitationEmailRequired: "validation.errors.invitationEmailRequired",
   invitationEmailInvalid: "validation.errors.invitationEmailInvalid",

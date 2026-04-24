@@ -8,7 +8,7 @@ import {
   findOrganizationByRouteKey,
   getOrganizationRouteKey,
   getActiveOrganizationId,
-  resolveDefaultOrganizationId,
+  resolveDashboardOrganizationId,
   resolveUrlOrganizationKey,
 } from "@features/organizations/organizations-context";
 
@@ -22,7 +22,6 @@ describe("organization workspace compatibility", () => {
       logo: null,
       metadata: null,
       createdAt,
-      isDefault: true,
     };
 
     expect(toWorkspaceDto(organization)).toEqual({
@@ -33,7 +32,6 @@ describe("organization workspace compatibility", () => {
       metadata: null,
       createdAt,
       updatedAt: createdAt,
-      isDefault: true,
     });
   });
 
@@ -56,41 +54,37 @@ describe("organization workspace compatibility", () => {
     expect(findOrganizationByRouteKey(organizations, "missing")).toBeNull();
   });
 
-  it("prefers active organization, then default, then deterministic fallback", () => {
+  it("prefers active organization, then deterministic fallback", () => {
     const accessibleOrganizationIds = ["org_1", "org_2", "org_3"];
 
     expect(
-      resolveDefaultOrganizationId({
+      resolveDashboardOrganizationId({
         accessibleOrganizationIds,
         activeOrganizationId: "org_2",
-        defaultOrganizationId: "org_1",
         fallbackOrganizationId: "org_3",
       })
     ).toBe("org_2");
 
     expect(
-      resolveDefaultOrganizationId({
+      resolveDashboardOrganizationId({
         accessibleOrganizationIds,
         activeOrganizationId: "missing",
-        defaultOrganizationId: "org_1",
-        fallbackOrganizationId: "org_3",
-      })
-    ).toBe("org_1");
-
-    expect(
-      resolveDefaultOrganizationId({
-        accessibleOrganizationIds,
-        activeOrganizationId: null,
-        defaultOrganizationId: "missing",
         fallbackOrganizationId: "org_3",
       })
     ).toBe("org_3");
 
     expect(
-      resolveDefaultOrganizationId({
+      resolveDashboardOrganizationId({
+        accessibleOrganizationIds,
+        activeOrganizationId: null,
+        fallbackOrganizationId: "org_3",
+      })
+    ).toBe("org_3");
+
+    expect(
+      resolveDashboardOrganizationId({
         accessibleOrganizationIds,
         activeOrganizationId: "missing",
-        defaultOrganizationId: "missing",
         fallbackOrganizationId: "missing",
       })
     ).toBeNull();
