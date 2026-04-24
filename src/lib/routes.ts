@@ -77,6 +77,12 @@ export const sanitizeRedirectPath = (path: string): string => {
   // Prevent directory traversal attacks
   const normalizedPath = cleanPath.replace(/\.\./g, "");
 
+  // Reject backslashes to prevent WHATWG URL backslash normalization from creating
+  // protocol-relative targets (e.g. `/\evil.example` -> `//evil.example`)
+  if (normalizedPath.includes("\\")) {
+    return "/";
+  }
+
   // Ensure it's a relative path starting with /
   // Re-check protocol-relative form after normalization to avoid bypasses such as `/..//host`
   if (!normalizedPath.startsWith("/") || normalizedPath.startsWith("//")) {
