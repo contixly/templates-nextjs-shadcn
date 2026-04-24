@@ -17,6 +17,7 @@ export const setActiveOrganization = createProtectedActionWithInput<
 >(
   setActiveOrganizationSchema,
   async ({ organizationId }, { logger }) => {
+    // Active organization is a member/session preference and must stay out of shared organization rows.
     await auth.api.setActiveOrganization({
       body: {
         organizationId,
