@@ -1,5 +1,4 @@
 import { Avatar, AvatarFallback } from "@components/ui/avatar";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@components/ui/card";
 import { Suspense, use } from "react";
 import { AvatarImage } from "@components/ui/avatar";
 import { Skeleton } from "@components/ui/skeleton";
@@ -7,6 +6,10 @@ import { User } from "better-auth";
 import { accountsTools } from "@features/accounts/accounts-tools";
 import { Input } from "@components/ui/input";
 import { CopyButton } from "@components/ui/custom/copy-button";
+import {
+  SettingsPageIntro,
+  SettingsSection,
+} from "@components/application/settings/settings-shell";
 import { timeTools } from "@lib/time";
 import { ProfileForm } from "@features/accounts/components/forms/profile-form";
 import { useLocale, useTranslations } from "next-intl";
@@ -16,70 +19,45 @@ export interface UserProfileProps {
 }
 
 export const UserProfile = ({ loadCurrentUserPromise }: UserProfileProps) => {
+  const tPage = useTranslations("accounts.pages.profile");
   const t = useTranslations("accounts.ui.profile");
 
   return (
     <>
-      <Card>
-        <CardHeader>
-          <CardTitle>{t("avatarTitle")}</CardTitle>
-          <CardDescription>{t("avatarDescription")}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Suspense fallback={<AvatarCardSkeleton />}>
-            <AvatarCardContent loadCurrentUserPromise={loadCurrentUserPromise} />
-          </Suspense>
-        </CardContent>
-      </Card>
+      <SettingsPageIntro title={tPage("title")} description={tPage("description")} />
 
-      <Card>
-        <CardHeader>
-          <CardTitle>{t("displayNameTitle")}</CardTitle>
-          <CardDescription>{t("displayNameDescription")}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Suspense fallback={<ProfileFormSkeleton />}>
-            <ProfileForm loadCurrentUserPromise={loadCurrentUserPromise} />
-          </Suspense>
-        </CardContent>
-      </Card>
+      <SettingsSection title={t("avatarTitle")} description={t("avatarDescription")}>
+        <Suspense fallback={<AvatarCardSkeleton />}>
+          <AvatarCardContent loadCurrentUserPromise={loadCurrentUserPromise} />
+        </Suspense>
+      </SettingsSection>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>{t("emailTitle")}</CardTitle>
-          <CardDescription>{t("emailDescription")}</CardDescription>
-        </CardHeader>
-        <CardContent>
+      <SettingsSection title={t("displayNameTitle")} description={t("displayNameDescription")}>
+        <Suspense fallback={<ProfileFormSkeleton />}>
+          <ProfileForm loadCurrentUserPromise={loadCurrentUserPromise} />
+        </Suspense>
+      </SettingsSection>
+
+      <SettingsSection title={t("emailTitle")} description={t("emailDescription")}>
+        <div className="flex flex-col gap-2">
           <Suspense fallback={<RowSkeleton />}>
             <EmailRow loadCurrentUserPromise={loadCurrentUserPromise} />
           </Suspense>
-          <p className="text-muted-foreground mt-2 text-sm">{t("emailHint")}</p>
-        </CardContent>
-      </Card>
+          <p className="text-muted-foreground text-sm">{t("emailHint")}</p>
+        </div>
+      </SettingsSection>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>{t("userIdTitle")}</CardTitle>
-          <CardDescription>{t("userIdDescription")}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Suspense fallback={<RowSkeleton />}>
-            <UserIdRow loadCurrentUserPromise={loadCurrentUserPromise} />
-          </Suspense>
-        </CardContent>
-      </Card>
+      <SettingsSection title={t("userIdTitle")} description={t("userIdDescription")}>
+        <Suspense fallback={<RowSkeleton />}>
+          <UserIdRow loadCurrentUserPromise={loadCurrentUserPromise} />
+        </Suspense>
+      </SettingsSection>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>{t("memberSinceTitle")}</CardTitle>
-          <CardDescription>{t("memberSinceDescription")}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Suspense fallback={<LineSkeleton />}>
-            <MemberSince loadCurrentUserPromise={loadCurrentUserPromise} />
-          </Suspense>
-        </CardContent>
-      </Card>
+      <SettingsSection title={t("memberSinceTitle")} description={t("memberSinceDescription")}>
+        <Suspense fallback={<LineSkeleton />}>
+          <MemberSince loadCurrentUserPromise={loadCurrentUserPromise} />
+        </Suspense>
+      </SettingsSection>
     </>
   );
 };
@@ -149,7 +127,7 @@ const UserIdRow = ({ loadCurrentUserPromise }: UserProfileProps) => {
 const RowSkeleton = () => (
   <div className="flex items-center gap-2">
     <Skeleton className="h-8 flex-1" />
-    <Skeleton className="h-8 w-8" />
+    <Skeleton className="size-8" />
   </div>
 );
 
@@ -166,7 +144,7 @@ const LineSkeleton = () => <Skeleton className="h-5 w-40" />;
 
 const ProfileFormSkeleton = () => (
   <div className="flex gap-4">
-    <div className="flex flex-1 flex-col gap-2 space-y-2">
+    <div className="flex flex-1 flex-col gap-2">
       <Skeleton className="h-8" />
       <Skeleton className="h-4 w-40" />
     </div>

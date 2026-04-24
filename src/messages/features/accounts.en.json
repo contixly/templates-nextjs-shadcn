@@ -124,8 +124,8 @@
       "lastUsed": "Last used"
     },
     "connections": {
-      "title": "Connected Accounts",
-      "description": "Manage your connected social accounts. You can use any of these to sign in.",
+      "title": "Login providers",
+      "description": "Connect or disconnect the social providers available for sign-in.",
       "lastUsed": "Last used",
       "connectedOn": "Connected on {date}",
       "notConnected": "Not connected",
@@ -136,6 +136,10 @@
       "linkErrorTitle": "Failed to link account",
       "unknownError": "Unknown error",
       "loadError": "Failed to load accounts: {message}"
+    },
+    "danger": {
+      "title": "Delete account",
+      "description": "Permanently remove your account and all associated data."
     },
     "profile": {
       "avatarTitle": "Avatar",

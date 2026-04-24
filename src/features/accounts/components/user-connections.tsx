@@ -3,13 +3,16 @@
 import React, { startTransition, Suspense, use, useCallback, useState } from "react";
 import { Account } from "better-auth";
 import { ErrorBoundary } from "react-error-boundary";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@components/ui/card";
 import { SocialProvider, socialsProviders } from "@typings/auth";
 import { Badge } from "@components/ui/badge";
 import { timeTools } from "@lib/time";
 import { Button } from "@components/ui/button";
 import { IconLink, IconUnlink } from "@tabler/icons-react";
 import { authClient } from "@lib/auth-client";
+import {
+  SettingsPageIntro,
+  SettingsSection,
+} from "@components/application/settings/settings-shell";
 import {
   Item,
   ItemActions,
@@ -125,7 +128,7 @@ const UserConnectionsComponent = ({
                   onClick={() => handleUnlink(provider)}
                   className="w-32"
                 >
-                  <IconUnlink className="mr-2 size-4" />
+                  <IconUnlink data-icon="inline-start" />
                   {t("disconnect")}
                 </Button>
               )}
@@ -137,7 +140,7 @@ const UserConnectionsComponent = ({
                   onClick={() => handleLink(provider)}
                   className="w-32"
                 >
-                  <IconLink className="mr-2 size-4" />
+                  <IconLink data-icon="inline-start" />
                   {t("connect")}
                 </Button>
               )}
@@ -169,33 +172,29 @@ const UserConnectionsFallback = () => (
 );
 
 export const UserConnections = (props: UserConnectionsProps) => {
+  const tPage = useTranslations("accounts.pages.connections");
   const t = useTranslations("accounts.ui.connections");
 
   return (
-    <ErrorBoundary
-      fallbackRender={({ error }) => (
-        <Card>
-          <CardContent className="p-6">
+    <>
+      <SettingsPageIntro title={tPage("title")} description={tPage("description")} />
+      <ErrorBoundary
+        fallbackRender={({ error }) => (
+          <SettingsSection title={t("title")} description={t("description")}>
             <p className="text-destructive">
               {t("loadError", {
                 message: error instanceof Error ? error.message : t("unknownError"),
               })}
             </p>
-          </CardContent>
-        </Card>
-      )}
-    >
-      <Card>
-        <CardHeader>
-          <CardTitle>{t("title")}</CardTitle>
-          <CardDescription>{t("description")}</CardDescription>
-        </CardHeader>
-        <CardContent>
+          </SettingsSection>
+        )}
+      >
+        <SettingsSection title={t("title")} description={t("description")}>
           <Suspense fallback={<UserConnectionsFallback />}>
             <UserConnectionsComponent {...props} />
           </Suspense>
-        </CardContent>
-      </Card>
-    </ErrorBoundary>
+        </SettingsSection>
+      </ErrorBoundary>
+    </>
   );
 };

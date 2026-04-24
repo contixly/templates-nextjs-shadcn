@@ -5,7 +5,10 @@ import { useRouter } from "next/navigation";
 import { Avatar, AvatarFallback, AvatarImage } from "@components/ui/avatar";
 import { Badge } from "@components/ui/badge";
 import { Button } from "@components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@components/ui/card";
+import {
+  SettingsPageIntro,
+  SettingsSection,
+} from "@components/application/settings/settings-shell";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@components/ui/empty";
 import {
   Select,
@@ -183,50 +186,58 @@ export const WorkspaceSettingsUsersPage = ({
   canUpdateMemberRoles,
   assignableWorkspaceRoles,
 }: WorkspaceSettingsUsersPageProps) => {
+  const tPage = useTranslations("workspaces.pages.settings_users");
   const t = useTranslations("workspaces.ui.settingsUsersPage");
   const tRoles = useTranslations("workspaces.ui.roles.labels");
   const locale = useLocale();
   const currentMember = members.find((member) => member.userId === currentUserId) ?? null;
   const otherMembers = members.filter((member) => member.userId !== currentUserId);
+  const addMemberAction = canAddMembers ? (
+    <WorkspaceAddMemberDialog
+      organizationId={organizationId}
+      assignableRoles={assignableWorkspaceRoles}
+      trigger={
+        <Button size="sm" variant="outline">
+          <IconUserPlus data-icon="inline-start" />
+          {t("addMemberAction")}
+        </Button>
+      }
+    />
+  ) : null;
 
   return (
-    <Card>
-      <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div className="space-y-1.5">
-          <CardTitle>{t("title")}</CardTitle>
-          <CardDescription>{t("description")}</CardDescription>
-          {!canAddMembers ? (
-            <p className="text-muted-foreground text-sm">{t("readOnlyNotice")}</p>
-          ) : null}
-        </div>
-        {canAddMembers ? (
-          <WorkspaceAddMemberDialog
-            organizationId={organizationId}
-            assignableRoles={assignableWorkspaceRoles}
-            trigger={
-              <Button size="sm" variant="outline">
-                <IconUserPlus className="size-4" />
-                {t("addMemberAction")}
-              </Button>
-            }
-          />
-        ) : null}
-      </CardHeader>
-      <CardContent>
-        {members.length === 0 ? (
-          <Empty className="border">
-            <EmptyHeader>
-              <EmptyMedia variant="icon">
-                <IconUsers />
-              </EmptyMedia>
-              <EmptyTitle>{t("emptyTitle")}</EmptyTitle>
-              <EmptyDescription>{t("emptyDescription")}</EmptyDescription>
-            </EmptyHeader>
-          </Empty>
-        ) : (
-          <div className="space-y-6">
-            {currentMember ? (
-              <section className="rounded-lg border p-4" aria-label={t("currentUserSectionLabel")}>
+    <>
+      <SettingsPageIntro title={tPage("title")} description={tPage("description")} />
+
+      {members.length === 0 ? (
+        <SettingsSection
+          title={t("directoryTitle")}
+          description={t("directoryDescription")}
+          action={addMemberAction}
+        >
+          <div className="flex flex-col gap-4">
+            {!canAddMembers ? (
+              <p className="text-muted-foreground text-sm">{t("readOnlyNotice")}</p>
+            ) : null}
+            <Empty className="border">
+              <EmptyHeader>
+                <EmptyMedia variant="icon">
+                  <IconUsers />
+                </EmptyMedia>
+                <EmptyTitle>{t("emptyTitle")}</EmptyTitle>
+                <EmptyDescription>{t("emptyDescription")}</EmptyDescription>
+              </EmptyHeader>
+            </Empty>
+          </div>
+        </SettingsSection>
+      ) : (
+        <>
+          {currentMember ? (
+            <SettingsSection
+              title={t("currentUserTitle")}
+              description={t("currentUserDescription")}
+            >
+              <section aria-label={t("currentUserSectionLabel")}>
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                   <div className="flex min-w-0 items-start gap-3">
                     <Avatar size="lg">
@@ -240,7 +251,7 @@ export const WorkspaceSettingsUsersPage = ({
                         {accountsTools.getInitials(getDisplayName(currentMember))}
                       </AvatarFallback>
                     </Avatar>
-                    <div className="min-w-0 space-y-2">
+                    <div className="flex min-w-0 flex-col gap-2">
                       <div className="flex flex-wrap items-center gap-2">
                         <p className="truncate text-sm font-medium">
                           {getDisplayName(currentMember)}
@@ -262,21 +273,25 @@ export const WorkspaceSettingsUsersPage = ({
                     </div>
                   </div>
 
-                  <dl className="space-y-1 text-sm sm:text-right">
+                  <dl className="flex flex-col gap-1 text-sm sm:text-right">
                     <dt className="text-muted-foreground">{t("joinedLabel")}</dt>
                     <dd>{timeTools.formatDate(currentMember.joinedAt, locale)}</dd>
                   </dl>
                 </div>
               </section>
-            ) : null}
+            </SettingsSection>
+          ) : null}
 
-            {otherMembers.length > 0 ? (
-              <section aria-label={t("otherUsersSectionLabel")} className="space-y-3">
-                <div>
-                  <h2 className="text-sm font-medium">{t("otherUsersTitle")}</h2>
-                  <p className="text-muted-foreground text-sm">{t("otherUsersDescription")}</p>
-                </div>
-
+          <SettingsSection
+            title={t("otherUsersTitle")}
+            description={t("otherUsersDescription")}
+            action={addMemberAction}
+          >
+            <div className="flex flex-col gap-4">
+              {!canAddMembers ? (
+                <p className="text-muted-foreground text-sm">{t("readOnlyNotice")}</p>
+              ) : null}
+              {otherMembers.length > 0 ? (
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -338,9 +353,7 @@ export const WorkspaceSettingsUsersPage = ({
                     })}
                   </TableBody>
                 </Table>
-              </section>
-            ) : currentMember ? (
-              <section aria-label={t("otherUsersSectionLabel")}>
+              ) : (
                 <Empty className="border">
                   <EmptyHeader>
                     <EmptyMedia variant="icon">
@@ -350,11 +363,11 @@ export const WorkspaceSettingsUsersPage = ({
                     <EmptyDescription>{t("othersEmptyDescription")}</EmptyDescription>
                   </EmptyHeader>
                 </Empty>
-              </section>
-            ) : null}
-          </div>
-        )}
-      </CardContent>
-    </Card>
+              )}
+            </div>
+          </SettingsSection>
+        </>
+      )}
+    </>
   );
 };

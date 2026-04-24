@@ -3,11 +3,14 @@
 import React, { Suspense, use, useMemo, useTransition } from "react";
 import { Session } from "better-auth";
 import { ErrorBoundary } from "react-error-boundary";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@components/ui/card";
 import { Button } from "@components/ui/button";
 import { IconDeviceDesktop, IconDeviceMobile, IconX } from "@tabler/icons-react";
 import { cn } from "@lib/utils";
 import { Badge } from "@components/ui/badge";
+import {
+  SettingsPageIntro,
+  SettingsSection,
+} from "@components/application/settings/settings-shell";
 import { timeTools } from "@lib/time";
 import { toast } from "sonner";
 import { revokeSession } from "@features/accounts/actions/revoke-session";
@@ -121,125 +124,118 @@ export const UserSessionsComponent = ({
   if (!currentSession) return null;
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle>{t("title")}</CardTitle>
-            <CardDescription>{t("description")}</CardDescription>
-          </div>
-          {sessions?.filter((s) => s.id !== currentSession.id).length > 0 && (
-            <Button variant="outline" size="sm" disabled={isPending} onClick={handleRevokeAll}>
-              {t("revokeAll")}
-            </Button>
-          )}
-        </div>
-      </CardHeader>
-      <CardContent className="min-h-80">
-        {sessions.length === 0 && <p className="text-muted-foreground">{t("empty")}</p>}
-        {sessions.length > 0 && (
-          <div className="space-y-4">
-            {sessions.map((session) => {
-              const parsed = parseUserAgent(session.userAgent, {
-                unknownBrowser: t("unknownBrowser"),
-                unknownOs: t("unknownOs"),
-              });
-              const DeviceIcon = parsed.isMobile ? IconDeviceMobile : IconDeviceDesktop;
+    <SettingsSection
+      title={t("title")}
+      description={t("description")}
+      action={
+        sessions?.filter((s) => s.id !== currentSession.id).length > 0 ? (
+          <Button variant="outline" size="sm" disabled={isPending} onClick={handleRevokeAll}>
+            {t("revokeAll")}
+          </Button>
+        ) : null
+      }
+      contentClassName="min-h-80"
+    >
+      {sessions.length === 0 && <p className="text-muted-foreground">{t("empty")}</p>}
+      {sessions.length > 0 && (
+        <div className="flex flex-col gap-4">
+          {sessions.map((session) => {
+            const parsed = parseUserAgent(session.userAgent, {
+              unknownBrowser: t("unknownBrowser"),
+              unknownOs: t("unknownOs"),
+            });
+            const DeviceIcon = parsed.isMobile ? IconDeviceMobile : IconDeviceDesktop;
 
-              return (
-                <div
-                  key={session.id}
-                  className={cn(
-                    "relative flex items-center justify-between rounded-lg border p-4",
-                    {
-                      "border-primary bg-primary/5": session.isCurrent,
-                    }
-                  )}
-                >
-                  <div className="flex items-center gap-4">
-                    <div className="bg-muted flex size-10 items-center justify-center rounded-full">
-                      <DeviceIcon className="size-5" />
-                    </div>
-                    <div className="flex flex-col">
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium">
-                          {t("browserOnOs", { browser: parsed.browser, os: parsed.os })}
-                        </span>
-                      </div>
-                      <div className="text-muted-foreground flex flex-wrap items-center gap-x-3 gap-y-1 truncate text-xs text-wrap md:text-sm">
-                        {session.ipAddress && <span>{session.ipAddress}</span>}
-                      </div>
-                      <span>
-                        {t("lastActive", {
-                          time: timeTools.formatRelativeTime(session.updatedAt, locale),
-                        })}
+            return (
+              <div
+                key={session.id}
+                className={cn("relative flex items-center justify-between rounded-lg border p-4", {
+                  "border-primary bg-primary/5": session.isCurrent,
+                })}
+              >
+                <div className="flex items-center gap-4">
+                  <div className="bg-muted flex size-10 items-center justify-center rounded-full">
+                    <DeviceIcon className="size-5" />
+                  </div>
+                  <div className="flex flex-col">
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium">
+                        {t("browserOnOs", { browser: parsed.browser, os: parsed.os })}
                       </span>
                     </div>
-                  </div>
-                  {session.isCurrent && (
-                    <Badge className="absolute top-2 right-2">{t("currentSession")}</Badge>
-                  )}
-
-                  <div>
-                    {!session.isCurrent && (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        disabled={isPending}
-                        onClick={() => handleRevokeSession(session.token)}
-                      >
-                        <IconX className="size-4" />
-                        <span className="sr-only">{t("revokeSession")}</span>
-                      </Button>
-                    )}
+                    <div className="text-muted-foreground flex flex-wrap items-center gap-x-3 gap-y-1 truncate text-xs text-wrap md:text-sm">
+                      {session.ipAddress && <span>{session.ipAddress}</span>}
+                    </div>
+                    <span>
+                      {t("lastActive", {
+                        time: timeTools.formatRelativeTime(session.updatedAt, locale),
+                      })}
+                    </span>
                   </div>
                 </div>
-              );
-            })}
-          </div>
-        )}
-      </CardContent>
-    </Card>
+                {session.isCurrent && (
+                  <Badge className="absolute top-2 right-2">{t("currentSession")}</Badge>
+                )}
+
+                <div>
+                  {!session.isCurrent && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      disabled={isPending}
+                      onClick={() => handleRevokeSession(session.token)}
+                    >
+                      <IconX />
+                      <span className="sr-only">{t("revokeSession")}</span>
+                    </Button>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </SettingsSection>
   );
 };
 
 export const UserSessions = (props: UserSessionsProps) => {
+  const tPage = useTranslations("accounts.pages.security");
   const t = useTranslations("accounts.ui.sessions");
 
   return (
-    <ErrorBoundary
-      fallbackRender={({ error }) => (
-        <Card>
-          <CardContent className="p-6">
+    <>
+      <SettingsPageIntro title={tPage("title")} description={tPage("description")} />
+      <ErrorBoundary
+        fallbackRender={({ error }) => (
+          <SettingsSection title={t("title")} description={t("description")}>
             <p className="text-destructive">
               {t("loadError", {
                 message: error instanceof Error ? error.message : t("unknownError"),
               })}
             </p>
-          </CardContent>
-        </Card>
-      )}
-    >
-      <Suspense
-        fallback={
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle>{t("title")}</CardTitle>
-                  <CardDescription>{t("description")}</CardDescription>
-                </div>
+          </SettingsSection>
+        )}
+      >
+        <Suspense
+          fallback={
+            <SettingsSection
+              title={t("title")}
+              description={t("description")}
+              action={
                 <Button variant="outline" size="sm" disabled>
                   {t("revokeAll")}
                 </Button>
-              </div>
-            </CardHeader>
-            <CardContent className="min-h-80" />
-          </Card>
-        }
-      >
-        <UserSessionsComponent {...props} />
-      </Suspense>
-    </ErrorBoundary>
+              }
+              contentClassName="min-h-80"
+            >
+              <div />
+            </SettingsSection>
+          }
+        >
+          <UserSessionsComponent {...props} />
+        </Suspense>
+      </ErrorBoundary>
+    </>
   );
 };

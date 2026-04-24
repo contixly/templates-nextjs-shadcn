@@ -49,7 +49,8 @@ describe("workspace page route", () => {
   });
 
   it("redirects slug-based links to the dashboard when the workspace belongs to the current user", async () => {
-    const pageModule = await import("../../../../src/app/(protected)/(global)/[organizationKey]/page");
+    const pageModule =
+      await import("../../../../src/app/(protected)/(global)/[organizationKey]/page");
     const element = await pageModule.default({
       params: Promise.resolve({ organizationKey: "client-workspace" }),
     });
@@ -64,7 +65,8 @@ describe("workspace page route", () => {
   });
 
   it("redirects existing id-based links to the slug-preferred dashboard url", async () => {
-    const pageModule = await import("../../../../src/app/(protected)/(global)/[organizationKey]/page");
+    const pageModule =
+      await import("../../../../src/app/(protected)/(global)/[organizationKey]/page");
     const element = await pageModule.default({
       params: Promise.resolve({ organizationKey: "workspace-123" }),
     });
@@ -77,7 +79,8 @@ describe("workspace page route", () => {
   });
 
   it("renders the forbidden route state when the workspace is not accessible", async () => {
-    const pageModule = await import("../../../../src/app/(protected)/(global)/[organizationKey]/page");
+    const pageModule =
+      await import("../../../../src/app/(protected)/(global)/[organizationKey]/page");
     const element = await pageModule.default({
       params: Promise.resolve({ organizationKey: "workspace-404" }),
     });
@@ -88,7 +91,8 @@ describe("workspace page route", () => {
 
 describe("workspace page loading route", () => {
   it("renders a loading spinner from loading.tsx", async () => {
-    const pageModule = await import("../../../../src/app/(protected)/(global)/[organizationKey]/loading");
+    const pageModule =
+      await import("../../../../src/app/(protected)/(global)/[organizationKey]/loading");
 
     render(<pageModule.default />);
 

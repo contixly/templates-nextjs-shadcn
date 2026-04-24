@@ -33,19 +33,27 @@ jest.mock("next-intl", () => ({
   useTranslations: (namespace: string) => (key: string, values?: Record<string, string>) => {
     const messages = {
       workspaces: {
+        pages: {
+          settings_users: {
+            title: "Users",
+            description: "Review workspace members, roles, and member-management actions.",
+          },
+        },
         ui: {
           settingsUsersPage: {
-            title: "Workspace Users",
-            description: "Review workspace users",
             addMemberAction: "Add Member",
             readOnlyNotice:
               "You can review workspace members here, but only admins and owners can add people or change roles in this release.",
             currentUserSectionLabel: "Your workspace access",
+            currentUserTitle: "Your access",
+            currentUserDescription: "Review your own workspace membership and assigned roles.",
             currentUserBadge: "You",
             otherUsersSectionLabel: "Other workspace users",
             otherUsersTitle: "Other workspace users",
             otherUsersDescription:
               "People other than you are shown in a table for faster scanning.",
+            directoryTitle: "Member directory",
+            directoryDescription: "Review visible workspace members and invite existing users.",
             joinedLabel: "Joined",
             emptyTitle: "No workspace users yet",
             emptyDescription: "This workspace does not have any visible members yet.",
@@ -98,7 +106,7 @@ jest.mock("@lib/time", () => ({
 
 describe("WorkspaceSettingsUsersPage", () => {
   it("renders the current user separately and other members inside a table", () => {
-    render(
+    const { container } = render(
       <WorkspaceSettingsUsersPage
         organizationId="org-1"
         currentUserId="user-123"
@@ -137,6 +145,13 @@ describe("WorkspaceSettingsUsersPage", () => {
       />
     );
 
+    expect(container.firstElementChild).toHaveAttribute("data-slot", "settings-page-intro");
+    expect(screen.getByRole("heading", { level: 1, name: "Users" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 2, name: "Your access" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { level: 2, name: "Other workspace users" })
+    ).toBeInTheDocument();
+    expect(container.querySelectorAll('[data-slot="settings-section"]')).toHaveLength(2);
     expect(screen.getByLabelText("Your workspace access")).toBeInTheDocument();
     expect(screen.getByTestId("workspace-add-member-dialog")).toHaveTextContent("Add Member");
     expect(screen.getByText("Alice Adams")).toBeInTheDocument();
@@ -171,7 +186,7 @@ describe("WorkspaceSettingsUsersPage", () => {
   });
 
   it("renders an explicit empty state instead of the placeholder copy", () => {
-    render(
+    const { container } = render(
       <WorkspaceSettingsUsersPage
         organizationId="org-1"
         currentUserId="user-123"
@@ -182,6 +197,8 @@ describe("WorkspaceSettingsUsersPage", () => {
       />
     );
 
+    expect(screen.getByRole("heading", { level: 2, name: "Member directory" })).toBeInTheDocument();
+    expect(container.querySelectorAll('[data-slot="settings-section"]')).toHaveLength(1);
     expect(screen.getByText("No workspace users yet")).toBeInTheDocument();
     expect(
       screen.getByText("This workspace does not have any visible members yet.")
@@ -190,7 +207,7 @@ describe("WorkspaceSettingsUsersPage", () => {
   });
 
   it("renders an explicit read-only notice for members without add-member access", () => {
-    render(
+    const { container } = render(
       <WorkspaceSettingsUsersPage
         organizationId="org-1"
         currentUserId="user-123"
@@ -220,6 +237,7 @@ describe("WorkspaceSettingsUsersPage", () => {
       />
     );
 
+    expect(container.querySelectorAll('[data-slot="settings-section"]')).toHaveLength(2);
     expect(
       screen.getByText(
         "You can review workspace members here, but only admins and owners can add people or change roles in this release."
@@ -233,7 +251,7 @@ describe("WorkspaceSettingsUsersPage", () => {
   });
 
   it("keeps the current user outside the table and shows a separate empty state for other users", () => {
-    render(
+    const { container } = render(
       <WorkspaceSettingsUsersPage
         organizationId="org-1"
         currentUserId="user-123"
@@ -254,6 +272,7 @@ describe("WorkspaceSettingsUsersPage", () => {
       />
     );
 
+    expect(container.querySelectorAll('[data-slot="settings-section"]')).toHaveLength(2);
     expect(screen.getByLabelText("Your workspace access")).toBeInTheDocument();
     expect(screen.queryByRole("table")).not.toBeInTheDocument();
     expect(screen.getByText("No other workspace users")).toBeInTheDocument();

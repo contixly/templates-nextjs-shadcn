@@ -44,14 +44,11 @@ jest.mock("@features/workspaces/components/pending-workspace-invitations-block",
   ),
 }));
 
-jest.mock(
-  "@features/workspaces/components/pages/workspace-invitation-decision-page",
-  () => ({
-    WorkspaceInvitationDecisionPage: ({ context }: { context: { state: string } }) => (
-      <div data-testid="workspace-invitation-decision-page">{context.state}</div>
-    ),
-  })
-);
+jest.mock("@features/workspaces/components/pages/workspace-invitation-decision-page", () => ({
+  WorkspaceInvitationDecisionPage: ({ context }: { context: { state: string } }) => (
+    <div data-testid="workspace-invitation-decision-page">{context.state}</div>
+  ),
+}));
 
 jest.mock("next/navigation", () => ({
   notFound: jest.fn(() => {
@@ -71,7 +68,8 @@ describe("account invitation routes", () => {
       { id: "invite-2" },
     ]);
 
-    const pageModule = await import("../../../../src/app/(protected)/(global)/user/invitations/page");
+    const pageModule =
+      await import("../../../../src/app/(protected)/(global)/user/invitations/page");
     const element = await pageModule.default();
 
     render(element);

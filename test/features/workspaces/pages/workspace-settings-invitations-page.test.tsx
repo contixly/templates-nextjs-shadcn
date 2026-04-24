@@ -15,10 +15,16 @@ jest.mock("next-intl", () => ({
         },
       },
       workspaces: {
+        pages: {
+          settings_invitations: {
+            title: "Invitations",
+            description: "Create workspace invitations and review invitation activity.",
+          },
+        },
         ui: {
           settingsInvitationsPage: {
-            title: "Workspace Invitations",
-            description: "Review invitation activity",
+            sectionTitle: "Invitation activity",
+            sectionDescription: "Create invitation links and track every invitation state.",
             emptyTitle: "No invitations yet",
             emptyDescription: "Create an invitation to get started.",
             copied: "Copied",
@@ -80,7 +86,7 @@ jest.mock("@features/workspaces/components/forms/workspace-create-invitation-dia
 
 describe("WorkspaceSettingsInvitationsPage", () => {
   it("renders invitation rows together with the invite-by-email control", () => {
-    render(
+    const { container } = render(
       <WorkspaceSettingsInvitationsPage
         organizationId="org-1"
         canCreateInvitations
@@ -107,7 +113,11 @@ describe("WorkspaceSettingsInvitationsPage", () => {
       />
     );
 
-    expect(screen.getByText("Workspace Invitations")).toBeInTheDocument();
+    expect(container.firstElementChild).toHaveAttribute("data-slot", "settings-page-intro");
+    expect(screen.getByRole("heading", { level: 1, name: "Invitations" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { level: 2, name: "Invitation activity" })
+    ).toBeInTheDocument();
     expect(screen.getByTestId("workspace-create-invitation-dialog")).toHaveTextContent(
       "org-1:member,admin"
     );
@@ -121,7 +131,7 @@ describe("WorkspaceSettingsInvitationsPage", () => {
   });
 
   it("renders an empty state when the workspace has no invitations", () => {
-    render(
+    const { container } = render(
       <WorkspaceSettingsInvitationsPage
         organizationId="org-1"
         canCreateInvitations={false}
@@ -130,6 +140,7 @@ describe("WorkspaceSettingsInvitationsPage", () => {
       />
     );
 
+    expect(container.querySelectorAll('[data-slot="settings-section"]')).toHaveLength(1);
     expect(screen.getByText("No invitations yet")).toBeInTheDocument();
     expect(screen.getByText("Create an invitation to get started.")).toBeInTheDocument();
   });

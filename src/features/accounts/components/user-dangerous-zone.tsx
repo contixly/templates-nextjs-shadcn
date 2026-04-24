@@ -1,9 +1,12 @@
 import React, { Suspense, use } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@components/ui/card";
 import { IconAlertTriangle } from "@tabler/icons-react";
 import { AccountDeleteDialog } from "@features/accounts/components/forms/account-delete-dialog";
 import { User } from "better-auth";
 import { Button } from "@components/ui/button";
+import {
+  SettingsPageIntro,
+  SettingsSection,
+} from "@components/application/settings/settings-shell";
 import { useTranslations } from "next-intl";
 
 interface UserDangerousZoneProps {
@@ -20,25 +23,28 @@ const AccountDeleteComponent = ({ loadCurrentUserPromise }: UserDangerousZonePro
 
 export const UserDangerousZone = (props: UserDangerousZoneProps) => {
   const tCommon = useTranslations("common");
-  const tAccounts = useTranslations("accounts");
+  const tPage = useTranslations("accounts.pages.danger");
+  const tDanger = useTranslations("accounts.ui.danger");
+  const tDeleteDialog = useTranslations("accounts.ui.deleteDialog");
 
   return (
-    <Card className="border-destructive/50">
-      <CardHeader>
-        <div className="flex items-center gap-2">
-          <IconAlertTriangle className="text-destructive size-5" />
-          <CardTitle className="text-destructive">{tAccounts("pages.danger.title")}</CardTitle>
-        </div>
-        <CardDescription>{tAccounts("pages.danger.description")}</CardDescription>
-      </CardHeader>
-      <CardContent>
+    <>
+      <SettingsPageIntro title={tPage("title")} description={tPage("description")} />
+      <SettingsSection
+        title={
+          <span className="flex items-center gap-2">
+            <IconAlertTriangle className="text-destructive size-5" />
+            {tDanger("title")}
+          </span>
+        }
+        description={tDanger("description")}
+        variant="destructive"
+      >
         <div className="border-destructive/30 bg-destructive/5 rounded-lg border p-4">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h4 className="font-medium">{tAccounts("ui.deleteDialog.title")}</h4>
-              <p className="text-muted-foreground text-sm">
-                {tAccounts("ui.deleteDialog.description")}
-              </p>
+              <h3 className="text-sm font-medium">{tDeleteDialog("title")}</h3>
+              <p className="text-muted-foreground text-sm">{tDeleteDialog("description")}</p>
             </div>
             <div className="shrink-0">
               <Suspense
@@ -53,7 +59,7 @@ export const UserDangerousZone = (props: UserDangerousZoneProps) => {
             </div>
           </div>
         </div>
-      </CardContent>
-    </Card>
+      </SettingsSection>
+    </>
   );
 };

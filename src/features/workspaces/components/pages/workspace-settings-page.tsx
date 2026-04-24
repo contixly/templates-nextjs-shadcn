@@ -1,6 +1,9 @@
 "use client";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@components/ui/card";
+import {
+  SettingsPageIntro,
+  SettingsSection,
+} from "@components/application/settings/settings-shell";
 import { useTranslations } from "next-intl";
 import { WorkspaceDeleteDialog } from "@features/workspaces/components/forms/workspace-delete-dialog";
 import { WorkspaceSettingsForm } from "@features/workspaces/components/forms/workspace-settings-form";
@@ -19,16 +22,15 @@ export const WorkspaceSettingsPage = ({
   canChangeDefault,
   canDeleteWorkspace = false,
 }: WorkspaceSettingsPageProps) => {
+  const tPage = useTranslations("workspaces.pages.settings_workspace");
   const t = useTranslations("workspaces.ui.settingsPage");
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{t("title")}</CardTitle>
-        <CardDescription>{t("description")}</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-6">
+    <>
+      <SettingsPageIntro title={tPage("title")} description={tPage("description")} />
+
+      <SettingsSection title={t("identityTitle")} description={t("identityDescription")}>
+        <div className="flex flex-col gap-4">
           {!canUpdateWorkspace ? (
             <p className="text-muted-foreground text-sm">{t("readOnlyNotice")}</p>
           ) : null}
@@ -38,19 +40,18 @@ export const WorkspaceSettingsPage = ({
             canUpdateWorkspace={canUpdateWorkspace}
             canChangeDefault={canChangeDefault}
           />
-
-          {canDeleteWorkspace ? (
-            <section className="space-y-3 border-t pt-6">
-              <div className="space-y-1">
-                <h2 className="text-sm font-medium">{t("dangerZoneTitle")}</h2>
-                <p className="text-muted-foreground text-sm">{t("dangerZoneDescription")}</p>
-              </div>
-
-              <WorkspaceDeleteDialog workspace={workspace} />
-            </section>
-          ) : null}
         </div>
-      </CardContent>
-    </Card>
+      </SettingsSection>
+
+      {canDeleteWorkspace ? (
+        <SettingsSection
+          title={t("dangerZoneTitle")}
+          description={t("dangerZoneDescription")}
+          variant="destructive"
+        >
+          <WorkspaceDeleteDialog workspace={workspace} />
+        </SettingsSection>
+      ) : null}
+    </>
   );
 };

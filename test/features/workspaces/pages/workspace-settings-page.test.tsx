@@ -31,35 +31,29 @@ jest.mock("@components/application/settings/settings-shell", () => ({
   ),
 }));
 
-jest.mock(
-  "@features/workspaces/components/pages/workspace-settings-invitations-page",
-  () => ({
-    WorkspaceSettingsInvitationsPage: ({
-      invitations,
-      canCreateInvitations,
-    }: {
-      invitations: Array<{ id: string }>;
-      canCreateInvitations: boolean;
-    }) => (
-      <div data-testid="workspace-settings-invitations-page">
-        {String(canCreateInvitations)}:{invitations.length}
-      </div>
-    ),
-  })
-);
+jest.mock("@features/workspaces/components/pages/workspace-settings-invitations-page", () => ({
+  WorkspaceSettingsInvitationsPage: ({
+    invitations,
+    canCreateInvitations,
+  }: {
+    invitations: Array<{ id: string }>;
+    canCreateInvitations: boolean;
+  }) => (
+    <div data-testid="workspace-settings-invitations-page">
+      {String(canCreateInvitations)}:{invitations.length}
+    </div>
+  ),
+}));
 
 jest.mock("@features/workspaces/components/pages/workspace-settings-page", () => ({
   WorkspaceSettingsPage: () => null,
 }));
 
-jest.mock(
-  "@features/workspaces/components/pages/workspace-settings-placeholder-page",
-  () => ({
-    WorkspaceSettingsPlaceholderPage: ({ section }: { section: string }) => (
-      <div data-testid="workspace-settings-placeholder-page">{section}</div>
-    ),
-  })
-);
+jest.mock("@features/workspaces/components/pages/workspace-settings-placeholder-page", () => ({
+  WorkspaceSettingsPlaceholderPage: ({ section }: { section: string }) => (
+    <div data-testid="workspace-settings-placeholder-page">{section}</div>
+  ),
+}));
 
 jest.mock("@features/workspaces/components/pages/workspace-settings-users-page", () => ({
   WorkspaceSettingsUsersPage: ({

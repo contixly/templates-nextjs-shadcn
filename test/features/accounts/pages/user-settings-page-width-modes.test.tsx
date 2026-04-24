@@ -66,7 +66,8 @@ describe("user settings route width modes", () => {
     const profilePage = await import("../../../../src/app/(protected)/(global)/user/profile/page");
     const connectionsPage =
       await import("../../../../src/app/(protected)/(global)/user/connections/page");
-    const securityPage = await import("../../../../src/app/(protected)/(global)/user/security/page");
+    const securityPage =
+      await import("../../../../src/app/(protected)/(global)/user/security/page");
     const dangerPage = await import("../../../../src/app/(protected)/(global)/user/danger/page");
 
     const profileElement = await profilePage.default();

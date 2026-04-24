@@ -131,8 +131,8 @@
       "unknownError": "Unknown error"
     },
     "settingsPage": {
-      "title": "Workspace Settings",
-      "description": "Update the basic workspace details and default workspace preference.",
+      "identityTitle": "Workspace identity",
+      "identityDescription": "Update the workspace name, slug, and default workspace preference.",
       "readOnlyNotice": "You can review these workspace details, but only admins and owners can update them.",
       "dangerZoneTitle": "Delete Workspace",
       "dangerZoneDescription": "Delete this workspace permanently when the existing product rules allow it."
@@ -155,10 +155,14 @@
       "addMemberAction": "Add Member",
       "readOnlyNotice": "You can review workspace members here, but only admins and owners can add people or change roles in this release.",
       "currentUserSectionLabel": "Your workspace access",
+      "currentUserTitle": "Your access",
+      "currentUserDescription": "Review your own workspace membership and assigned roles.",
       "currentUserBadge": "You",
       "otherUsersSectionLabel": "Other workspace users",
       "otherUsersTitle": "Other workspace users",
       "otherUsersDescription": "People other than you are shown in a table for faster scanning.",
+      "directoryTitle": "Member directory",
+      "directoryDescription": "Review visible workspace members and invite existing users.",
       "joinedLabel": "Joined",
       "roleUpdateSuccess": "Member role updated successfully",
       "roleUpdateErrorTitle": "Update Member Role",
@@ -181,6 +185,8 @@
     "settingsInvitationsPage": {
       "title": "Workspace Invitations",
       "description": "Create shareable invitation links and review invitation activity for this workspace.",
+      "sectionTitle": "Invitation activity",
+      "sectionDescription": "Create invitation links and track every invitation state.",
       "emptyTitle": "No invitations yet",
       "emptyDescription": "Create an invitation to give someone a secure entry point into this workspace.",
       "copied": "Copied",
@@ -312,19 +318,27 @@
       "body": "This section is visible now so workspace administration has a stable home, but management tools for it are not part of this change yet.",
       "sections": {
         "invitations": {
+          "pageTitle": "Invitations",
+          "pageDescription": "Review the upcoming workspace invitation management area.",
           "title": "Invitations",
           "description": "Workspace invitation flows will be added here in a follow-up change."
         },
         "users": {
+          "pageTitle": "Users",
+          "pageDescription": "Review the upcoming workspace user management area.",
           "title": "Users",
           "description": "Workspace user management will be added here in a follow-up change."
         },
         "teams": {
-          "title": "Teams",
+          "pageTitle": "Teams",
+          "pageDescription": "Review the upcoming workspace team management area.",
+          "title": "Team management",
           "description": "Workspace team management will be added here in a follow-up change."
         },
         "roles": {
-          "title": "Roles",
+          "pageTitle": "Roles",
+          "pageDescription": "Review the upcoming workspace role management area.",
+          "title": "Role management",
           "description": "Workspace role management will be added here in a follow-up change."
         }
       }

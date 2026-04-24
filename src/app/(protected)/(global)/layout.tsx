@@ -23,7 +23,7 @@ export default async function GlobalLayout({
             <AppSiteHeader />
           </Suspense>
           {/* Min height fills the viewport below header; content can grow so only this area scrolls */}
-          <div className="flex min-h-[calc(100vh-var(--header-height))] flex-col">
+          <div className="flex min-h-[calc(100vh-var(--header-height))] flex-col max-w-[2048px]">
             <div className="@container/main flex flex-1 flex-col gap-4 pb-6 lg:pb-0">
               <Suspense fallback={<div className="h-16" />}>
                 <DocumentHeader />

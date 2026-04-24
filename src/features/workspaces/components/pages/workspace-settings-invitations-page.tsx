@@ -4,7 +4,10 @@ import { useLocale, useTranslations } from "next-intl";
 import { IconMail } from "@tabler/icons-react";
 import { Badge } from "@components/ui/badge";
 import { CopyButton } from "@components/ui/custom/copy-button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@components/ui/card";
+import {
+  SettingsPageIntro,
+  SettingsSection,
+} from "@components/application/settings/settings-shell";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@components/ui/empty";
 import {
   Table,
@@ -47,24 +50,26 @@ export const WorkspaceSettingsInvitationsPage = ({
   assignableWorkspaceRoles,
 }: WorkspaceSettingsInvitationsPageProps) => {
   const tCommon = useTranslations("common");
+  const tPage = useTranslations("workspaces.pages.settings_invitations");
   const t = useTranslations("workspaces.ui.settingsInvitationsPage");
   const locale = useLocale();
 
   return (
-    <Card>
-      <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div className="space-y-1.5">
-          <CardTitle>{t("title")}</CardTitle>
-          <CardDescription>{t("description")}</CardDescription>
-        </div>
-        {canCreateInvitations ? (
-          <WorkspaceCreateInvitationDialog
-            organizationId={organizationId}
-            assignableRoles={assignableWorkspaceRoles}
-          />
-        ) : null}
-      </CardHeader>
-      <CardContent>
+    <>
+      <SettingsPageIntro title={tPage("title")} description={tPage("description")} />
+
+      <SettingsSection
+        title={t("sectionTitle")}
+        description={t("sectionDescription")}
+        action={
+          canCreateInvitations ? (
+            <WorkspaceCreateInvitationDialog
+              organizationId={organizationId}
+              assignableRoles={assignableWorkspaceRoles}
+            />
+          ) : null
+        }
+      >
         {invitations.length === 0 ? (
           <Empty className="border">
             <EmptyHeader>
@@ -123,7 +128,7 @@ export const WorkspaceSettingsInvitationsPage = ({
             </TableBody>
           </Table>
         )}
-      </CardContent>
-    </Card>
+      </SettingsSection>
+    </>
   );
 };
