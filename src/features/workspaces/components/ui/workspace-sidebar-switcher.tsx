@@ -1,7 +1,7 @@
 "use client";
 
 import { Suspense, use, useState, useTransition } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, usePathname, useRouter } from "next/navigation";
 import {
   SidebarMenu,
   SidebarMenuButton,
@@ -26,10 +26,8 @@ import routes from "@features/routes";
 import { setActiveOrganization } from "@features/organizations/actions/set-active-organization";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
-import {
-  findOrganizationByRouteKey,
-  getOrganizationRouteKey,
-} from "@features/organizations/organizations-context";
+import { findOrganizationByRouteKey } from "@features/organizations/organizations-context";
+import { resolveWorkspaceSwitchHref } from "@features/workspaces/workspace-switch-navigation";
 
 interface WorkspaceSidebarSwitcherProps {
   loadUserWorkspacesPromise: Promise<ActionResult<WorkspaceWithCounts[]>>;
@@ -50,6 +48,7 @@ const WorkspaceSidebarSwitcherComponent = ({
   const tCreateDialog = useTranslations("workspaces.ui.createDialog");
   const { isMobile, toggleSidebar } = useSidebar();
   const router = useRouter();
+  const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
   const { organizationKey } = useParams<{ organizationKey?: string }>();
@@ -83,10 +82,11 @@ const WorkspaceSidebarSwitcherComponent = ({
       }
 
       navigateTo(
-        routes.dashboard.pages.organization_dashboard.path({
-          organizationKey: getOrganizationRouteKey(
-            workspaces.find((workspace) => workspace.id === workspaceId) ?? { id: workspaceId }
-          ),
+        resolveWorkspaceSwitchHref({
+          currentPathname: pathname,
+          workspace: workspaces.find((workspace) => workspace.id === workspaceId) ?? {
+            id: workspaceId,
+          },
         })
       );
     });

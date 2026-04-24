@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { Suspense, use, useState, useTransition } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, usePathname, useRouter } from "next/navigation";
 import { BreadcrumbEllipsis, BreadcrumbItem, BreadcrumbSeparator } from "@components/ui/breadcrumb";
 import {
   DropdownMenu,
@@ -20,10 +20,8 @@ import { IconCheck, IconSelector, IconSettings } from "@tabler/icons-react";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { setActiveOrganization } from "@features/organizations/actions/set-active-organization";
-import {
-  findOrganizationByRouteKey,
-  getOrganizationRouteKey,
-} from "@features/organizations/organizations-context";
+import { findOrganizationByRouteKey } from "@features/organizations/organizations-context";
+import { resolveWorkspaceSwitchHref } from "@features/workspaces/workspace-switch-navigation";
 
 interface WorkspaceSwitcherProps {
   loadUserWorkspacesPromise: Promise<ActionResult<WorkspaceWithCounts[]>>;
@@ -42,6 +40,7 @@ interface WorkspaceSwitcherProps {
 const WorkspaceSwitcherComponent = ({ loadUserWorkspacesPromise }: WorkspaceSwitcherProps) => {
   const t = useTranslations("workspaces.ui.switcher");
   const router = useRouter();
+  const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
 
@@ -63,10 +62,11 @@ const WorkspaceSwitcherComponent = ({ loadUserWorkspacesPromise }: WorkspaceSwit
 
       setOpen(false);
       router.push(
-        routes.dashboard.pages.organization_dashboard.path({
-          organizationKey: getOrganizationRouteKey(
-            workspaces?.find((workspace) => workspace.id === workspaceId) ?? { id: workspaceId }
-          ),
+        resolveWorkspaceSwitchHref({
+          currentPathname: pathname,
+          workspace: workspaces?.find((workspace) => workspace.id === workspaceId) ?? {
+            id: workspaceId,
+          },
         })
       );
       router.refresh();

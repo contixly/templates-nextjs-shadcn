@@ -4,7 +4,12 @@ import React from "react";
 import { WorkspaceSidebarSwitcher } from "@features/workspaces/components/ui/workspace-sidebar-switcher";
 import { setActiveOrganization } from "@features/organizations/actions/set-active-organization";
 
+jest.mock("@lib/environment", () => ({
+  BOT_AGENTS: /^$/,
+}));
+
 const mockUseParams = jest.fn();
+const mockUsePathname = jest.fn();
 const mockPush = jest.fn();
 const mockRefresh = jest.fn();
 
@@ -28,6 +33,7 @@ jest.mock("next-intl", () => ({
 
 jest.mock("next/navigation", () => ({
   useParams: () => mockUseParams(),
+  usePathname: () => mockUsePathname(),
   useRouter: () => ({
     push: mockPush,
     refresh: mockRefresh,
@@ -83,6 +89,7 @@ jest.mock("@features/workspaces/components/forms/workspace-create-dialog", () =>
 describe("WorkspaceSidebarSwitcher", () => {
   beforeEach(() => {
     mockUseParams.mockReset();
+    mockUsePathname.mockReset();
     mockPush.mockReset();
     mockRefresh.mockReset();
     (setActiveOrganization as jest.Mock).mockReset();
@@ -129,6 +136,7 @@ describe("WorkspaceSidebarSwitcher", () => {
 
   it("changes the active workspace and navigates to its dashboard when the user selects another workspace", async () => {
     mockUseParams.mockReturnValue({ organizationKey: "default-workspace" });
+    mockUsePathname.mockReturnValue("/default-workspace/unknown");
     (setActiveOrganization as jest.Mock).mockResolvedValue({
       success: true,
       data: { organizationId: "workspace-2" },
@@ -175,6 +183,59 @@ describe("WorkspaceSidebarSwitcher", () => {
     await waitFor(() => {
       expect(setActiveOrganization).toHaveBeenCalledWith({ organizationId: "workspace-2" });
       expect(mockPush).toHaveBeenCalledWith("/client-workspace/dashboard");
+      expect(mockRefresh).toHaveBeenCalled();
+    });
+  });
+
+  it("changes the active workspace and preserves a base workspace route", async () => {
+    mockUseParams.mockReturnValue({ organizationKey: "default-workspace" });
+    mockUsePathname.mockReturnValue("/default-workspace/settings/invitations");
+    (setActiveOrganization as jest.Mock).mockResolvedValue({
+      success: true,
+      data: { organizationId: "workspace-2" },
+    });
+
+    await act(async () => {
+      render(
+        <WorkspaceSidebarSwitcher
+          loadUserWorkspacesPromise={Promise.resolve({
+            success: true,
+            data: [
+              {
+                id: "workspace-1",
+                name: "Default Workspace",
+                slug: "default-workspace",
+                logo: null,
+                metadata: null,
+                createdAt: new Date("2026-04-20T10:00:00.000Z"),
+                updatedAt: new Date("2026-04-20T10:00:00.000Z"),
+              },
+              {
+                id: "workspace-2",
+                name: "Client Workspace",
+                slug: "client-workspace",
+                logo: null,
+                metadata: null,
+                createdAt: new Date("2026-04-20T10:00:00.000Z"),
+                updatedAt: new Date("2026-04-20T10:00:00.000Z"),
+              },
+            ],
+          })}
+        />
+      );
+    });
+
+    const menu = screen.getByTestId("workspace-switcher-menu");
+    const menuItem = within(menu).getByText("Client Workspace").closest("button");
+    expect(menuItem).not.toBeNull();
+
+    await act(async () => {
+      fireEvent.click(menuItem!);
+    });
+
+    await waitFor(() => {
+      expect(setActiveOrganization).toHaveBeenCalledWith({ organizationId: "workspace-2" });
+      expect(mockPush).toHaveBeenCalledWith("/client-workspace/settings/invitations");
       expect(mockRefresh).toHaveBeenCalled();
     });
   });

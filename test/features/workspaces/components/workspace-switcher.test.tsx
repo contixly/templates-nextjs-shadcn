@@ -1,10 +1,17 @@
 import "@testing-library/jest-dom";
-import { act, render, screen } from "@testing-library/react";
+import { act, render, screen, within } from "@testing-library/react";
 import React from "react";
 import { WorkspaceSwitcher } from "@features/workspaces/components/ui/workspace-switcher";
 import { setActiveOrganization } from "@features/organizations/actions/set-active-organization";
 
+jest.mock("@lib/environment", () => ({
+  BOT_AGENTS: /^$/,
+}));
+
 const mockUseParams = jest.fn();
+const mockUsePathname = jest.fn();
+const mockPush = jest.fn();
+const mockRefresh = jest.fn();
 
 jest.mock("next-intl", () => ({
   useTranslations: (namespace: string) => (key: string) => {
@@ -23,9 +30,10 @@ jest.mock("next-intl", () => ({
 
 jest.mock("next/navigation", () => ({
   useParams: () => mockUseParams(),
+  usePathname: () => mockUsePathname(),
   useRouter: () => ({
-    push: jest.fn(),
-    refresh: jest.fn(),
+    push: mockPush,
+    refresh: mockRefresh,
   }),
 }));
 
@@ -41,10 +49,20 @@ jest.mock("sonner", () => ({
 
 jest.mock("@components/ui/dropdown-menu", () => ({
   DropdownMenu: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>,
-  DropdownMenuTrigger: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>,
-  DropdownMenuContent: () => null,
+  DropdownMenuTrigger: ({ children }: { children?: React.ReactNode }) => (
+    <div data-testid="workspace-switcher-trigger">{children}</div>
+  ),
+  DropdownMenuContent: ({ children }: { children?: React.ReactNode }) => (
+    <div data-testid="workspace-switcher-menu">{children}</div>
+  ),
   DropdownMenuLabel: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>,
-  DropdownMenuItem: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>,
+  DropdownMenuItem: ({
+    children,
+    onSelect,
+  }: {
+    children?: React.ReactNode;
+    onSelect?: () => void;
+  }) => <button onClick={onSelect}>{children}</button>,
   DropdownMenuSeparator: () => <div />,
 }));
 
@@ -61,6 +79,9 @@ jest.mock("@components/ui/breadcrumb", () => ({
 describe("WorkspaceSwitcher", () => {
   beforeEach(() => {
     mockUseParams.mockReset();
+    mockUsePathname.mockReset();
+    mockPush.mockReset();
+    mockRefresh.mockReset();
     (setActiveOrganization as jest.Mock).mockReset();
   });
 
@@ -97,8 +118,10 @@ describe("WorkspaceSwitcher", () => {
       );
     });
 
-    expect(screen.getByText("Client Workspace")).toBeInTheDocument();
-    expect(screen.queryByText("Default Workspace")).not.toBeInTheDocument();
+    const trigger = screen.getByTestId("workspace-switcher-trigger");
+
+    expect(within(trigger).getByText("Client Workspace")).toBeInTheDocument();
+    expect(within(trigger).queryByText("Default Workspace")).not.toBeInTheDocument();
   });
 
   it("does not rewrite the active organization while rendering a deep link", async () => {
@@ -135,5 +158,57 @@ describe("WorkspaceSwitcher", () => {
     });
 
     expect(setActiveOrganization).not.toHaveBeenCalled();
+  });
+
+  it("changes the active workspace and preserves a base workspace route", async () => {
+    mockUseParams.mockReturnValue({ organizationKey: "default-workspace" });
+    mockUsePathname.mockReturnValue("/default-workspace/settings/invitations");
+    (setActiveOrganization as jest.Mock).mockResolvedValue({
+      success: true,
+      data: { organizationId: "workspace-2" },
+    });
+
+    await act(async () => {
+      render(
+        <WorkspaceSwitcher
+          loadUserWorkspacesPromise={Promise.resolve({
+            success: true,
+            data: [
+              {
+                id: "workspace-1",
+                name: "Default Workspace",
+                slug: "default-workspace",
+                logo: null,
+                metadata: null,
+                createdAt: new Date("2026-04-20T10:00:00.000Z"),
+                updatedAt: new Date("2026-04-20T10:00:00.000Z"),
+              },
+              {
+                id: "workspace-2",
+                name: "Client Workspace",
+                slug: "client-workspace",
+                logo: null,
+                metadata: null,
+                createdAt: new Date("2026-04-20T10:00:00.000Z"),
+                updatedAt: new Date("2026-04-20T10:00:00.000Z"),
+              },
+            ],
+          })}
+        />
+      );
+    });
+
+    const menu = screen.getByTestId("workspace-switcher-menu");
+    const menuItem = within(menu).getByText("Client Workspace").closest("button");
+    expect(menuItem).not.toBeNull();
+    expect(menu).toContainElement(menuItem);
+
+    await act(async () => {
+      menuItem?.click();
+    });
+
+    expect(setActiveOrganization).toHaveBeenCalledWith({ organizationId: "workspace-2" });
+    expect(mockPush).toHaveBeenCalledWith("/client-workspace/settings/invitations");
+    expect(mockRefresh).toHaveBeenCalled();
   });
 });
