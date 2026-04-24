@@ -1,8 +1,8 @@
-import { buildFeature } from "../../src/lib/pages";
+import { buildFeature } from "@lib/pages";
 
 describe("buildFeature", () => {
   it("assigns page keys, i18n namespaces, and resolved parent pages", () => {
-    const feature = buildFeature("accounts", {
+    const feature = buildFeature<"user" | "profile">("accounts", {
       pages: {
         user: {
           pathTemplate: "/user",
@@ -25,9 +25,10 @@ describe("buildFeature", () => {
 
   it("throws when parent references an unknown page key", () => {
     expect(() =>
-      buildFeature("accounts", {
+      buildFeature<"profile">("accounts", {
         pages: {
           profile: {
+            // @ts-expect-error for error test
             parent: "missing",
             pathTemplate: "/user/profile",
           },

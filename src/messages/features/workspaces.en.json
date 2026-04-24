@@ -15,6 +15,54 @@
         "title": "Workspace",
         "description": "Configure and manage workspace settings and related content."
       }
+    },
+    "settings": {
+      "title": "Workspace Settings",
+      "description": "Manage workspace settings sections for configuration, people, and permissions.",
+      "openGraph": {
+        "title": "Workspace Settings",
+        "description": "Manage workspace settings sections for configuration, people, and permissions."
+      }
+    },
+    "settings_workspace": {
+      "title": "Workspace Settings",
+      "description": "Update the workspace name and slug.",
+      "openGraph": {
+        "title": "Workspace Settings",
+        "description": "Update the workspace name and slug."
+      }
+    },
+    "settings_invitations": {
+      "title": "Invitations",
+      "description": "Create workspace invitations, review existing links, and track their status.",
+      "openGraph": {
+        "title": "Invitations",
+        "description": "Create workspace invitations, review existing links, and track their status."
+      }
+    },
+    "settings_users": {
+      "title": "Users",
+      "description": "Review workspace members, their roles, and add existing users by ID.",
+      "openGraph": {
+        "title": "Users",
+        "description": "Review workspace members, their roles, and add existing users by ID."
+      }
+    },
+    "settings_teams": {
+      "title": "Teams",
+      "description": "Review the upcoming workspace team management area.",
+      "openGraph": {
+        "title": "Teams",
+        "description": "Review the upcoming workspace team management area."
+      }
+    },
+    "settings_roles": {
+      "title": "Roles",
+      "description": "Review the upcoming workspace role management area.",
+      "openGraph": {
+        "title": "Roles",
+        "description": "Review the upcoming workspace role management area."
+      }
     }
   },
   "validation": {
@@ -24,10 +72,32 @@
       "nameInvalidCharacters": "Workspace name can only contain letters, numbers, spaces, hyphens, and underscores",
       "nameUnchanged": "New workspace name must be different from current name",
       "duplicateName": "A workspace with this name already exists",
+      "duplicateSlug": "A workspace with this slug already exists",
+      "updatePermissionDenied": "You do not have permission to update this workspace",
       "confirmationRequired": "Confirmation text is required",
       "confirmationMismatch": "Confirmation text does not match workspace name",
       "atLeastOneWorkspace": "You must have at least one workspace",
-      "defaultWorkspaceDeletionForbidden": "Cannot delete default workspace. Set another workspace as default first."
+      "deletePermissionDenied": "You do not have permission to delete this workspace",
+      "invitationEmailRequired": "Invitation email is required",
+      "invitationEmailInvalid": "Invitation email must be valid",
+      "invitationAlreadyExists": "A pending invitation for this email already exists",
+      "invitationRecipientAlreadyMember": "That email already belongs to a workspace member",
+      "invitationPermissionDenied": "You do not have permission to invite users to this workspace",
+      "invitationNotFound": "Invitation not found",
+      "invitationNotPending": "This invitation can no longer be changed",
+      "invitationExpired": "This invitation has expired",
+      "invitationRecipientMismatch": "This invitation was sent to a different email address",
+      "invitationEmailVerificationRequired": "Verify your primary email before responding to this invitation",
+      "invitationAlreadyMember": "You already belong to this workspace",
+      "memberIdRequired": "User ID is required",
+      "memberNotFound": "No user was found for that ID",
+      "memberAlreadyExists": "That user already belongs to this workspace",
+      "memberPermissionDenied": "You do not have permission to add users to this workspace",
+      "memberRoleUpdatePermissionDenied": "You do not have permission to update member roles in this workspace",
+      "memberRoleUpdateDenied": "This member role cannot be changed from this table",
+      "memberRoleUnchanged": "Choose a different role before saving",
+      "workspaceRoleInvalid": "Choose a supported workspace role",
+      "workspaceRolePermissionDenied": "You do not have permission to assign that workspace role"
     }
   },
   "ui": {
@@ -38,7 +108,6 @@
       "nameLabel": "Workspace Name",
       "namePlaceholder": "e.g., Work, Personal, Projects",
       "nameHint": "Maximum 50 characters",
-      "defaultLabel": "Set as default workspace",
       "success": "Workspace created successfully",
       "errorTitle": "Create New Workspace",
       "unknownError": "Unknown error",
@@ -51,15 +120,228 @@
       "nameLabel": "Workspace Name",
       "namePlaceholder": "e.g., Work, Personal, Projects",
       "nameHint": "Maximum 50 characters",
-      "defaultLabel": "Set as default workspace",
+      "slugLabel": "Workspace Slug",
+      "slugPlaceholder": "e.g., work-personal-projects",
+      "slugHint": "Lowercase letters, numbers, and hyphens only",
       "success": "Workspace updated successfully",
       "errorTitle": "Update Workspace",
       "unknownError": "Unknown error"
     },
+    "settingsPage": {
+      "identityTitle": "Workspace identity",
+      "identityDescription": "Update the workspace name and slug.",
+      "readOnlyNotice": "You can review these workspace details, but only admins and owners can update them.",
+      "dangerZoneTitle": "Delete Workspace",
+      "dangerZoneDescription": "Delete this workspace permanently when the existing product rules allow it."
+    },
+    "settingsForm": {
+      "nameLabel": "Workspace Name",
+      "namePlaceholder": "e.g., Work, Personal, Projects",
+      "nameHint": "Maximum 50 characters",
+      "slugLabel": "Workspace Slug",
+      "slugPlaceholder": "e.g., work-personal-projects",
+      "slugHint": "Lowercase letters, numbers, and hyphens only",
+      "success": "Workspace updated successfully",
+      "errorTitle": "Update Workspace",
+      "unknownError": "Unknown error"
+    },
+    "settingsUsersPage": {
+      "title": "Workspace Users",
+      "description": "Review the people who currently belong to this workspace and update built-in roles when permitted.",
+      "addMemberAction": "Add Member",
+      "readOnlyNotice": "You can review workspace members here, but only admins and owners can add people or change roles in this release.",
+      "currentUserSectionLabel": "Your workspace access",
+      "currentUserTitle": "Your access",
+      "currentUserDescription": "Review your own workspace membership and assigned roles.",
+      "currentUserBadge": "You",
+      "otherUsersSectionLabel": "Other workspace users",
+      "otherUsersTitle": "Other workspace users",
+      "otherUsersDescription": "People other than you are shown in a table for faster scanning.",
+      "directoryTitle": "Member directory",
+      "directoryDescription": "Review visible workspace members and invite existing users.",
+      "joinedLabel": "Joined",
+      "roleUpdateSuccess": "Member role updated successfully",
+      "roleUpdateErrorTitle": "Update Member Role",
+      "roleUpdateUnknownError": "Unknown error",
+      "emptyTitle": "No workspace users yet",
+      "emptyDescription": "This workspace does not have any visible members yet.",
+      "othersEmptyTitle": "No other workspace users",
+      "othersEmptyDescription": "You are the only visible member in this workspace right now.",
+      "table": {
+        "columns": {
+          "user": "User",
+          "email": "Email",
+          "roles": "Roles",
+          "joined": "Joined"
+        },
+        "roleSelectLabel": "Role for {name}",
+        "noRoles": "No roles"
+      }
+    },
+    "settingsInvitationsPage": {
+      "title": "Workspace Invitations",
+      "description": "Create shareable invitation links and review invitation activity for this workspace.",
+      "sectionTitle": "Invitation activity",
+      "sectionDescription": "Create invitation links and track every invitation state.",
+      "emptyTitle": "No invitations yet",
+      "emptyDescription": "Create an invitation to give someone a secure entry point into this workspace.",
+      "copied": "Copied",
+      "status": {
+        "pending": "Pending",
+        "accepted": "Accepted",
+        "rejected": "Rejected",
+        "canceled": "Canceled",
+        "expired": "Expired"
+      },
+      "table": {
+        "columns": {
+          "email": "Email",
+          "role": "Role",
+          "inviter": "Inviter",
+          "created": "Created",
+          "expires": "Expires",
+          "status": "Status",
+          "actions": "Actions"
+        }
+      }
+    },
+    "createInvitationDialog": {
+      "title": "Invite By Email",
+      "description": "Create a shareable invitation link and choose the role this person should receive.",
+      "trigger": "Invite By Email",
+      "emailLabel": "Email",
+      "emailPlaceholder": "person@example.com",
+      "emailHint": "The invitation will require this verified primary email at acceptance time.",
+      "roleLabel": "Role",
+      "roleHint": "Choose the role this invitation will grant.",
+      "createdTitle": "Invitation created",
+      "createdDescription": "Copy this link and share it with the invited person.",
+      "linkLabel": "Invitation link",
+      "createAnother": "Create another invitation",
+      "copied": "Copied",
+      "success": "Invitation created successfully",
+      "errorTitle": "Create Invitation",
+      "unknownError": "Unknown error"
+    },
+    "addMemberDialog": {
+      "title": "Add Existing User",
+      "description": "Add an existing account to this workspace immediately and choose their role.",
+      "trigger": "Add Member",
+      "userIdLabel": "User ID",
+      "userIdPlaceholder": "ck123example",
+      "userIdHint": "Use the exact internal user ID for the account you want to add.",
+      "roleLabel": "Role",
+      "roleHint": "Choose the role this user will receive.",
+      "success": "Member added successfully",
+      "errorTitle": "Add Member",
+      "unknownError": "Unknown error"
+    },
+    "roles": {
+      "labels": {
+        "member": "Member",
+        "admin": "Admin",
+        "owner": "Owner"
+      }
+    },
+    "pendingInvitationsBlock": {
+      "title": "Pending Workspace Invitations",
+      "description": "These invitations are waiting for your decision.",
+      "emptyTitle": "No pending invitations",
+      "emptyDescription": "You do not have any actionable workspace invitations right now.",
+      "pendingBadge": "Pending",
+      "invitedEmail": "Invited email: {email}",
+      "invitedBy": "Invited by: {inviter}",
+      "expiresLabel": "Expires: {date}",
+      "reviewAction": "Review Invitation"
+    },
+    "invitationDecisionPage": {
+      "title": "Workspace Invitation",
+      "errorTitle": "Workspace Invitation",
+      "unknownError": "Unknown error",
+      "acceptAction": "Accept Invitation",
+      "acceptPending": "Accepting...",
+      "rejectAction": "Reject Invitation",
+      "rejectPending": "Rejecting...",
+      "acceptSuccess": "Invitation accepted successfully",
+      "rejectSuccess": "Invitation rejected successfully",
+      "openWorkspaceAction": "Open Workspace",
+      "viewInvitationsAction": "View My Invitations",
+      "details": {
+        "workspace": "Workspace",
+        "email": "Invited email",
+        "role": "Role",
+        "inviter": "Invited by",
+        "created": "Created",
+        "expires": "Expires"
+      },
+      "state": {
+        "pending": {
+          "label": "Pending",
+          "description": "Review the invitation details and decide whether to join this workspace."
+        },
+        "accepted": {
+          "label": "Accepted",
+          "description": "This invitation has already been accepted."
+        },
+        "rejected": {
+          "label": "Rejected",
+          "description": "This invitation has already been rejected."
+        },
+        "canceled": {
+          "label": "Canceled",
+          "description": "This invitation is no longer active."
+        },
+        "expired": {
+          "label": "Expired",
+          "description": "This invitation expired before it was accepted."
+        },
+        "recipient-mismatch": {
+          "label": "Email mismatch",
+          "description": "Sign in with the invited email address to respond to this invitation."
+        },
+        "email-verification-required": {
+          "label": "Email verification required",
+          "description": "Verify your primary email before accepting or rejecting this invitation."
+        },
+        "already-member": {
+          "label": "Already a member",
+          "description": "You already belong to this workspace, so no additional action is needed."
+        }
+      }
+    },
+    "settingsPlaceholder": {
+      "badge": "Coming soon",
+      "body": "This section is visible now so workspace administration has a stable home, but management tools for it are not part of this change yet.",
+      "sections": {
+        "invitations": {
+          "pageTitle": "Invitations",
+          "pageDescription": "Review the upcoming workspace invitation management area.",
+          "title": "Invitations",
+          "description": "Workspace invitation flows will be added here in a follow-up change."
+        },
+        "users": {
+          "pageTitle": "Users",
+          "pageDescription": "Review the upcoming workspace user management area.",
+          "title": "Users",
+          "description": "Workspace user management will be added here in a follow-up change."
+        },
+        "teams": {
+          "pageTitle": "Teams",
+          "pageDescription": "Review the upcoming workspace team management area.",
+          "title": "Team management",
+          "description": "Workspace team management will be added here in a follow-up change."
+        },
+        "roles": {
+          "pageTitle": "Roles",
+          "pageDescription": "Review the upcoming workspace role management area.",
+          "title": "Role management",
+          "description": "Workspace role management will be added here in a follow-up change."
+        }
+      }
+    },
     "deleteDialog": {
       "title": "Delete Workspace?",
       "description": "This action cannot be undone. The workspace record will be permanently removed.",
-      "defaultWorkspaceNotice": "This is your default workspace. Another workspace will be set as default after deletion.",
       "confirmationLabel": "To confirm, please type “{name}” below in the box below",
       "confirmationPlaceholder": "Type name of workspace to confirm deletion",
       "success": "Workspace deleted successfully",
@@ -81,21 +363,28 @@
         },
         "switch": {
           "title": "Switch Between Workspaces",
-          "description": "Easily switch between workspaces using the dropdown in the header to focus on what matters."
+          "description": "Use the workspace switcher in the sidebar to move between contexts without losing your place."
         }
       }
     },
     "card": {
-      "default": "Default workspace",
-      "custom": "Custom workspace",
+      "settings": "Settings",
+      "slugLabel": "Slug",
       "summary": "Use this card to summarize what lives under this workspace once you add your own entities.",
       "open": "Open workspace"
     },
     "switcher": {
       "fallback": "Workspaces",
       "myWorkspaces": "My Workspaces",
-      "defaultBadge": "Default",
+      "switchError": "Unable to switch workspaces right now.",
       "manageWorkspaces": "Manage Workspaces"
+    },
+    "onboarding": {
+      "title": "Create your first workspace",
+      "description": "You do not have access to any workspaces yet. Create one to open the application, or review invitations sent to your account.",
+      "createAction": "Create Workspace",
+      "inviteAction": "Review Invitations",
+      "inviteHint": "Review your pending invitations"
     },
     "navigation": {
       "quickCreate": "Quick Create",

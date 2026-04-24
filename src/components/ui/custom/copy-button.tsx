@@ -9,10 +9,14 @@ import { cn } from "@lib/utils";
 
 export const CopyButton = ({
   text,
+  copyLabel = "Copy",
+  copiedLabel = "Copied!",
   ...props
 }: { text: string } & React.ComponentProps<"button"> &
   VariantProps<typeof buttonVariants> & {
     asChild?: boolean;
+    copyLabel?: string;
+    copiedLabel?: string;
   }) => {
   const [copied, setCopied] = useState<boolean>(false);
 
@@ -50,7 +54,7 @@ export const CopyButton = ({
           <IconCopy />
         </span>
       </span>
-      {!isIcon && (copied ? "Copied!" : "Copy")}
+      {!isIcon && (copied ? copiedLabel : copyLabel)}
     </Button>
   );
 };

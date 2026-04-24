@@ -7,6 +7,14 @@
         "title": "Dashboard",
         "description": "View your application data and manage core sections in one place."
       }
+    },
+    "organization_dashboard": {
+      "title": "Dashboard",
+      "description": "Your dashboard — extend this area with summaries and shortcuts for your own workflows.",
+      "openGraph": {
+        "title": "Dashboard",
+        "description": "View your application data and manage core sections in one place."
+      }
     }
   },
   "ui": {

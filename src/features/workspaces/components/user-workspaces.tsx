@@ -6,6 +6,7 @@ import {
   WorkspaceCard,
   WorkspaceCardSkeleton,
 } from "@features/workspaces/components/ui/workspace-card";
+import { hasWorkspacePermission } from "@features/workspaces/workspaces-permissions";
 
 const pageLayoutClassName =
   "flex w-full max-w-[1360px] flex-1 flex-col gap-6 pb-8 xl:flex-row xl:items-start xl:gap-8";
@@ -34,6 +35,18 @@ const UserWorkspacesComponent = ({ loadUserWorkspacesPromise }: UserWorkspacesPr
   const { success, data: workspaces, error } = use(loadUserWorkspacesPromise);
   const workspaceItems = workspaces ?? [];
   const isEmpty = success && workspaceItems.length === 0;
+  const deletePermissions =
+    success && workspaceItems.length > 0
+      ? use(
+          Promise.all(
+            workspaceItems.map((workspace) =>
+              hasWorkspacePermission(workspace.id, {
+                organization: ["delete"],
+              })
+            )
+          )
+        )
+      : [];
 
   return (
     <div className={pageLayoutClassName}>
@@ -44,12 +57,11 @@ const UserWorkspacesComponent = ({ loadUserWorkspacesPromise }: UserWorkspacesPr
       <main className={mainClassName}>
         {success && workspaceItems.length > 0 && (
           <div className={workspacesGridClassName}>
-            {workspaceItems.map((workspace) => (
+            {workspaceItems.map((workspace, index) => (
               <WorkspaceCard
                 key={workspace.id}
                 workspace={workspace}
-                canDelete={workspaceItems.length > 1}
-                canChangeDefault={workspaceItems.length > 1}
+                canDelete={workspaceItems.length > 1 && Boolean(deletePermissions[index])}
               />
             ))}
           </div>

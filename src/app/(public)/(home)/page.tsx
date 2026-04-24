@@ -135,7 +135,9 @@ export default async function HomePage() {
             "Prisma",
             "PostgreSQL",
             "Better Auth",
+            "Better Auth Organizations",
             "shadcn/ui",
+            "next-intl",
           ].map((tech) => (
             <Badge key={tech} variant="outline">
               {tech}

@@ -4,11 +4,18 @@ import { HttpCodes } from "@typings/network";
 import { type UpdateWorkspaceInput, updateWorkspaceSchema } from "../workspaces-schemas";
 import { updateWorkspaceCache, WorkspaceWithCounts } from "../workspaces-types";
 import { createProtectedActionWithInput } from "@lib/actions";
-import { findFirstWorkspaceByIdAndUserId } from "@features/workspaces/workspaces-repository";
 import { forbidden } from "next/navigation";
-import prisma from "@server/prisma";
+import { auth } from "@server/auth";
+import { headers } from "next/headers";
 import { workspacesLogger } from "@features/workspaces/workspaces-logger";
 import { WORKSPACE_ERROR_KEYS } from "@features/workspaces/workspaces-errors";
+import {
+  findFirstAccessibleOrganizationByIdAndUserId,
+  findManyAccessibleOrganizationsByUserId,
+  findWorkspaceDtoByIdAndUserId,
+  generateOrganizationSlug,
+} from "@features/organizations/organizations-repository";
+import { hasWorkspacePermission } from "@features/workspaces/workspaces-permissions";
 
 export const updateWorkspace = createProtectedActionWithInput<
   UpdateWorkspaceInput,
@@ -16,26 +23,35 @@ export const updateWorkspace = createProtectedActionWithInput<
 >(
   updateWorkspaceSchema,
   async (input: UpdateWorkspaceInput, { userId, logger }) => {
-    const { id, name, isDefault } = input;
-    const existingWorkspace = await findFirstWorkspaceByIdAndUserId(id, userId, {
+    const { id, name, slug } = input;
+    const existingWorkspace = await findFirstAccessibleOrganizationByIdAndUserId(id, userId, {
       name: true,
+      slug: true,
     });
 
     if (!existingWorkspace) {
       forbidden();
     }
 
-    // If a name is provided, check uniqueness (excluding current Workspace)
-    if (name && name !== existingWorkspace.name) {
-      // TODO check for duplicate name in lowercase in db and input
-      const duplicateWorkspace = await prisma.workspace.findFirst({
-        where: {
-          userId,
-          name: { mode: "insensitive", equals: name },
-          id: { not: id },
+    const canUpdateWorkspace = await hasWorkspacePermission(id, {
+      organization: ["update"],
+    });
+
+    if (!canUpdateWorkspace) {
+      return {
+        success: false,
+        error: {
+          message: WORKSPACE_ERROR_KEYS.updatePermissionDenied,
+          code: HttpCodes.FORBIDDEN,
         },
-        select: { id: true },
-      });
+      };
+    }
+
+    if (name && name !== existingWorkspace.name) {
+      const duplicateWorkspace = (await findManyAccessibleOrganizationsByUserId(userId)).find(
+        (workspace) =>
+          workspace.id !== id && workspace.name.trim().toLowerCase() === name.trim().toLowerCase()
+      );
 
       if (duplicateWorkspace) {
         return {
@@ -48,41 +64,61 @@ export const updateWorkspace = createProtectedActionWithInput<
       }
     }
 
-    // Update Workspace with transaction for default handling
-    const updatedWorkspace = await prisma.$transaction(async (tx) => {
-      // If setting as default, unset previous default
-      if (isDefault === true) {
-        await tx.workspace.updateMany({
-          where: {
-            userId,
-            isDefault: true,
-            id: { not: id },
-          },
-          data: {
-            isDefault: false,
-          },
-        });
-      }
+    if (slug && slug !== existingWorkspace.slug) {
+      const duplicateSlugWorkspace = (await findManyAccessibleOrganizationsByUserId(userId)).find(
+        (workspace) => workspace.id !== id && workspace.slug === slug
+      );
 
-      // Update Workspace
-      return tx.workspace.update({
-        where: { id },
+      if (duplicateSlugWorkspace) {
+        return {
+          success: false,
+          error: {
+            message: WORKSPACE_ERROR_KEYS.duplicateSlug,
+            code: HttpCodes.CONFLICT,
+          },
+        };
+      }
+    }
+
+    await auth.api.updateOrganization({
+      body: {
+        organizationId: id,
         data: {
-          ...(name && { name }),
-          ...(isDefault !== undefined && { isDefault }),
+          ...(name
+            ? {
+                name,
+              }
+            : {}),
+          ...((name || slug) && {
+            slug:
+              slug ??
+              (await generateOrganizationSlug(name ?? existingWorkspace.name, {
+                excludeOrganizationId: id,
+              })),
+          }),
         },
-      });
+      },
+      headers: await headers(),
     });
 
     logger.debug("Updated Workspace for user");
 
-    // 8. Revalidate cache
     updateWorkspaceCache({ workspaceId: id, userId });
 
-    // 9. Return success with data
+    const workspace = await findWorkspaceDtoByIdAndUserId(id, userId);
+    if (!workspace) {
+      return {
+        success: false,
+        error: {
+          message: "500",
+          code: HttpCodes.SERVER_ERROR,
+        },
+      };
+    }
+
     return {
       success: true,
-      data: updatedWorkspace,
+      data: workspace as WorkspaceWithCounts,
     };
   },
   {

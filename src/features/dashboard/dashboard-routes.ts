@@ -1,13 +1,18 @@
 import { Feature } from "@typings/pages";
 import { buildFeature } from "@lib/pages";
 
-type DashboardPages = "application_dashboard";
+type DashboardPages = "application_dashboard" | "organization_dashboard";
 export type DashboardRoutes = Feature<DashboardPages>;
 
-const dashboardRoutes: DashboardRoutes = buildFeature("dashboard", {
+const dashboardRoutes: DashboardRoutes = buildFeature<DashboardPages>("dashboard", {
   pages: {
     application_dashboard: {
       pathTemplate: "/dashboard",
+      hidePageHeader: true,
+      hidePageHeaderOnMobile: true,
+    },
+    organization_dashboard: {
+      pathTemplate: "/w/[organizationKey]/dashboard",
       hidePageHeader: true,
       hidePageHeaderOnMobile: true,
     },

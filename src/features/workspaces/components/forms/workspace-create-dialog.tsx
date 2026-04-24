@@ -5,12 +5,11 @@ import { toast } from "sonner";
 import React, { DispatchWithoutAction, useEffect, useState, useTransition } from "react";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import { Button } from "@components/ui/button";
-import { Checkbox } from "@components/ui/checkbox";
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@components/ui/field";
 import { Input } from "@components/ui/input";
 import {
-  CreateWorkspaceInput,
   createWorkspaceFormSchema,
+  CreateWorkspaceInput,
 } from "@features/workspaces/workspaces-schemas";
 import { Modal, ModalProps } from "@components/ui/custom/modal";
 import { IconPlus } from "@tabler/icons-react";
@@ -20,6 +19,9 @@ import { useTranslations } from "next-intl";
 import { cn } from "@lib/utils";
 import { useAnyTranslations } from "@/src/i18n/use-any-translations";
 import { translateWorkspaceErrorMessage } from "@features/workspaces/workspaces-errors";
+import { useRouter } from "next/navigation";
+import routes from "@features/routes";
+import { getOrganizationRouteKey } from "@features/organizations/organizations-context";
 
 interface CreateWorkspaceDialogProps {
   onSuccess?: DispatchWithoutAction;
@@ -33,6 +35,7 @@ export const WorkspaceCreateDialog = ({
   const tCommon = useTranslations("common");
   const tWorkspaces = useTranslations("workspaces.ui.createDialog");
   const tAny = useAnyTranslations("workspaces");
+  const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [open, onOpenChange] = useState(false);
   const localizedTrigger =
@@ -55,7 +58,6 @@ export const WorkspaceCreateDialog = ({
     mode: "all",
     defaultValues: {
       name: "",
-      isDefault: false,
     },
   });
 
@@ -67,6 +69,14 @@ export const WorkspaceCreateDialog = ({
         toast.success(tWorkspaces("success"));
         onOpenChange(false);
         onSuccess?.();
+        if (result.data?.slug || result.data?.id) {
+          router.push(
+            routes.dashboard.pages.organization_dashboard.path({
+              organizationKey: getOrganizationRouteKey(result.data),
+            })
+          );
+        }
+        router.refresh();
       } else {
         toast.error(tWorkspaces("errorTitle"), {
           description:
@@ -121,26 +131,6 @@ export const WorkspaceCreateDialog = ({
                   <FieldDescription className="text-xs">{tWorkspaces("nameHint")}</FieldDescription>
                   {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                 </Field>
-              )}
-            />
-            <Controller
-              name="isDefault"
-              control={control}
-              render={({ field, fieldState }) => (
-                <FieldGroup data-slot="checkbox-group">
-                  <Field orientation="horizontal" data-invalid={fieldState.invalid}>
-                    <Checkbox
-                      id="is-default"
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                      disabled={isPending}
-                    />
-                    <FieldLabel htmlFor="is-default" className="cursor-pointer text-sm font-normal">
-                      {tWorkspaces("defaultLabel")}
-                    </FieldLabel>
-                  </Field>
-                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                </FieldGroup>
               )}
             />
           </FieldGroup>

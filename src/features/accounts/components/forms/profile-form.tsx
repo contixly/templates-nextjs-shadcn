@@ -66,7 +66,7 @@ export const ProfileForm = ({ loadCurrentUserPromise }: UserProfileProps) => {
         name="name"
         control={control}
         render={({ field, fieldState }) => (
-          <Field data-invalid={fieldState.invalid} className="flex-1 space-y-2">
+          <Field data-invalid={fieldState.invalid} className="flex-1 gap-2">
             <Input
               {...field}
               id="edit-profile-name"

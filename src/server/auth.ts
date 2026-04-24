@@ -1,33 +1,22 @@
 import "server-only";
 
 import { betterAuth } from "better-auth/minimal";
-import { genericOAuth, lastLoginMethod } from "better-auth/plugins";
+import { genericOAuth, lastLoginMethod, organization } from "better-auth/plugins";
 import prisma from "@server/prisma";
 import { APP_BASE_DOMAIN, APP_COOKIE_PREFIX, LAST_LOGIN_METHOD_KEY } from "@lib/environment";
 import { nextCookies } from "better-auth/next-js";
 import { BetterAuthOptions } from "@better-auth/core";
-import { workspacesLogger } from "@features/workspaces/workspaces-logger";
-import { createDefaultWorkspaceForUser } from "@features/workspaces/actions/create-default-workspace-for-user";
-import { createAuthMiddleware } from "better-auth/api";
 import { prismaAdapter } from "@better-auth/prisma-adapter";
 import { BetterAuthAdvancedOptions, isProduction } from "better-auth";
 import { socialsProviders } from "@typings/auth";
 import { YandexOAuth2ClientConfig } from "@server/auth/yandex-oauth2-client";
 
+type BetterAuthApiMethod = (...args: unknown[]) => Promise<unknown>;
+
 export const auth = betterAuth({
   database: prismaAdapter(prisma, {
     provider: "postgresql",
   }),
-  hooks: {
-    after: createAuthMiddleware(async (ctx) => {
-      if (ctx.path.startsWith("/callback/:id")) {
-        const { user: { id: userId } = {} } = ctx.context.newSession ?? {};
-        if (userId) {
-          await createDefaultWorkspaceForUser(userId, workspacesLogger.child({ userId }));
-        }
-      }
-    }),
-  },
   emailAndPassword: {
     enabled: false,
   },
@@ -74,6 +63,16 @@ export const auth = betterAuth({
     lastLoginMethod({
       cookieName: LAST_LOGIN_METHOD_KEY,
     }),
+    organization({
+      requireEmailVerificationOnInvitation: true,
+      schema: {
+        session: {
+          fields: {
+            activeOrganizationId: "activeOrganizationId",
+          },
+        },
+      },
+    }),
     genericOAuth({
       config: [YandexOAuth2ClientConfig],
     }),
@@ -94,4 +93,6 @@ export const auth = betterAuth({
   },
   secret: process.env.BETTER_AUTH_SECRET,
   trustedOrigins: [process.env.BETTER_AUTH_URL],
-} as BetterAuthOptions);
+} as BetterAuthOptions) as ReturnType<typeof betterAuth> & {
+  api: Record<string, BetterAuthApiMethod>;
+};

@@ -4,6 +4,7 @@ import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
+  SidebarHeader,
   SidebarProvider,
   SidebarRail,
 } from "@components/ui/sidebar";
@@ -15,6 +16,7 @@ import { SIDEBAR_COOKIE_KEY } from "@lib/environment";
 import { Spinner } from "@components/ui/spinner";
 import { NavMain } from "./navigation/nav-main";
 import { loadUserWorkspaces } from "@features/workspaces/actions/load-user-workspaces";
+import { WorkspaceSidebarSwitcher } from "@features/workspaces/components/ui/workspace-sidebar-switcher";
 
 interface SidebarProviderWrapperProps extends React.ComponentProps<"div"> {
   defaultOpen?: boolean;
@@ -75,20 +77,11 @@ export const AppSidebar = async ({ ...props }: React.ComponentProps<typeof Sideb
 
   return (
     <Sidebar collapsible="icon" {...props}>
-      {/*<SidebarHeader>*/}
-      {/*  <SidebarMenu>*/}
-      {/*    <SidebarMenuItem>*/}
-      {/*      <SidebarMenuButton asChild className="data-[slot=sidebar-menu-button]:!p-1.5">*/}
-      {/*        <a href="#">*/}
-      {/*          <IconInnerShadowTop className="!size-5" />*/}
-      {/*          <span className="text-base font-semibold">Acme Inc.</span>*/}
-      {/*        </a>*/}
-      {/*      </SidebarMenuButton>*/}
-      {/*    </SidebarMenuItem>*/}
-      {/*  </SidebarMenu>*/}
-      {/*</SidebarHeader>*/}
+      <SidebarHeader>
+        <WorkspaceSidebarSwitcher loadUserWorkspacesPromise={loadUserWorkspacesPromise} />
+      </SidebarHeader>
       <SidebarContent>
-        <NavMain loadUserWorkspacesPromise={loadUserWorkspacesPromise} />
+        <NavMain />
         <NavSecondary className="mt-3" />
       </SidebarContent>
       <SidebarFooter>

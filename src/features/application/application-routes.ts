@@ -5,7 +5,7 @@ import { buildFeature } from "@lib/pages";
 type ApplicationPages = "home";
 export type ApplicationRoutes = Feature<ApplicationPages>;
 
-const applicationRoutes: ApplicationRoutes = buildFeature("application", {
+const applicationRoutes: ApplicationRoutes = buildFeature<ApplicationPages>("application", {
   pages: {
     home: {
       pathTemplate: "/",

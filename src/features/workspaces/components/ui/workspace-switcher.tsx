@@ -1,9 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { Suspense, use, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
-import { Badge } from "@components/ui/badge";
+import { Suspense, use, useState, useTransition } from "react";
+import { useParams, usePathname, useRouter } from "next/navigation";
 import { BreadcrumbEllipsis, BreadcrumbItem, BreadcrumbSeparator } from "@components/ui/breadcrumb";
 import {
   DropdownMenu,
@@ -19,6 +18,10 @@ import { ActionResult } from "@typings/actions";
 import { WorkspaceWithCounts } from "@features/workspaces/workspaces-types";
 import { IconCheck, IconSelector, IconSettings } from "@tabler/icons-react";
 import { useTranslations } from "next-intl";
+import { toast } from "sonner";
+import { setActiveOrganization } from "@features/organizations/actions/set-active-organization";
+import { findOrganizationByRouteKey } from "@features/organizations/organizations-context";
+import { resolveWorkspaceSwitchHref } from "@features/workspaces/workspace-switch-navigation";
 
 interface WorkspaceSwitcherProps {
   loadUserWorkspacesPromise: Promise<ActionResult<WorkspaceWithCounts[]>>;
@@ -29,7 +32,7 @@ interface WorkspaceSwitcherProps {
  *
  * Features:
  * - Displays current active workspace in trigger
- * - Lists all user's workspaces with default badge
+ * - Lists all user's workspaces
  * - Handles workspace selection and context switching
  * - Shows loading state during switch
  * - Links to workspaces management page
@@ -37,19 +40,40 @@ interface WorkspaceSwitcherProps {
 const WorkspaceSwitcherComponent = ({ loadUserWorkspacesPromise }: WorkspaceSwitcherProps) => {
   const t = useTranslations("workspaces.ui.switcher");
   const router = useRouter();
+  const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const [isPending, startTransition] = useTransition();
 
-  const { workspaceId: currentWorkspaceId } = useParams<{ workspaceId?: string }>();
+  const { organizationKey } = useParams<{ organizationKey?: string }>();
   const { data: workspaces } = use(loadUserWorkspacesPromise);
-  const activeWorkspace = workspaces?.find((workspace) => workspace.id === currentWorkspaceId);
+  const activeWorkspace = workspaces
+    ? findOrganizationByRouteKey(workspaces, organizationKey)
+    : null;
 
   const handleSelectWorkspace = (workspaceId: string) => {
     if (workspaceId === activeWorkspace?.id) return;
-    setOpen(false);
-    // router.push(routes.workspaces.pages.workspace_dashboard.path({ workspaceId })); // TODO switch to same route in another workspace
+
+    startTransition(async () => {
+      const result = await setActiveOrganization({ organizationId: workspaceId });
+      if (!result.success) {
+        toast.error(t("switchError"));
+        return;
+      }
+
+      setOpen(false);
+      router.push(
+        resolveWorkspaceSwitchHref({
+          currentPathname: pathname,
+          workspace: workspaces?.find((workspace) => workspace.id === workspaceId) ?? {
+            id: workspaceId,
+          },
+        })
+      );
+      router.refresh();
+    });
   };
 
-  if (!currentWorkspaceId) {
+  if (!organizationKey) {
     return null;
   }
 
@@ -69,6 +93,7 @@ const WorkspaceSwitcherComponent = ({ loadUserWorkspacesPromise }: WorkspaceSwit
               <DropdownMenuItem
                 key={workspace.id}
                 onSelect={() => handleSelectWorkspace(workspace.id)}
+                disabled={isPending}
                 className="cursor-pointer"
               >
                 <IconCheck
@@ -78,11 +103,6 @@ const WorkspaceSwitcherComponent = ({ loadUserWorkspacesPromise }: WorkspaceSwit
                   )}
                 />
                 <span className="flex-1 truncate">{workspace.name}</span>
-                {workspace.isDefault && (
-                  <Badge variant="secondary" className="ml-2 text-xs">
-                    {t("defaultBadge")}
-                  </Badge>
-                )}
               </DropdownMenuItem>
             ))}
           </div>

@@ -17,12 +17,14 @@ export const NavUserSettings = ({ hideGroupLabel = false }: { hideGroupLabel?: b
   const [searchQuery] = searchQueryState;
   const userTranslations = usePageTranslations(routes.accounts.pages.user);
   const profileTranslations = usePageTranslations(routes.accounts.pages.profile);
+  const invitationsTranslations = usePageTranslations(routes.accounts.pages.invitations);
   const connectionsTranslations = usePageTranslations(routes.accounts.pages.connections);
   const securityTranslations = usePageTranslations(routes.accounts.pages.security);
   const dangerTranslations = usePageTranslations(routes.accounts.pages.danger);
 
   const navItems = [
     getMenuItem(routes.accounts.pages.profile, profileTranslations.title),
+    getMenuItem(routes.accounts.pages.invitations, invitationsTranslations.title),
     getMenuItem(routes.accounts.pages.connections, connectionsTranslations.title),
     getMenuItem(routes.accounts.pages.security, securityTranslations.title),
     { ...getMenuItem(routes.accounts.pages.danger, dangerTranslations.title), isDanger: true },

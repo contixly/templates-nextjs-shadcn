@@ -10,6 +10,16 @@ const createJestConfig = nextJest({
 const config: Config = {
   coverageProvider: "v8",
   testEnvironment: "jsdom",
+  moduleNameMapper: {
+    "^@/(.*)$": "<rootDir>/$1",
+    "^@components/(.*)$": "<rootDir>/src/components/$1",
+    "^@features/(.*)$": "<rootDir>/src/features/$1",
+    "^@hooks/(.*)$": "<rootDir>/src/hooks/$1",
+    "^@lib/(.*)$": "<rootDir>/src/lib/$1",
+    "^@messages/(.*)$": "<rootDir>/src/messages/$1",
+    "^@server/(.*)$": "<rootDir>/src/server/$1",
+    "^@typings/(.*)$": "<rootDir>/src/types/$1",
+  },
   modulePathIgnorePatterns: ["<rootDir>/.next/"],
   // Add more setup options before each test is run
   // setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],

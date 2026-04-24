@@ -15,21 +15,18 @@ export type AppRoutes = Readonly<{
   accounts: AccountsRoutes;
 }>;
 
-const globalForRoutes = global as unknown as {
-  routes: AppRoutes;
-};
-
 /**
  * Defines the main routes for the application.
+ *
+ * Keep this module stateless: caching the assembled routes object on `global`
+ * can preserve stale path templates across dev hot reloads.
  */
-const routes = globalForRoutes.routes || {
+const routes: AppRoutes = {
   application,
   workspaces,
   dashboard,
   accounts,
 };
-
-globalForRoutes.routes = routes;
 
 export const routesConfig = {
   publicStaticRoute: [

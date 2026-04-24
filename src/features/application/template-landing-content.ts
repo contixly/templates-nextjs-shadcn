@@ -1,14 +1,12 @@
 import type { TablerIcon } from "@tabler/icons-react";
 import {
-  IconCloud,
-  IconComponents,
   IconDatabase,
-  IconLayersSubtract,
-  IconLock,
-  IconPlug,
+  IconMail,
   IconRoute,
   IconServer,
-  IconWebhook,
+  IconSettings,
+  IconShield,
+  IconTableShare,
 } from "@tabler/icons-react";
 
 /** Shared marketing copy for public home and authenticated welcome — replace with your product story. */
@@ -31,15 +29,15 @@ export const templateStackFeatureBlocks: TemplateStackFeature[] = [
     id: "database",
   },
   {
-    icon: IconLock,
+    icon: IconTableShare,
     id: "auth",
   },
   {
-    icon: IconLayersSubtract,
+    icon: IconMail,
     id: "features",
   },
   {
-    icon: IconComponents,
+    icon: IconSettings,
     id: "ui",
   },
 ];
@@ -51,15 +49,15 @@ export type TemplateExtensionPoint = {
 
 export const templateExtensionPointBlocks: TemplateExtensionPoint[] = [
   {
-    icon: IconPlug,
+    icon: IconSettings,
     id: "clients",
   },
   {
-    icon: IconWebhook,
+    icon: IconMail,
     id: "webhooks",
   },
   {
-    icon: IconCloud,
+    icon: IconShield,
     id: "storage",
   },
 ];
