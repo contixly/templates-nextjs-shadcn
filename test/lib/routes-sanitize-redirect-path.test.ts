@@ -14,6 +14,10 @@ describe("sanitizeRedirectPath", () => {
     expect(sanitizeRedirectPath("//evil.example")).toBe("/");
   });
 
+  it("rejects paths that become protocol-relative after normalization", () => {
+    expect(sanitizeRedirectPath("/..//evil.example")).toBe("/");
+  });
+
   it("rejects protocol-relative paths after stripping an absolute url origin", () => {
     expect(sanitizeRedirectPath("https://evil.example//evil.example")).toBe("/");
   });
