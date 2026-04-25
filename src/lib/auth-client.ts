@@ -6,7 +6,7 @@ import {
   lastLoginMethodClient,
   organizationClient,
 } from "better-auth/client/plugins";
-import { LAST_LOGIN_METHOD_KEY } from "@lib/environment";
+import { APP_BASE_URL, LAST_LOGIN_METHOD_KEY } from "@lib/environment";
 import routes from "@features/routes";
 import { BetterAuthClientOptions } from "@better-auth/core";
 import { SocialProviderType } from "@typings/auth";
@@ -27,7 +27,7 @@ import { sanitizeRedirectPath } from "@lib/routes";
  * - `baseURL`: The base URL of the authentication service or API.
  */
 export const authClient = createAuthClient({
-  baseURL: process.env.PUBLIC_BASE_URL,
+  baseURL: APP_BASE_URL,
   plugins: [
     lastLoginMethodClient({
       cookieName: LAST_LOGIN_METHOD_KEY,

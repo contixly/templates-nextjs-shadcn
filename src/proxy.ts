@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import routes, { routesConfig } from "@features/routes";
 import { auth } from "@server/auth";
 import { createRouteMatcher } from "@lib/clerk/routes";
-import { USER_ID_HEADER } from "@features/accounts/accounts-types";
 import { detectOGBots, sanitizeRedirectPath } from "@lib/routes";
 
 // Pre-compute route matchers for better performance
@@ -29,16 +28,10 @@ export default async function authMiddleware(request: NextRequest) {
   const session = await auth.api.getSession({
     headers: request.headers,
   });
-  const requestHeaders = new Headers(request.headers);
-  if (session?.user?.id) requestHeaders.set(USER_ID_HEADER, session.user.id);
 
   // Early return for public routes - no session validation needed
   if (isPublicRoute(request) || isPublicApiRoute(request)) {
-    return NextResponse.next({
-      request: {
-        headers: requestHeaders,
-      },
-    });
+    return NextResponse.next();
   }
 
   // Handle protected API routes
@@ -47,21 +40,13 @@ export default async function authMiddleware(request: NextRequest) {
       return new Response("Unauthorized", { status: 401 });
     }
 
-    return NextResponse.next({
-      request: {
-        headers: requestHeaders,
-      },
-    });
+    return NextResponse.next();
   }
 
   // Handle protected page routes
   if (!session) {
     if (detectOGBots(request.headers)) {
-      return NextResponse.next({
-        request: {
-          headers: requestHeaders,
-        },
-      });
+      return NextResponse.next();
     }
 
     const { pathname } = request.nextUrl;
@@ -78,11 +63,7 @@ export default async function authMiddleware(request: NextRequest) {
     );
   }
 
-  return NextResponse.next({
-    request: {
-      headers: requestHeaders,
-    },
-  });
+  return NextResponse.next();
 }
 
 export const config = {

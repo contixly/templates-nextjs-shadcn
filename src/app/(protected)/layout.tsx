@@ -1,8 +1,8 @@
 import { headers } from "next/headers";
 import React, { Suspense } from "react";
 import { detectOGBots } from "@lib/routes";
-import { USER_ID_HEADER } from "@features/accounts/accounts-types";
 import { unauthorized } from "next/navigation";
+import { loadCurrentUserId } from "@features/accounts/accounts-actions";
 
 export default async function ProtectedLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -19,7 +19,8 @@ async function ProtectedLayoutWrapper({ children }: { children: React.ReactNode 
     return null;
   }
 
-  if (headersList.has(USER_ID_HEADER)) {
+  const userId = await loadCurrentUserId();
+  if (userId) {
     return children;
   }
 

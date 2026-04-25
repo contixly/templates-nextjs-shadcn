@@ -105,9 +105,9 @@ export const resolveWorkspaceInvitationMutationError = (
     };
   }
 
-  if (message.includes("Unique constraint failed")) {
+  if (message.includes("Unique constraint failed") || message.includes("duplicate key")) {
     return {
-      message: WORKSPACE_ERROR_KEYS.invitationAlreadyMember,
+      message: WORKSPACE_ERROR_KEYS.invitationAlreadyExists,
       code: HttpCodes.CONFLICT,
     };
   }

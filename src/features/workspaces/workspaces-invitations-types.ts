@@ -34,11 +34,22 @@ export interface WorkspaceInvitationDto {
   invitationUrl: string;
 }
 
-export interface WorkspaceInvitationDecisionContext {
-  invitation: WorkspaceInvitationDto;
-  state: WorkspaceInvitationDecisionState;
-  canRespond: boolean;
-}
+export type WorkspaceInvitationDecisionContext =
+  | {
+      invitation: WorkspaceInvitationDto;
+      state: "pending";
+      canRespond: true;
+    }
+  | {
+      invitation: WorkspaceInvitationDto;
+      state: Exclude<WorkspaceInvitationDecisionState, "pending" | "recipient-mismatch">;
+      canRespond: false;
+    }
+  | {
+      invitation: null;
+      state: "recipient-mismatch";
+      canRespond: false;
+    };
 
 export const normalizeWorkspaceInvitationEmail = (value: string) => value.trim().toLowerCase();
 

@@ -109,14 +109,16 @@ export const loadWorkspaceInvitationDecisionPageContext = async (
     return null;
   }
   const resolvedInvitation = withResolvedWorkspaceInvitationDisplayStatus(invitation);
+  const normalizedUserEmail = normalizeWorkspaceInvitationEmail(user.email);
+  const normalizedInvitationEmail = normalizeWorkspaceInvitationEmail(resolvedInvitation.email);
 
-  const existingMembership = await findOrganizationMemberByOrganizationIdAndUserId(
-    resolvedInvitation.organizationId,
-    userId,
-    {
-      id: true,
-    }
-  );
+  if (normalizedInvitationEmail !== normalizedUserEmail) {
+    return {
+      invitation: null,
+      state: "recipient-mismatch",
+      canRespond: false,
+    };
+  }
 
   if (resolvedInvitation.displayStatus !== "pending") {
     return {
@@ -126,10 +128,6 @@ export const loadWorkspaceInvitationDecisionPageContext = async (
     };
   }
 
-  if (resolvedInvitation.email !== normalizeWorkspaceInvitationEmail(user.email)) {
-    return null;
-  }
-
   if (!user.emailVerified) {
     return {
       invitation: resolvedInvitation,
@@ -137,6 +135,14 @@ export const loadWorkspaceInvitationDecisionPageContext = async (
       canRespond: false,
     };
   }
+
+  const existingMembership = await findOrganizationMemberByOrganizationIdAndUserId(
+    resolvedInvitation.organizationId,
+    userId,
+    {
+      id: true,
+    }
+  );
 
   if (existingMembership) {
     return {

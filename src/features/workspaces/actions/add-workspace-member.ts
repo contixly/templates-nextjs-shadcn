@@ -12,8 +12,8 @@ import {
 } from "@features/organizations/organizations-repository";
 import { CACHE_OrganizationMembersTag } from "@features/organizations/organizations-types";
 import {
-  addWorkspaceMemberSchema,
   type AddWorkspaceMemberInput,
+  addWorkspaceMemberSchema,
 } from "@features/workspaces/workspaces-invitations-schemas";
 import { hasWorkspacePermission } from "@features/workspaces/workspaces-permissions";
 import { WORKSPACE_ERROR_KEYS } from "@features/workspaces/workspaces-errors";
@@ -26,7 +26,7 @@ export const addWorkspaceMember = createProtectedActionWithInput<
   { organizationId: string; userId: string }
 >(
   addWorkspaceMemberSchema,
-  async ({ organizationId, userId: targetUserId, role }, { userId }) => {
+  async ({ organizationId, userId: targetUserId, role }, { userId, headers }) => {
     const workspace = await findWorkspaceDtoByIdAndUserId(organizationId, userId);
 
     if (!workspace) {
@@ -106,6 +106,7 @@ export const addWorkspaceMember = createProtectedActionWithInput<
           userId: targetUser.id,
           role,
         },
+        headers,
       });
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);

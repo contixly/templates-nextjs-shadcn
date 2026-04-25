@@ -101,7 +101,7 @@ Required for local development (see `.env.example` for a minimal set):
 | `DATABASE_URL`              | PostgreSQL connection string (used by Prisma)                |
 | `BETTER_AUTH_SECRET`        | Secret for Better Auth session signing                       |
 | `BETTER_AUTH_URL`           | Server-side app URL (e.g. `http://localhost:3000`)           |
-| `PUBLIC_BASE_URL`           | Same origin, exposed to the auth client                      |
+| `NEXT_PUBLIC_APP_BASE_URL`  | Same origin, exposed to the auth client                      |
 | `PUBLIC_DEFAULT_LOCALE`     | Default locale for the template (`en` by default)            |
 | `NEXT_PUBLIC_YM_COUNTER_ID` | Optional Yandex Metrika counter id for client-side analytics |
 

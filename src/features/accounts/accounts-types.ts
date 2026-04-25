@@ -1,1 +1,9 @@
-export const USER_ID_HEADER = "x-user-id";
+export interface UserSessionListItem {
+  id: string;
+  expiresAt: Date;
+  createdAt: Date;
+  updatedAt: Date;
+  ipAddress?: string | null;
+  userAgent?: string | null;
+  isCurrent: boolean;
+}

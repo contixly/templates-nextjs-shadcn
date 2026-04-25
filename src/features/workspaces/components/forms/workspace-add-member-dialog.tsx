@@ -46,6 +46,7 @@ export const WorkspaceAddMemberDialog = ({
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [open, onOpenChange] = useState(false);
+  const hasAssignableRoles = assignableRoles.length > 0;
   const defaultRole = assignableRoles[0] ?? "member";
 
   const {
@@ -74,6 +75,10 @@ export const WorkspaceAddMemberDialog = ({
   }, [defaultRole, open, organizationId, reset]);
 
   const submit: SubmitHandler<AddWorkspaceMemberInput> = (data) => {
+    if (!hasAssignableRoles) {
+      return;
+    }
+
     startTransition(async () => {
       const result = await addWorkspaceMember(data);
 
@@ -144,7 +149,7 @@ export const WorkspaceAddMemberDialog = ({
                 <Select
                   value={field.value}
                   onValueChange={field.onChange}
-                  disabled={isPending || assignableRoles.length === 0}
+                  disabled={isPending || !hasAssignableRoles}
                 >
                   <SelectTrigger
                     id="workspace-add-member-role"
@@ -176,7 +181,10 @@ export const WorkspaceAddMemberDialog = ({
             >
               {tCommon("words.verbs.cancel")}
             </Button>
-            <Button type="submit" disabled={isPending || !isDirty || !isValid}>
+            <Button
+              type="submit"
+              disabled={isPending || !hasAssignableRoles || !isDirty || !isValid}
+            >
               {isPending && <Spinner data-icon="inline-start" />}
               {tCommon("words.verbs.add")}
             </Button>
