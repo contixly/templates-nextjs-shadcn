@@ -13,6 +13,12 @@ jest.mock("@components/application/settings/settings-shell", () => ({
   SettingsContentRail: ({ children }: { children: React.ReactNode }) => (
     <div data-testid="settings-content-rail">{children}</div>
   ),
+  SettingsPageIntro: ({ title, description }: { title: string; description: string }) => (
+    <header data-testid="settings-page-intro">
+      <h1>{title}</h1>
+      <p>{description}</p>
+    </header>
+  ),
   SettingsPageSection: ({
     mode,
     children,
@@ -24,6 +30,15 @@ jest.mock("@components/application/settings/settings-shell", () => ({
       {children}
     </div>
   ),
+}));
+
+jest.mock("@lib/page-translations", () => ({
+  getPageTranslations: jest.fn(async () => ({
+    title: "My Invitations",
+    description: "Review pending workspace invitations addressed to your account email.",
+    openGraphTitle: "My Invitations",
+    openGraphDescription: "Review pending workspace invitations addressed to your account email.",
+  })),
 }));
 
 jest.mock("@lib/metadata", () => ({
@@ -74,6 +89,7 @@ describe("account invitation routes", () => {
 
     render(element);
 
+    expect(screen.getByTestId("settings-page-intro")).toHaveTextContent("My Invitations");
     expect(screen.getByTestId("pending-workspace-invitations-block")).toHaveTextContent("true:2");
   });
 

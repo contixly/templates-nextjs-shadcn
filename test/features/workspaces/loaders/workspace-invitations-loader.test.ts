@@ -59,6 +59,14 @@ import {
 } from "@features/workspaces/workspaces-invitations";
 
 describe("workspace invitation loaders", () => {
+  beforeAll(() => {
+    jest.useFakeTimers().setSystemTime(new Date("2026-04-24T12:00:00.000Z"));
+  });
+
+  afterAll(() => {
+    jest.useRealTimers();
+  });
+
   beforeEach(() => {
     mockLoadCurrentUser.mockReset();
     mockLoadCurrentUserId.mockReset();
@@ -168,6 +176,39 @@ describe("workspace invitation loaders", () => {
       state: "email-verification-required",
       canRespond: false,
     });
+  });
+
+  it("returns a recipient mismatch state without exposing invitation details", async () => {
+    mockLoadCurrentUserId.mockResolvedValue("user-1");
+    mockLoadCurrentUser.mockResolvedValue({
+      id: "user-1",
+      email: "bob@example.com",
+      emailVerified: true,
+    });
+    mockFindWorkspaceInvitationById.mockResolvedValue({
+      id: "invite-1",
+      organizationId: "org-1",
+      organizationName: "Acme",
+      organizationSlug: "acme",
+      email: "alice@example.com",
+      role: "member",
+      roleLabels: ["member"],
+      status: "accepted",
+      displayStatus: "accepted",
+      expiresAt: new Date("2026-04-25T10:00:00.000Z"),
+      createdAt: new Date("2026-04-20T10:00:00.000Z"),
+      inviterId: "user-2",
+      inviterName: "Inviter",
+      inviterEmail: "inviter@example.com",
+      invitationUrl: "https://example.com/invite/invite-1",
+    });
+
+    await expect(loadWorkspaceInvitationDecisionPageContext("invite-1")).resolves.toEqual({
+      invitation: null,
+      state: "recipient-mismatch",
+      canRespond: false,
+    });
+    expect(mockFindOrganizationMemberByOrganizationIdAndUserId).not.toHaveBeenCalled();
   });
 
   it("loads workspace invitations together with the create permission flag", async () => {

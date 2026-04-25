@@ -49,6 +49,7 @@ export const WorkspaceCreateInvitationDialog = ({
   const [isPending, startTransition] = useTransition();
   const [open, onOpenChange] = useState(false);
   const [createdInvitation, setCreatedInvitation] = useState<WorkspaceInvitationDto | null>(null);
+  const hasAssignableRoles = assignableRoles.length > 0;
   const defaultRole = assignableRoles[0] ?? "member";
 
   const {
@@ -84,6 +85,10 @@ export const WorkspaceCreateInvitationDialog = ({
   };
 
   const submit: SubmitHandler<CreateWorkspaceInvitationInput> = (data) => {
+    if (!hasAssignableRoles) {
+      return;
+    }
+
     startTransition(async () => {
       const result = await createWorkspaceInvitation(data);
 
@@ -200,7 +205,7 @@ export const WorkspaceCreateInvitationDialog = ({
                   <Select
                     value={field.value}
                     onValueChange={field.onChange}
-                    disabled={isPending || assignableRoles.length === 0}
+                    disabled={isPending || !hasAssignableRoles}
                   >
                     <SelectTrigger
                       id="workspace-invitation-role"
@@ -232,7 +237,10 @@ export const WorkspaceCreateInvitationDialog = ({
               >
                 {tCommon("words.verbs.cancel")}
               </Button>
-              <Button type="submit" disabled={isPending || !isDirty || !isValid}>
+              <Button
+                type="submit"
+                disabled={isPending || !hasAssignableRoles || !isDirty || !isValid}
+              >
                 {isPending && <Spinner data-icon="inline-start" />}
                 {tCommon("words.verbs.create")}
               </Button>

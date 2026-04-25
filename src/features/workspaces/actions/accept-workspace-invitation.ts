@@ -1,6 +1,5 @@
 "use server";
 
-import { headers } from "next/headers";
 import { HttpCodes } from "@typings/network";
 import { createProtectedActionWithInput } from "@lib/actions";
 import { updateTags } from "@lib/cache";
@@ -8,8 +7,8 @@ import { auth } from "@server/auth";
 import { findWorkspaceDtoByIdAndUserId } from "@features/organizations/organizations-repository";
 import { CACHE_OrganizationMembersTag } from "@features/organizations/organizations-types";
 import {
-  updateWorkspaceInvitationDecisionSchema,
   type UpdateWorkspaceInvitationDecisionInput,
+  updateWorkspaceInvitationDecisionSchema,
 } from "@features/workspaces/workspaces-invitations-schemas";
 import {
   getWorkspaceInvitationDecisionError,
@@ -28,7 +27,7 @@ export const acceptWorkspaceInvitation = createProtectedActionWithInput<
   WorkspaceWithCounts
 >(
   updateWorkspaceInvitationDecisionSchema,
-  async ({ invitationId }, { userId }) => {
+  async ({ invitationId }, { userId, headers }) => {
     const context = await loadWorkspaceInvitationDecisionPageContext(invitationId);
 
     if (!context) {
@@ -53,7 +52,14 @@ export const acceptWorkspaceInvitation = createProtectedActionWithInput<
         body: {
           invitationId,
         },
-        headers: await headers(),
+        headers,
+      });
+
+      await auth.api.setActiveOrganization({
+        body: {
+          organizationId: context.invitation.organizationId,
+        },
+        headers,
       });
     } catch (error) {
       const resolvedError = resolveWorkspaceInvitationMutationError(error);

@@ -1,6 +1,7 @@
 /** @jest-environment node */
 
 const mockLoadCurrentUserId = jest.fn();
+const mockLoadRequestHeaders = jest.fn();
 const mockFindWorkspaceDtoByIdAndUserId = jest.fn();
 const mockFindOrganizationMemberByOrganizationIdAndUserId = jest.fn();
 const mockFindWorkspaceInvitationById = jest.fn();
@@ -11,10 +12,12 @@ const mockCreateInvitation = jest.fn();
 const mockAddMember = jest.fn();
 const mockUpdateMemberRole = jest.fn();
 const mockAcceptInvitation = jest.fn();
+const mockSetActiveOrganization = jest.fn();
 const mockRejectInvitation = jest.fn();
 const mockMemberFindFirst = jest.fn();
 const mockMemberCreate = jest.fn();
 const mockInvitationFindFirst = jest.fn();
+const mockInvitationUpdateMany = jest.fn();
 const mockUserFindUnique = jest.fn();
 const mockUpdateTags = jest.fn();
 
@@ -45,6 +48,7 @@ jest.mock("@components/errors/common-error", () => ({
 
 jest.mock("@features/accounts/accounts-actions", () => ({
   loadCurrentUserId: (...args: unknown[]) => mockLoadCurrentUserId(...args),
+  loadRequestHeaders: (...args: unknown[]) => mockLoadRequestHeaders(...args),
 }));
 
 jest.mock("@features/organizations/organizations-repository", () => ({
@@ -73,6 +77,7 @@ jest.mock("@server/auth", () => ({
       addMember: (...args: unknown[]) => mockAddMember(...args),
       updateMemberRole: (...args: unknown[]) => mockUpdateMemberRole(...args),
       acceptInvitation: (...args: unknown[]) => mockAcceptInvitation(...args),
+      setActiveOrganization: (...args: unknown[]) => mockSetActiveOrganization(...args),
       rejectInvitation: (...args: unknown[]) => mockRejectInvitation(...args),
     },
   },
@@ -91,6 +96,7 @@ jest.mock("@server/prisma", () => ({
     },
     invitation: {
       findFirst: (...args: unknown[]) => mockInvitationFindFirst(...args),
+      updateMany: (...args: unknown[]) => mockInvitationUpdateMany(...args),
     },
     user: {
       findUnique: (...args: unknown[]) => mockUserFindUnique(...args),
@@ -129,6 +135,7 @@ import { rejectWorkspaceInvitation } from "@features/workspaces/actions/reject-w
 describe("workspace invitation actions", () => {
   beforeEach(() => {
     mockLoadCurrentUserId.mockReset();
+    mockLoadRequestHeaders.mockReset();
     mockFindWorkspaceDtoByIdAndUserId.mockReset();
     mockFindOrganizationMemberByOrganizationIdAndUserId.mockReset();
     mockFindWorkspaceInvitationById.mockReset();
@@ -139,15 +146,19 @@ describe("workspace invitation actions", () => {
     mockAddMember.mockReset();
     mockUpdateMemberRole.mockReset();
     mockAcceptInvitation.mockReset();
+    mockSetActiveOrganization.mockReset();
     mockRejectInvitation.mockReset();
     mockMemberFindFirst.mockReset();
     mockMemberCreate.mockReset();
     mockInvitationFindFirst.mockReset();
+    mockInvitationUpdateMany.mockReset();
     mockUserFindUnique.mockReset();
     mockUpdateTags.mockReset();
 
     mockLoadCurrentUserId.mockResolvedValue("user1");
+    mockLoadRequestHeaders.mockResolvedValue(new Headers([["x-test", "1"]]));
     mockHeaders.mockResolvedValue(new Headers([["x-test", "1"]]));
+    mockInvitationUpdateMany.mockResolvedValue({ count: 0 });
     mockFindOrganizationMemberByOrganizationIdAndUserId.mockResolvedValue({
       id: "member-actor",
       role: "owner",
@@ -314,6 +325,7 @@ describe("workspace invitation actions", () => {
         userId: "user2",
         role: "admin",
       },
+      headers: expect.any(Headers),
     });
     expect(mockMemberCreate).not.toHaveBeenCalled();
   });
@@ -432,6 +444,7 @@ describe("workspace invitation actions", () => {
       canRespond: true,
     });
     mockAcceptInvitation.mockResolvedValue(undefined);
+    mockSetActiveOrganization.mockResolvedValue(undefined);
     mockFindWorkspaceDtoByIdAndUserId.mockResolvedValue({
       id: "org1",
       name: "Acme",
@@ -447,6 +460,12 @@ describe("workspace invitation actions", () => {
     expect(mockAcceptInvitation).toHaveBeenCalledWith({
       body: {
         invitationId: "invite1",
+      },
+      headers: expect.any(Headers),
+    });
+    expect(mockSetActiveOrganization).toHaveBeenCalledWith({
+      body: {
+        organizationId: "org1",
       },
       headers: expect.any(Headers),
     });

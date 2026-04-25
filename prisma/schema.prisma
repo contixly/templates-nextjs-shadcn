@@ -132,5 +132,7 @@ model Invitation {
   @@index([organizationId])
   @@index([email])
   @@index([inviterId])
+  // A partial unique index for pending invitations is defined in
+  // prisma/migrations/20260425190000_add_pending_invitation_unique_index/migration.sql.
   @@map("invitations")
 }

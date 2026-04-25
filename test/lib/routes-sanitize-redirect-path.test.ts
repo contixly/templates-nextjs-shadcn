@@ -1,5 +1,9 @@
 /** @jest-environment node */
 
+jest.mock("better-auth", () => ({
+  isProduction: false,
+}));
+
 import { sanitizeRedirectPath } from "@lib/routes";
 
 describe("sanitizeRedirectPath", () => {

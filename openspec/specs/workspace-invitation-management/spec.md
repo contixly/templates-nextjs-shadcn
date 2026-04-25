@@ -24,6 +24,7 @@ associated with the current workspace only for members who have invitation-creat
 - **WHEN** an authorized workspace member views an invitation row
 - **THEN** the system exposes a copy-invitation-link action for that invitation
 - **AND** the copied URL resolves to the application's invitation decision route
+- **AND** the URL is built from the configured public application base URL rather than a placeholder domain
 
 #### Scenario: Regular members cannot access the workspace invitations admin surface
 - **WHEN** an authenticated workspace member without invitation-create permission opens the invitations settings page
@@ -63,6 +64,12 @@ configuration.
 - **OR** the selected role is not supported or is not assignable by the acting member
 - **THEN** the system rejects the create-invitation request
 - **AND** surfaces a validation error without creating a duplicate invitation
+
+#### Scenario: Concurrent duplicate invitation requests are rejected atomically
+- **WHEN** two authorized requests attempt to create a pending invitation for the same workspace and recipient email at
+  the same time
+- **THEN** at most one pending invitation is stored
+- **AND** the losing request receives a duplicate-invitation validation error
 
 #### Scenario: Unauthorized member cannot create invitation
 - **WHEN** an authenticated workspace member without `invitation:create` permission opens the invitations settings page
@@ -112,6 +119,7 @@ primary email.
 - **WHEN** the invitation email does not match the authenticated user's primary email
 - **THEN** the system does not allow the invitation to be accepted
 - **AND** renders an explicit recipient-mismatch error state
+- **AND** does not render workspace, recipient, inviter, role, or expiration details for that invitation
 
 ### Requirement: Users Can Review Their Own Pending Invitations
 The system MUST provide a current-user invitation list for pending invitations addressed to the authenticated user's

@@ -7,24 +7,53 @@ import { revalidatePath } from "next/cache";
 import routes from "@features/routes";
 import { accountsLogger } from "@features/accounts/accounts-logger";
 import { id } from "@lib/z";
+import prisma from "@server/prisma";
+import { HttpCodes } from "@typings/network";
+import { loadCurrentSession } from "@features/accounts/accounts-actions";
 
 /**
- * A protected action to revoke a user session based on the provided session token.
+ * Revokes a user session by its opaque database id.
  *
- * This action accepts a session token as input and invokes the authentication API
- * to revoke the corresponding session. Upon successful completion, it triggers
- * the revalidation of the security-related route to ensure an updated session state.
- *
- * The `revokeSession` action is designed to support secure handling of session
- * invalidation events, ensuring proper logging and error handling throughout
- * the process.
- *
+ * The client never receives Better Auth session tokens. The action resolves the
+ * token server-side after verifying ownership by current user id.
  */
 export const revokeSession = createProtectedActionWithInput<string, void>(
   id,
-  async (token) => {
+  async (sessionId, { userId }) => {
+    const currentSession = await loadCurrentSession();
+
+    if (currentSession?.id === sessionId) {
+      return {
+        success: false,
+        error: {
+          message: "Cannot revoke the current session from this action.",
+          code: HttpCodes.CONFLICT,
+        },
+      };
+    }
+
+    const session = await prisma.session.findFirst({
+      where: {
+        id: sessionId,
+        userId,
+      },
+      select: {
+        token: true,
+      },
+    });
+
+    if (!session) {
+      return {
+        success: false,
+        error: {
+          message: "Session not found.",
+          code: HttpCodes.NOT_FOUND,
+        },
+      };
+    }
+
     await auth.api.revokeSession({
-      body: { token },
+      body: { token: session.token },
       headers: await headers(),
     });
 
