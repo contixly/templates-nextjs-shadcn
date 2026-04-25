@@ -1,4 +1,5 @@
 import { Logger } from "pino";
+import { ReadonlyHeaders } from "next/dist/server/web/spec-extension/adapters/headers";
 
 /**
  * Represents the result of an action or operation.
@@ -49,6 +50,7 @@ export type ActionResultError = {
  * - `userId`: A string that uniquely identifies the user performing the action.
  */
 export type ProtectedActionContext = {
+  headers: ReadonlyHeaders;
   userId: string;
   logger: Logger;
 };
