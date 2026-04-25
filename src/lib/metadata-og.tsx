@@ -3,6 +3,7 @@ import { size } from "@/src/app/opengraph-image";
 import { cache } from "react";
 import { Metadata } from "next";
 import { GlobalMetadata } from "@lib/metadata";
+import { APP_BASE_DOMAIN } from "@lib/environment";
 
 const categoryColor = "#2563eb";
 
@@ -133,7 +134,7 @@ export const buildMetadataOGImage = cache(async (metadata: Metadata, categoryNam
             fontWeight: "500",
           }}
         >
-          example.com
+          {APP_BASE_DOMAIN}
         </div>
       </div>
     </div>,
