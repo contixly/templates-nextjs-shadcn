@@ -1,8 +1,21 @@
-import { ResponseCookie } from "next/dist/compiled/@edge-runtime/cookies";
+import type { ResponseCookie } from "next/dist/compiled/@edge-runtime/cookies";
 import { isProduction } from "better-auth";
 
-export const APP_BASE_DOMAIN = isProduction ? "example.com" : "localhost:3000";
-export const APP_BASE_URL = `http${isProduction ? "s" : ""}://${APP_BASE_DOMAIN}`;
+const DEFAULT_DEVELOPMENT_BASE_URL = "http://localhost:3000";
+
+const normalizeBaseUrl = (value: string) => {
+  const url = new URL(value);
+  return url.toString().replace(/\/$/, "");
+};
+
+const configuredBaseUrl = process.env.NEXT_PUBLIC_APP_BASE_URL ?? process.env.BETTER_AUTH_URL;
+
+if (isProduction && !configuredBaseUrl) {
+  throw new Error("NEXT_PUBLIC_APP_BASE_URL must be configured in production.");
+}
+
+export const APP_BASE_URL = normalizeBaseUrl(configuredBaseUrl ?? DEFAULT_DEVELOPMENT_BASE_URL);
+export const APP_BASE_DOMAIN = new URL(APP_BASE_URL).host;
 
 export const APP_LS_PREFIX = "template-app";
 export const APP_COOKIE_PREFIX = "acc";

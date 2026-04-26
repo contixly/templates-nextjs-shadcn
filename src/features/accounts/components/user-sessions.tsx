@@ -1,7 +1,6 @@
 "use client";
 
-import React, { Suspense, use, useMemo, useTransition } from "react";
-import { Session } from "better-auth";
+import React, { Suspense, use, useTransition } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { Button } from "@components/ui/button";
 import { IconDeviceDesktop, IconDeviceMobile, IconX } from "@tabler/icons-react";
@@ -16,10 +15,10 @@ import { toast } from "sonner";
 import { revokeSession } from "@features/accounts/actions/revoke-session";
 import { revokeAllSession } from "@features/accounts/actions/revoke-all-session";
 import { useLocale, useTranslations } from "next-intl";
+import type { UserSessionListItem } from "@features/accounts/accounts-types";
 
 interface UserSessionsProps {
-  loadCurrentUserSessionsPromise: Promise<Session[]>;
-  loadCurrentSessionPromise: Promise<Session | undefined | null>;
+  loadCurrentUserSessionsPromise: Promise<UserSessionListItem[]>;
 }
 
 const parseUserAgent = (
@@ -43,7 +42,6 @@ const parseUserAgent = (
 
   const isMobile = /Mobile|Android|iPhone|iPad/i.test(userAgent);
 
-  // Parse browser
   let browser = labels?.unknownBrowser ?? "Unknown Browser";
   if (userAgent.includes("Firefox")) {
     browser = "Firefox";
@@ -57,7 +55,6 @@ const parseUserAgent = (
     browser = "Opera";
   }
 
-  // Parse OS
   let os = labels?.unknownOs ?? "Unknown OS";
   if (userAgent.includes("Windows")) {
     os = "Windows";
@@ -74,19 +71,16 @@ const parseUserAgent = (
   return { browser, os, isMobile };
 };
 
-export const UserSessionsComponent = ({
-  loadCurrentUserSessionsPromise,
-  loadCurrentSessionPromise,
-}: UserSessionsProps) => {
+export const UserSessionsComponent = ({ loadCurrentUserSessionsPromise }: UserSessionsProps) => {
   const t = useTranslations("accounts.ui.sessions");
   const locale = useLocale();
-  const rawSessions = use(loadCurrentUserSessionsPromise);
-  const currentSession = use(loadCurrentSessionPromise);
+  const sessions = use(loadCurrentUserSessionsPromise);
   const [isPending, startTransition] = useTransition();
+  const currentSession = sessions.find((session) => session.isCurrent);
 
-  const handleRevokeSession = async (token: string) => {
+  const handleRevokeSession = async (sessionId: string) => {
     startTransition(async () => {
-      const result = await revokeSession(token);
+      const result = await revokeSession(sessionId);
       if (result.success) {
         toast.success(t("revokeSuccess"));
       } else {
@@ -110,17 +104,6 @@ export const UserSessionsComponent = ({
     });
   };
 
-  const sessions = useMemo(
-    () =>
-      rawSessions
-        .map((session) => ({
-          ...session,
-          isCurrent: session.token === currentSession?.token,
-        }))
-        .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime()),
-    [rawSessions, currentSession?.token]
-  );
-
   if (!currentSession) return null;
 
   return (
@@ -128,7 +111,7 @@ export const UserSessionsComponent = ({
       title={t("title")}
       description={t("description")}
       action={
-        sessions?.filter((s) => s.id !== currentSession.id).length > 0 ? (
+        sessions.some((session) => !session.isCurrent) ? (
           <Button variant="outline" size="sm" disabled={isPending} onClick={handleRevokeAll}>
             {t("revokeAll")}
           </Button>
@@ -183,7 +166,7 @@ export const UserSessionsComponent = ({
                       variant="ghost"
                       size="icon"
                       disabled={isPending}
-                      onClick={() => handleRevokeSession(session.token)}
+                      onClick={() => handleRevokeSession(session.id)}
                     >
                       <IconX />
                       <span className="sr-only">{t("revokeSession")}</span>

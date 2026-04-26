@@ -13,7 +13,7 @@ import {
   templateStackFeatureBlocks,
 } from "@features/application/template-landing-content";
 import { getFromCookie } from "@lib/cookies";
-import { LAST_LOGIN_METHOD_KEY } from "@lib/environment";
+import { APP_BASE_DOMAIN, LAST_LOGIN_METHOD_KEY } from "@lib/environment";
 import { getTranslations } from "next-intl/server";
 
 export const generateMetadata = async (): Promise<Metadata> =>
@@ -175,7 +175,7 @@ export default async function HomePage() {
         <div className="text-muted-foreground mx-auto flex max-w-5xl flex-col items-center justify-between gap-4 text-xs md:flex-row">
           <span>{t("footer")}</span>
           <div className="flex items-center gap-4">
-            <span>example.com</span>
+            <span>{APP_BASE_DOMAIN}</span>
           </div>
         </div>
       </footer>

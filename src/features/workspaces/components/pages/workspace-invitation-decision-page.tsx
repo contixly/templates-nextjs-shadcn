@@ -30,6 +30,27 @@ export const WorkspaceInvitationDecisionPage = ({
   const [pendingAction, setPendingAction] = useState<"accept" | "reject" | null>(null);
   const invitation = context.invitation;
 
+  if (!invitation) {
+    return (
+      <Card className="w-full">
+        <CardHeader>
+          <div className="flex flex-wrap items-center gap-2">
+            <CardTitle>{t("title")}</CardTitle>
+            <Badge variant="outline">{t(`state.${context.state}.label`)}</Badge>
+          </div>
+          <CardDescription>{t(`state.${context.state}.description`)}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button asChild variant="ghost">
+            <Link href={routes.accounts.pages.invitations.path()}>
+              {t("viewInvitationsAction")}
+            </Link>
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
+
   const submitAccept = () => {
     startTransition(async () => {
       setPendingAction("accept");

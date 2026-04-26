@@ -1,6 +1,7 @@
 /** @jest-environment node */
 
 const mockLoadCurrentUserId = jest.fn();
+const mockLoadRequestHeaders = jest.fn();
 const mockFindManyAccessibleOrganizationsByUserId = jest.fn();
 const mockCountAccessibleOrganizationsByUserId = jest.fn();
 const mockFindWorkspaceDtoByIdAndUserId = jest.fn();
@@ -42,6 +43,7 @@ jest.mock("@components/errors/common-error", () => ({
 
 jest.mock("@features/accounts/accounts-actions", () => ({
   loadCurrentUserId: (...args: unknown[]) => mockLoadCurrentUserId(...args),
+  loadRequestHeaders: (...args: unknown[]) => mockLoadRequestHeaders(...args),
 }));
 
 jest.mock("@features/organizations/organizations-repository", () => ({
@@ -113,6 +115,7 @@ const SECOND_ORGANIZATION_ID = "h6qzollaqro6y66v7j52bhqp";
 describe("workspace management actions", () => {
   beforeEach(() => {
     mockLoadCurrentUserId.mockReset();
+    mockLoadRequestHeaders.mockReset();
     mockFindManyAccessibleOrganizationsByUserId.mockReset();
     mockCountAccessibleOrganizationsByUserId.mockReset();
     mockFindWorkspaceDtoByIdAndUserId.mockReset();
@@ -128,6 +131,7 @@ describe("workspace management actions", () => {
     mockOrganizationUpdateMany.mockReset();
 
     mockLoadCurrentUserId.mockResolvedValue("user-123");
+    mockLoadRequestHeaders.mockResolvedValue(new Headers([["x-test", "1"]]));
     mockHasWorkspacePermission.mockResolvedValue(true);
     mockHeaders.mockResolvedValue(new Headers([["x-test", "1"]]));
   });
@@ -220,12 +224,11 @@ describe("workspace management actions", () => {
         slug: "shared",
       },
     ]);
-    mockGenerateOrganizationSlug.mockResolvedValue("new-name");
     mockUpdateOrganization.mockResolvedValue(undefined);
     mockFindWorkspaceDtoByIdAndUserId.mockResolvedValue({
       id: ORGANIZATION_ID,
       name: "New Name",
-      slug: "new-name",
+      slug: "old-name",
       logo: null,
       metadata: null,
       createdAt: new Date("2026-04-20T10:00:00.000Z"),
@@ -242,7 +245,6 @@ describe("workspace management actions", () => {
         organizationId: ORGANIZATION_ID,
         data: {
           name: "New Name",
-          slug: "new-name",
         },
       },
       headers: expect.any(Headers),
@@ -252,7 +254,7 @@ describe("workspace management actions", () => {
       data: expect.objectContaining({
         id: ORGANIZATION_ID,
         name: "New Name",
-        slug: "new-name",
+        slug: "old-name",
       }),
     });
   });

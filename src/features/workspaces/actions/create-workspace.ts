@@ -5,7 +5,6 @@ import { type CreateWorkspaceInput, createWorkspaceSchema } from "../workspaces-
 import { updateWorkspaceCache, WorkspaceWithCounts } from "../workspaces-types";
 import { createProtectedActionWithInput } from "@lib/actions";
 import { auth } from "@server/auth";
-import { headers } from "next/headers";
 import { workspacesLogger } from "@features/workspaces/workspaces-logger";
 import { WORKSPACE_ERROR_KEYS } from "@features/workspaces/workspaces-errors";
 import {
@@ -14,12 +13,19 @@ import {
   generateOrganizationSlug,
 } from "@features/organizations/organizations-repository";
 
+const isUniqueConstraintError = (error: unknown) => {
+  const message = error instanceof Error ? error.message : String(error);
+  return message.includes("Unique constraint failed") || message.includes("duplicate key");
+};
+
+const CREATE_WORKSPACE_MAX_SLUG_ATTEMPTS = 5;
+
 export const createWorkspace = createProtectedActionWithInput<
   CreateWorkspaceInput,
   WorkspaceWithCounts
 >(
   createWorkspaceSchema,
-  async (input, { userId, logger }) => {
+  async (input, { headers, userId, logger }) => {
     const { name } = input;
 
     const existingWorkspace = (await findManyAccessibleOrganizationsByUserId(userId)).find(
@@ -33,20 +39,42 @@ export const createWorkspace = createProtectedActionWithInput<
       };
     }
 
-    const slug = await generateOrganizationSlug(name);
-    const organization = (await auth.api.createOrganization({
-      body: {
-        name,
-        slug,
-      },
-      headers: await headers(),
-    })) as { id: string };
+    let organization: { id: string } | null = null;
+
+    for (let attempt = 0; attempt < CREATE_WORKSPACE_MAX_SLUG_ATTEMPTS; attempt += 1) {
+      const slug = await generateOrganizationSlug(name);
+
+      try {
+        organization = (await auth.api.createOrganization({
+          body: {
+            name,
+            slug,
+          },
+          headers,
+        })) as { id: string };
+        break;
+      } catch (error) {
+        if (!isUniqueConstraintError(error)) {
+          throw error;
+        }
+      }
+    }
+
+    if (!organization) {
+      return {
+        success: false,
+        error: {
+          message: WORKSPACE_ERROR_KEYS.duplicateSlug,
+          code: HttpCodes.CONFLICT,
+        },
+      };
+    }
 
     await auth.api.setActiveOrganization({
       body: {
         organizationId: organization.id,
       },
-      headers: await headers(),
+      headers,
     });
 
     logger.debug("Created new Workspace for user");

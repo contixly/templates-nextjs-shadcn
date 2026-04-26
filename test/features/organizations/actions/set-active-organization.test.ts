@@ -3,6 +3,7 @@
 const mockSetActiveOrganization = jest.fn();
 const mockHeaders = jest.fn();
 const mockLoadCurrentUserId = jest.fn();
+const mockLoadRequestHeaders = jest.fn();
 
 jest.mock("@lib/logger", () => ({
   loggerFactory: {
@@ -43,6 +44,7 @@ jest.mock("next/headers", () => ({
 
 jest.mock("@features/accounts/accounts-actions", () => ({
   loadCurrentUserId: (...args: unknown[]) => mockLoadCurrentUserId(...args),
+  loadRequestHeaders: (...args: unknown[]) => mockLoadRequestHeaders(...args),
 }));
 
 jest.mock("next/navigation", () => ({
@@ -58,9 +60,11 @@ describe("setActiveOrganization", () => {
     mockSetActiveOrganization.mockReset();
     mockHeaders.mockReset();
     mockLoadCurrentUserId.mockReset();
+    mockLoadRequestHeaders.mockReset();
 
     mockHeaders.mockResolvedValue(new Headers([["x-test", "1"]]));
     mockLoadCurrentUserId.mockResolvedValue("user-123");
+    mockLoadRequestHeaders.mockResolvedValue(new Headers([["x-test", "1"]]));
   });
 
   it("stores active organization through Better Auth user context", async () => {

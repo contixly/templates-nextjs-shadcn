@@ -17,6 +17,7 @@ import {
 import { hasWorkspacePermission } from "@features/workspaces/workspaces-permissions";
 import { findWorkspaceInvitationById } from "@features/workspaces/workspaces-invitations-repository";
 import {
+  normalizeWorkspaceInvitationEmail,
   updateWorkspaceInvitationCache,
   withResolvedWorkspaceInvitationDisplayStatus,
   type WorkspaceInvitationDto,
@@ -36,6 +37,7 @@ export const createWorkspaceInvitation = createProtectedActionWithInput<
 >(
   createWorkspaceInvitationSchema,
   async ({ organizationId, email, role }, { userId }) => {
+    const normalizedEmail = normalizeWorkspaceInvitationEmail(email);
     const workspace = await findWorkspaceDtoByIdAndUserId(organizationId, userId);
 
     if (!workspace) {
@@ -74,13 +76,32 @@ export const createWorkspaceInvitation = createProtectedActionWithInput<
       };
     }
 
+    const now = new Date();
+
+    await prisma.invitation.updateMany({
+      where: {
+        organizationId,
+        email: {
+          equals: normalizedEmail,
+          mode: "insensitive",
+        },
+        status: "pending",
+        expiresAt: {
+          lte: now,
+        },
+      },
+      data: {
+        status: "canceled",
+      },
+    });
+
     const [existingMember, existingInvitation] = await Promise.all([
       prisma.member.findFirst({
         where: {
           organizationId,
           user: {
             email: {
-              equals: email,
+              equals: normalizedEmail,
               mode: "insensitive",
             },
           },
@@ -92,10 +113,13 @@ export const createWorkspaceInvitation = createProtectedActionWithInput<
       prisma.invitation.findFirst({
         where: {
           organizationId,
-          email,
+          email: {
+            equals: normalizedEmail,
+            mode: "insensitive",
+          },
           status: "pending",
           expiresAt: {
-            gt: new Date(),
+            gt: now,
           },
         },
         select: {
@@ -128,7 +152,7 @@ export const createWorkspaceInvitation = createProtectedActionWithInput<
       const createdInvitation = (await auth.api.createInvitation({
         body: {
           organizationId,
-          email,
+          email: normalizedEmail,
           role,
         },
         headers: await headers(),
@@ -137,7 +161,7 @@ export const createWorkspaceInvitation = createProtectedActionWithInput<
       updateWorkspaceInvitationCache({
         invitationId: createdInvitation.id,
         organizationId,
-        email,
+        email: normalizedEmail,
       });
 
       const invitation = await findWorkspaceInvitationById(createdInvitation.id);

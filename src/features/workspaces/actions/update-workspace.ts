@@ -14,7 +14,6 @@ import {
   findManyAccessibleOrganizationsByUserId,
   findOrganizationBySlug,
   findWorkspaceDtoByIdAndUserId,
-  generateOrganizationSlug,
 } from "@features/organizations/organizations-repository";
 import { hasWorkspacePermission } from "@features/workspaces/workspaces-permissions";
 
@@ -88,13 +87,11 @@ export const updateWorkspace = createProtectedActionWithInput<
                 name,
               }
             : {}),
-          ...((name || slug) && {
-            slug:
-              slug ??
-              (await generateOrganizationSlug(name ?? existingWorkspace.name, {
-                excludeOrganizationId: id,
-              })),
-          }),
+          ...(slug !== undefined
+            ? {
+                slug,
+              }
+            : {}),
         },
       },
       headers: await headers(),

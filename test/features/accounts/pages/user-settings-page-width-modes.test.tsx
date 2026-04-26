@@ -3,6 +3,12 @@ import { render, screen } from "@testing-library/react";
 import React from "react";
 
 jest.mock("@components/application/settings/settings-shell", () => ({
+  SettingsPageIntro: ({ title, description }: { title: string; description?: string }) => (
+    <header data-testid="settings-page-intro">
+      <h1>{title}</h1>
+      {description ? <p>{description}</p> : null}
+    </header>
+  ),
   SettingsPageSection: ({
     mode,
     children,
@@ -42,7 +48,7 @@ jest.mock("@features/accounts/accounts-actions", () => ({
   loadCurrentUser: () => Promise.resolve(undefined),
   loadCurrentUserAccounts: () => Promise.resolve([]),
   loadCurrentSession: () => Promise.resolve(null),
-  loadCurrentUserSessions: () => Promise.resolve([]),
+  loadCurrentUserSessionList: () => Promise.resolve([]),
 }));
 
 jest.mock("@features/workspaces/workspaces-invitations", () => ({
@@ -59,6 +65,15 @@ jest.mock("@lib/environment", () => ({
 
 jest.mock("@lib/metadata", () => ({
   buildPageMetadata: jest.fn(async () => ({ title: "Settings" })),
+}));
+
+jest.mock("@lib/page-translations", () => ({
+  getPageTranslations: jest.fn(async () => ({
+    title: "My Invitations",
+    description: "Review pending workspace invitations.",
+    openGraphTitle: "My Invitations",
+    openGraphDescription: "Review pending workspace invitations.",
+  })),
 }));
 
 describe("user settings route width modes", () => {

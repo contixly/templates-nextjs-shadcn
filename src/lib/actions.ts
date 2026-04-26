@@ -10,7 +10,7 @@ import {
 import { HttpCodes } from "@typings/network";
 import { unauthorized } from "next/navigation";
 import { z } from "zod";
-import { loadCurrentUserId } from "@features/accounts/accounts-actions";
+import { loadCurrentUserId, loadRequestHeaders } from "@features/accounts/accounts-actions";
 import { errors } from "@components/errors/common-error";
 import { loggerFactory } from "@lib/logger";
 
@@ -38,13 +38,14 @@ export const createDefaultProtectedAction = <TResult>(
   });
 
   return async (): Promise<ActionResult<TResult>> => {
+    const headers = await loadRequestHeaders();
     const userId = await loadCurrentUserId();
     if (!userId) {
       unauthorized();
     }
 
     try {
-      return handler({ userId, logger: logger.child({ userId }) });
+      return await handler({ headers, userId, logger: logger.child({ userId }) });
     } catch (error) {
       logger.child({ userId }).error({
         error: (error as Error).message,
@@ -80,16 +81,16 @@ export const createDefaultProtectedActionWithInput = <TInput, TResult>(
       };
     }
 
+    const headers = await loadRequestHeaders();
     const userId = await loadCurrentUserId();
     if (!userId) {
       unauthorized();
     }
 
     try {
-      return handler(validation.data, { userId, logger: logger.child({ userId }) });
+      return await handler(validation.data, { headers, userId, logger: logger.child({ userId }) });
     } catch (error) {
       logger.child({ userId }).error({
-        input,
         error: (error as Error).message,
       });
       return errors.internalServerError;

@@ -3,7 +3,12 @@ import "server-only";
 import { betterAuth } from "better-auth/minimal";
 import { genericOAuth, lastLoginMethod, organization } from "better-auth/plugins";
 import prisma from "@server/prisma";
-import { APP_BASE_DOMAIN, APP_COOKIE_PREFIX, LAST_LOGIN_METHOD_KEY } from "@lib/environment";
+import {
+  APP_BASE_DOMAIN,
+  APP_BASE_URL,
+  APP_COOKIE_PREFIX,
+  LAST_LOGIN_METHOD_KEY,
+} from "@lib/environment";
 import { nextCookies } from "better-auth/next-js";
 import { BetterAuthOptions } from "@better-auth/core";
 import { prismaAdapter } from "@better-auth/prisma-adapter";
@@ -12,6 +17,30 @@ import { socialsProviders } from "@typings/auth";
 import { YandexOAuth2ClientConfig } from "@server/auth/yandex-oauth2-client";
 
 type BetterAuthApiMethod = (...args: unknown[]) => Promise<unknown>;
+
+const getConfiguredHost = (value?: string | null) => {
+  if (!value) return null;
+
+  try {
+    return new URL(value).host;
+  } catch {
+    return null;
+  }
+};
+
+const betterAuthAllowedHosts = Array.from(
+  new Set(
+    [
+      APP_BASE_DOMAIN,
+      `*.${APP_BASE_DOMAIN}`,
+      getConfiguredHost(process.env.BETTER_AUTH_URL),
+    ].filter(Boolean) as string[]
+  )
+);
+
+const betterAuthTrustedOrigins = Array.from(
+  new Set([APP_BASE_URL, process.env.BETTER_AUTH_URL].filter(Boolean) as string[])
+);
 
 export const auth = betterAuth({
   database: prismaAdapter(prisma, {
@@ -88,11 +117,11 @@ export const auth = betterAuth({
     cookiePrefix: APP_COOKIE_PREFIX,
   } as BetterAuthAdvancedOptions,
   baseURL: {
-    allowedHosts: [process.env.BETTER_AUTH_URL, APP_BASE_DOMAIN, `*.${APP_BASE_DOMAIN}`],
+    allowedHosts: betterAuthAllowedHosts,
     protocol: isProduction ? "https" : "http",
   },
   secret: process.env.BETTER_AUTH_SECRET,
-  trustedOrigins: [process.env.BETTER_AUTH_URL],
+  trustedOrigins: betterAuthTrustedOrigins,
 } as BetterAuthOptions) as ReturnType<typeof betterAuth> & {
   api: Record<string, BetterAuthApiMethod>;
 };
