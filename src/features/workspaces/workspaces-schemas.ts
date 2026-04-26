@@ -2,6 +2,7 @@ import { z } from "zod";
 import { WORKSPACE_ERROR_KEYS } from "@features/workspaces/workspaces-errors";
 import { AnyTranslationsFn } from "@/src/i18n/config";
 import { organizationIdSchema } from "@features/organizations/organizations-schemas";
+import { normalizeWorkspaceAllowedEmailDomains } from "@features/workspaces/workspaces-domain-restrictions";
 
 export const WORKSPACE_NAME_MAX_LENGTH = 50;
 const workspaceNamePattern = /^[\p{L}0-9\s\-_]+$/u;
@@ -65,6 +66,28 @@ const createWorkspaceSlugSchema = (tAny?: AnyTranslationsFn) =>
 
 const slug = createWorkspaceSlugSchema();
 
+const createWorkspaceAllowedEmailDomainsSchema = (tAny?: AnyTranslationsFn) =>
+  z
+    .array(z.string())
+    .optional()
+    .superRefine((values, ctx) => {
+      const normalization = normalizeWorkspaceAllowedEmailDomains(values ?? []);
+
+      if (normalization.invalidDomains.length === 0) {
+        return;
+      }
+
+      ctx.addIssue({
+        code: "custom",
+        message: getErrorMessage(tAny, WORKSPACE_ERROR_KEYS.allowedEmailDomainInvalid, {
+          domain: normalization.invalidDomains[0],
+        }),
+      });
+    })
+    .transform((values) =>
+      values === undefined ? undefined : normalizeWorkspaceAllowedEmailDomains(values).domains
+    );
+
 export const createWorkspaceSchema = z.object({
   name,
 });
@@ -78,6 +101,7 @@ export const updateWorkspaceSchema = z.object({
   id: organizationIdSchema,
   name: name.optional(),
   slug: slug.optional(),
+  allowedEmailDomains: createWorkspaceAllowedEmailDomainsSchema(),
 });
 
 export const createUpdateWorkspaceFormSchema = (previousName: string, tAny: AnyTranslationsFn) =>
@@ -85,6 +109,7 @@ export const createUpdateWorkspaceFormSchema = (previousName: string, tAny: AnyT
     id: organizationIdSchema,
     name: createWorkspaceNameSchema(previousName, tAny).optional(),
     slug: createWorkspaceSlugSchema(tAny).optional(),
+    allowedEmailDomains: createWorkspaceAllowedEmailDomainsSchema(tAny),
   });
 
 const createDeleteWorkspaceSchema = (tAny?: AnyTranslationsFn) =>

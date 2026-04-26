@@ -5,6 +5,7 @@ import workspaceRoutes from "@features/workspaces/workspaces-routes";
 import { buildPageMetadata } from "@lib/metadata";
 import { WorkspaceSettingsInvitationsPage as WorkspaceSettingsInvitationsContent } from "@features/workspaces/components/pages/workspace-settings-invitations-page";
 import { loadWorkspaceSettingsInvitationsPageContext } from "@features/workspaces/workspaces-invitations";
+import { getWorkspaceAllowedEmailDomains } from "@features/workspaces/workspaces-domain-restrictions";
 
 interface WorkspaceSettingsInvitationsPageProps {
   params: Promise<{ organizationKey: string }>;
@@ -42,6 +43,7 @@ export default async function WorkspaceSettingsInvitationsPage({
         invitations={invitations}
         canCreateInvitations={canCreateInvitations}
         assignableWorkspaceRoles={assignableWorkspaceRoles}
+        allowedEmailDomains={getWorkspaceAllowedEmailDomains(workspace.metadata)}
       />
     </SettingsPageSection>
   );

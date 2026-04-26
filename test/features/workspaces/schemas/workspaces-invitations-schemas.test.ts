@@ -20,6 +20,7 @@ describe("workspace invitation and member schemas", () => {
         organizationId: "RkFBy8l5f36JR4Mwl1dExZxvzCjD8X7H",
         userId: "d6qzollaqro6y66v7j52bhqo",
         role: "member",
+        acknowledgeDomainRestriction: true,
       }).success
     ).toBe(true);
     expect(

@@ -108,6 +108,7 @@ import { loadUserWorkspaces } from "@features/workspaces/actions/load-user-works
 import { createWorkspace } from "@features/workspaces/actions/create-workspace";
 import { deleteWorkspace } from "@features/workspaces/actions/delete-workspace";
 import { updateWorkspace } from "@features/workspaces/actions/update-workspace";
+import { updateTags } from "@lib/cache";
 
 const ORGANIZATION_ID = "d6qzollaqro6y66v7j52bhqo";
 const SECOND_ORGANIZATION_ID = "h6qzollaqro6y66v7j52bhqp";
@@ -129,6 +130,7 @@ describe("workspace management actions", () => {
     mockHasWorkspacePermission.mockReset();
     mockHeaders.mockReset();
     mockOrganizationUpdateMany.mockReset();
+    (updateTags as jest.Mock).mockReset();
 
     mockLoadCurrentUserId.mockResolvedValue("user-123");
     mockLoadRequestHeaders.mockResolvedValue(new Headers([["x-test", "1"]]));
@@ -259,6 +261,105 @@ describe("workspace management actions", () => {
     });
   });
 
+  it("updates allowed email domains by merging normalized values into organization metadata", async () => {
+    mockFindFirstAccessibleOrganizationByIdAndUserId.mockResolvedValue({
+      id: ORGANIZATION_ID,
+      name: "Old Name",
+      slug: "old-name",
+      metadata: {
+        retained: true,
+        allowedEmailDomains: ["old.example.com"],
+      },
+    });
+    mockUpdateOrganization.mockResolvedValue(undefined);
+    mockFindWorkspaceDtoByIdAndUserId.mockResolvedValue({
+      id: ORGANIZATION_ID,
+      name: "Old Name",
+      slug: "old-name",
+      logo: null,
+      metadata: {
+        retained: true,
+        allowedEmailDomains: ["example.com", "admin.example.com"],
+      },
+      createdAt: new Date("2026-04-20T10:00:00.000Z"),
+      updatedAt: new Date("2026-04-20T10:00:00.000Z"),
+    });
+
+    const result = await updateWorkspace({
+      id: ORGANIZATION_ID,
+      allowedEmailDomains: [" Example.COM ", "@example.com", "admin.example.com"],
+    });
+
+    expect(mockUpdateOrganization).toHaveBeenCalledWith({
+      body: {
+        organizationId: ORGANIZATION_ID,
+        data: {
+          metadata: {
+            retained: true,
+            allowedEmailDomains: ["example.com", "admin.example.com"],
+          },
+        },
+      },
+      headers: expect.any(Headers),
+    });
+    expect(updateTags).toHaveBeenCalledWith([`organization_${ORGANIZATION_ID}_members`]);
+    expect(result).toEqual({
+      success: true,
+      data: expect.objectContaining({
+        id: ORGANIZATION_ID,
+      }),
+    });
+  });
+
+  it("clears allowed email domains without removing unrelated metadata", async () => {
+    mockFindFirstAccessibleOrganizationByIdAndUserId.mockResolvedValue({
+      id: ORGANIZATION_ID,
+      name: "Old Name",
+      slug: "old-name",
+      metadata: JSON.stringify({
+        retained: true,
+        allowedEmailDomains: ["example.com"],
+      }),
+    });
+    mockUpdateOrganization.mockResolvedValue(undefined);
+    mockFindWorkspaceDtoByIdAndUserId.mockResolvedValue({
+      id: ORGANIZATION_ID,
+      name: "Old Name",
+      slug: "old-name",
+      logo: null,
+      metadata: {
+        retained: true,
+      },
+      createdAt: new Date("2026-04-20T10:00:00.000Z"),
+      updatedAt: new Date("2026-04-20T10:00:00.000Z"),
+    });
+
+    await expect(
+      updateWorkspace({
+        id: ORGANIZATION_ID,
+        allowedEmailDomains: [],
+      })
+    ).resolves.toEqual({
+      success: true,
+      data: expect.objectContaining({
+        id: ORGANIZATION_ID,
+      }),
+    });
+
+    expect(mockUpdateOrganization).toHaveBeenCalledWith({
+      body: {
+        organizationId: ORGANIZATION_ID,
+        data: {
+          metadata: {
+            retained: true,
+          },
+        },
+      },
+      headers: expect.any(Headers),
+    });
+    expect(updateTags).toHaveBeenCalledWith([`organization_${ORGANIZATION_ID}_members`]);
+  });
+
   it("rejects an unavailable slug without updating the organization", async () => {
     mockFindFirstAccessibleOrganizationByIdAndUserId.mockResolvedValue({
       id: ORGANIZATION_ID,
@@ -340,6 +441,7 @@ describe("workspace management actions", () => {
     const result = await updateWorkspace({
       id: ORGANIZATION_ID,
       name: "Renamed Workspace",
+      allowedEmailDomains: ["example.com"],
     });
 
     expect(result).toEqual({
@@ -349,6 +451,23 @@ describe("workspace management actions", () => {
         code: 403,
       },
     });
+    expect(mockUpdateOrganization).not.toHaveBeenCalled();
+  });
+
+  it("rejects invalid allowed domain settings before mutating the organization", async () => {
+    const result = await updateWorkspace({
+      id: ORGANIZATION_ID,
+      allowedEmailDomains: ["bad domain.test"],
+    });
+
+    expect(result).toEqual({
+      success: false,
+      error: {
+        message: "validation.errors.allowedEmailDomainInvalid",
+        code: 400,
+      },
+    });
+    expect(mockFindFirstAccessibleOrganizationByIdAndUserId).not.toHaveBeenCalled();
     expect(mockUpdateOrganization).not.toHaveBeenCalled();
   });
 

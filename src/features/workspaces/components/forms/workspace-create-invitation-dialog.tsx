@@ -33,11 +33,13 @@ import { useAnyTranslations } from "@/src/i18n/use-any-translations";
 interface WorkspaceCreateInvitationDialogProps {
   organizationId: string;
   assignableRoles: WorkspaceManageableRole[];
+  allowedEmailDomains?: string[];
 }
 
 export const WorkspaceCreateInvitationDialog = ({
   organizationId,
   assignableRoles,
+  allowedEmailDomains = [],
   trigger,
   ...props
 }: WorkspaceCreateInvitationDialogProps & Partial<ModalProps>) => {
@@ -51,6 +53,7 @@ export const WorkspaceCreateInvitationDialog = ({
   const [createdInvitation, setCreatedInvitation] = useState<WorkspaceInvitationDto | null>(null);
   const hasAssignableRoles = assignableRoles.length > 0;
   const defaultRole = assignableRoles[0] ?? "member";
+  const hasActiveDomainRestrictions = allowedEmailDomains.length > 0;
 
   const {
     control,
@@ -188,7 +191,13 @@ export const WorkspaceCreateInvitationDialog = ({
                     autoComplete="email"
                     inputMode="email"
                   />
-                  <FieldDescription>{tWorkspaces("emailHint")}</FieldDescription>
+                  <FieldDescription>
+                    {hasActiveDomainRestrictions
+                      ? tWorkspaces("allowedEmailDomainsHint", {
+                          domains: allowedEmailDomains.join(", "),
+                        })
+                      : tWorkspaces("emailHint")}
+                  </FieldDescription>
                   {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                 </Field>
               )}

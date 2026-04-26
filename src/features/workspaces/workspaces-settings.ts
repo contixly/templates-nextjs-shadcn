@@ -15,7 +15,11 @@ import {
   getAssignableWorkspaceRoles,
   type WorkspaceManageableRole,
 } from "@features/workspaces/workspaces-roles";
-import type { WorkspaceWithCounts } from "@features/workspaces/workspaces-types";
+import type {
+  WorkspaceMemberListItemDto,
+  WorkspaceWithCounts,
+} from "@features/workspaces/workspaces-types";
+import { evaluateWorkspaceEmailDomainEligibility } from "@features/workspaces/workspaces-domain-restrictions";
 
 export interface WorkspaceSettingsPageContext {
   workspace: WorkspaceWithCounts;
@@ -29,7 +33,7 @@ export interface WorkspaceSettingsPageContext {
 
 export interface WorkspaceSettingsUsersPageContext extends WorkspaceSettingsPageContext {
   currentUserId: string;
-  members: OrganizationMemberListItemDto[];
+  members: WorkspaceMemberListItemDto[];
   canAddMembers: boolean;
   canUpdateMemberRoles: boolean;
 }
@@ -79,6 +83,20 @@ const loadWorkspaceSettingsPageContextForUser = async (
   };
 };
 
+const withWorkspaceMemberDomainPolicyStatus = (
+  members: OrganizationMemberListItemDto[],
+  workspace: WorkspaceWithCounts
+): WorkspaceMemberListItemDto[] =>
+  members.map((member) => {
+    const eligibility = evaluateWorkspaceEmailDomainEligibility(workspace.metadata, member.email);
+
+    return {
+      ...member,
+      emailDomain: eligibility.emailDomain,
+      isOutsideAllowedEmailDomains: !eligibility.allowed,
+    };
+  });
+
 export const loadWorkspaceSettingsPageContext = async (
   organizationKey: string
 ): Promise<WorkspaceSettingsPageContext> => {
@@ -101,7 +119,7 @@ export const loadWorkspaceSettingsUsersPageContext = async (
   return {
     ...workspaceContext,
     currentUserId: userId,
-    members,
+    members: withWorkspaceMemberDomainPolicyStatus(members, workspaceContext.workspace),
     canAddMembers,
     canUpdateMemberRoles,
   };

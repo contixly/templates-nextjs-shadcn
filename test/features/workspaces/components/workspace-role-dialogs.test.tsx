@@ -10,7 +10,7 @@ const mockRefresh = jest.fn();
 const ORGANIZATION_ID = "RkFBy8l5f36JR4Mwl1dExZxvzCjD8X7H";
 
 jest.mock("next-intl", () => ({
-  useTranslations: (namespace: string) => (key: string) => {
+  useTranslations: (namespace: string) => (key: string, values?: Record<string, string>) => {
     const messages = {
       common: {
         words: {
@@ -47,6 +47,7 @@ jest.mock("next-intl", () => ({
             emailLabel: "Email",
             emailPlaceholder: "person@example.com",
             emailHint: "Use a verified email.",
+            allowedEmailDomainsHint: "Active restriction: {domains}",
             roleLabel: "Role",
             roleHint: "Choose the role this invitation will grant.",
             createdTitle: "Invitation created",
@@ -67,6 +68,10 @@ jest.mock("next-intl", () => ({
             userIdHint: "Use the exact internal user ID.",
             roleLabel: "Role",
             roleHint: "Choose the role this user will receive.",
+            domainRestrictionWarningTitle: "Email domain outside policy",
+            domainRestrictionWarningDescription:
+              "{email} is outside the active allowed domains: {domains}.",
+            confirmDomainRestrictionOverride: "Confirm Add",
             success: "Member added successfully",
             errorTitle: "Add Member",
             unknownError: "Unknown error",
@@ -84,7 +89,9 @@ jest.mock("next-intl", () => ({
       return path;
     }, messages);
 
-    return typeof value === "string" ? value : path;
+    return typeof value === "string"
+      ? value.replace("{domains}", values?.domains ?? "").replace("{email}", values?.email ?? "")
+      : path;
   },
 }));
 
@@ -203,6 +210,65 @@ describe("workspace role dialogs", () => {
     });
   });
 
+  it("renders the direct-add domain warning and resubmits with acknowledgement", async () => {
+    (addWorkspaceMember as jest.Mock)
+      .mockResolvedValueOnce({
+        success: true,
+        data: {
+          status: "domain-restriction-warning",
+          organizationId: ORGANIZATION_ID,
+          userId: "d6qzollaqro6y66v7j52bhqo",
+          email: "person@outside.test",
+          emailDomain: "outside.test",
+          allowedEmailDomains: ["example.com"],
+          role: "admin",
+        },
+      })
+      .mockResolvedValueOnce({
+        success: true,
+        data: {
+          organizationId: ORGANIZATION_ID,
+          userId: "d6qzollaqro6y66v7j52bhqo",
+        },
+      });
+
+    render(
+      <WorkspaceAddMemberDialog
+        organizationId={ORGANIZATION_ID}
+        assignableRoles={["member", "admin"]}
+      />
+    );
+
+    fireEvent.change(screen.getByLabelText("User ID"), {
+      target: { value: "d6qzollaqro6y66v7j52bhqo" },
+    });
+    fireEvent.change(screen.getByLabelText("Role"), {
+      target: { value: "admin" },
+    });
+
+    await act(async () => {
+      fireEvent.submit(screen.getByLabelText("User ID").closest("form")!);
+    });
+
+    expect(await screen.findByText("Email domain outside policy")).toBeInTheDocument();
+    expect(
+      screen.getByText("person@outside.test is outside the active allowed domains: example.com.")
+    ).toBeInTheDocument();
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Confirm Add" }));
+    });
+
+    await waitFor(() => {
+      expect(addWorkspaceMember).toHaveBeenLastCalledWith({
+        organizationId: ORGANIZATION_ID,
+        userId: "d6qzollaqro6y66v7j52bhqo",
+        role: "admin",
+        acknowledgeDomainRestriction: true,
+      });
+    });
+  });
+
   it("limits invitation role options to the roles the acting member can assign", async () => {
     (createWorkspaceInvitation as jest.Mock).mockResolvedValue({
       success: true,
@@ -241,5 +307,19 @@ describe("workspace role dialogs", () => {
         role: "admin",
       });
     });
+  });
+
+  it("communicates active allowed-domain restrictions in the invitation dialog", () => {
+    render(
+      <WorkspaceCreateInvitationDialog
+        organizationId={ORGANIZATION_ID}
+        assignableRoles={["member"]}
+        allowedEmailDomains={["example.com", "admin.example.com"]}
+      />
+    );
+
+    expect(
+      screen.getByText("Active restriction: example.com, admin.example.com")
+    ).toBeInTheDocument();
   });
 });

@@ -19,7 +19,11 @@ import {
   SelectValue,
 } from "@components/ui/select";
 import { Spinner } from "@components/ui/spinner";
-import { addWorkspaceMember } from "@features/workspaces/actions/add-workspace-member";
+import {
+  addWorkspaceMember,
+  type AddWorkspaceMemberDomainRestrictionWarning,
+  type AddWorkspaceMemberResult,
+} from "@features/workspaces/actions/add-workspace-member";
 import {
   addWorkspaceMemberFormSchema,
   type AddWorkspaceMemberInput,
@@ -52,6 +56,7 @@ export const WorkspaceAddMemberDialog = ({
   const {
     control,
     handleSubmit,
+    getValues,
     reset,
     formState: { isDirty, isValid },
   } = useForm<AddWorkspaceMemberInput>({
@@ -63,6 +68,13 @@ export const WorkspaceAddMemberDialog = ({
       role: defaultRole,
     },
   });
+  const [domainRestrictionWarning, setDomainRestrictionWarning] =
+    useState<AddWorkspaceMemberDomainRestrictionWarning | null>(null);
+
+  const isDomainRestrictionWarning = (
+    data: AddWorkspaceMemberResult | null | undefined
+  ): data is AddWorkspaceMemberDomainRestrictionWarning =>
+    Boolean(data && "status" in data && data.status === "domain-restriction-warning");
 
   useEffect(() => {
     if (!open) {
@@ -74,6 +86,14 @@ export const WorkspaceAddMemberDialog = ({
     }
   }, [defaultRole, open, organizationId, reset]);
 
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (!nextOpen) {
+      setDomainRestrictionWarning(null);
+    }
+
+    onOpenChange(nextOpen);
+  };
+
   const submit: SubmitHandler<AddWorkspaceMemberInput> = (data) => {
     if (!hasAssignableRoles) {
       return;
@@ -82,9 +102,26 @@ export const WorkspaceAddMemberDialog = ({
     startTransition(async () => {
       const result = await addWorkspaceMember(data);
 
+      if (result.success && isDomainRestrictionWarning(result.data)) {
+        setDomainRestrictionWarning(result.data);
+        reset(
+          {
+            organizationId,
+            userId: result.data.userId,
+            role: result.data.role,
+          },
+          {
+            keepDirty: true,
+            keepIsValid: true,
+          }
+        );
+        return;
+      }
+
       if (result.success) {
         toast.success(tWorkspaces("success"));
-        onOpenChange(false);
+        setDomainRestrictionWarning(null);
+        handleOpenChange(false);
         router.refresh();
         return;
       }
@@ -97,10 +134,17 @@ export const WorkspaceAddMemberDialog = ({
     });
   };
 
+  const confirmDomainRestrictionOverride = () => {
+    submit({
+      ...getValues(),
+      acknowledgeDomainRestriction: true,
+    });
+  };
+
   return (
     <Modal
       open={open}
-      onOpenChange={onOpenChange}
+      onOpenChange={handleOpenChange}
       title={tWorkspaces("title")}
       description={tWorkspaces("description")}
       trigger={
@@ -125,6 +169,10 @@ export const WorkspaceAddMemberDialog = ({
                 </FieldLabel>
                 <Input
                   {...field}
+                  onChange={(event) => {
+                    setDomainRestrictionWarning(null);
+                    field.onChange(event);
+                  }}
                   id="workspace-add-member-user-id"
                   aria-invalid={fieldState.invalid}
                   placeholder={tWorkspaces("userIdPlaceholder")}
@@ -148,7 +196,10 @@ export const WorkspaceAddMemberDialog = ({
                 </FieldLabel>
                 <Select
                   value={field.value}
-                  onValueChange={field.onChange}
+                  onValueChange={(value) => {
+                    setDomainRestrictionWarning(null);
+                    field.onChange(value);
+                  }}
                   disabled={isPending || !hasAssignableRoles}
                 >
                   <SelectTrigger
@@ -172,22 +223,45 @@ export const WorkspaceAddMemberDialog = ({
             )}
           />
 
+          {domainRestrictionWarning ? (
+            <div className="border-border bg-muted/40 text-foreground space-y-1 border p-3 text-sm">
+              <p className="font-medium">{tWorkspaces("domainRestrictionWarningTitle")}</p>
+              <p className="text-muted-foreground">
+                {tWorkspaces("domainRestrictionWarningDescription", {
+                  email: domainRestrictionWarning.email,
+                  domains: domainRestrictionWarning.allowedEmailDomains.join(", "),
+                })}
+              </p>
+            </div>
+          ) : null}
+
           <Field orientation="horizontal" className="flex justify-end gap-2">
             <Button
               type="button"
               variant="outline"
-              onClick={() => onOpenChange(false)}
+              onClick={() => handleOpenChange(false)}
               disabled={isPending}
             >
               {tCommon("words.verbs.cancel")}
             </Button>
-            <Button
-              type="submit"
-              disabled={isPending || !hasAssignableRoles || !isDirty || !isValid}
-            >
-              {isPending && <Spinner data-icon="inline-start" />}
-              {tCommon("words.verbs.add")}
-            </Button>
+            {domainRestrictionWarning ? (
+              <Button
+                type="button"
+                disabled={isPending || !hasAssignableRoles || !isValid}
+                onClick={confirmDomainRestrictionOverride}
+              >
+                {isPending && <Spinner data-icon="inline-start" />}
+                {tWorkspaces("confirmDomainRestrictionOverride")}
+              </Button>
+            ) : (
+              <Button
+                type="submit"
+                disabled={isPending || !hasAssignableRoles || !isDirty || !isValid}
+              >
+                {isPending && <Spinner data-icon="inline-start" />}
+                {tCommon("words.verbs.add")}
+              </Button>
+            )}
           </Field>
         </FieldGroup>
       </form>

@@ -74,6 +74,7 @@
       "duplicateName": "Рабочее пространство с таким названием уже существует",
       "duplicateSlug": "Рабочее пространство с таким slug уже существует",
       "updatePermissionDenied": "У вас нет прав обновлять это рабочее пространство",
+      "allowedEmailDomainInvalid": "Укажите только корректные email-домены. «{domain}» не подходит.",
       "confirmationRequired": "Введите название рабочего пространства для подтверждения",
       "confirmationMismatch": "Текст подтверждения не совпадает с названием рабочего пространства",
       "atLeastOneWorkspace": "У вас должно оставаться хотя бы одно рабочее пространство",
@@ -82,6 +83,7 @@
       "invitationEmailInvalid": "Укажите корректный email для приглашения",
       "invitationAlreadyExists": "Для этого email уже существует активное приглашение",
       "invitationRecipientAlreadyMember": "Этот email уже принадлежит участнику рабочего пространства",
+      "invitationDomainRestricted": "Этот email-домен не разрешен для рабочего пространства",
       "invitationPermissionDenied": "У вас нет прав приглашать пользователей в это рабочее пространство",
       "invitationNotFound": "Приглашение не найдено",
       "invitationNotPending": "Это приглашение больше нельзя изменить",
@@ -123,6 +125,9 @@
       "slugLabel": "Slug рабочего пространства",
       "slugPlaceholder": "Например: rabota-lichnoe-proekty",
       "slugHint": "Только строчные буквы, цифры и дефисы",
+      "allowedEmailDomainsLabel": "Разрешенные email-домены",
+      "allowedEmailDomainsPlaceholder": "example.com\nteam.example.com",
+      "allowedEmailDomainsHint": "Один точный домен на строку или через запятую. Оставьте поле пустым, чтобы разрешить любой email-домен.",
       "success": "Рабочее пространство успешно обновлено",
       "errorTitle": "Обновление рабочего пространства",
       "unknownError": "Неизвестная ошибка"
@@ -141,6 +146,9 @@
       "slugLabel": "Slug рабочего пространства",
       "slugPlaceholder": "Например: rabota-lichnoe-proekty",
       "slugHint": "Только строчные буквы, цифры и дефисы",
+      "allowedEmailDomainsLabel": "Разрешенные email-домены",
+      "allowedEmailDomainsPlaceholder": "example.com\nteam.example.com",
+      "allowedEmailDomainsHint": "Один точный домен на строку или через запятую. Оставьте поле пустым, чтобы разрешить любой email-домен.",
       "success": "Рабочее пространство успешно обновлено",
       "errorTitle": "Обновление рабочего пространства",
       "unknownError": "Неизвестная ошибка"
@@ -160,6 +168,9 @@
       "directoryTitle": "Каталог участников",
       "directoryDescription": "Просматривайте видимых участников и приглашайте существующих пользователей.",
       "joinedLabel": "Присоединился",
+      "domainRestrictionWarningTitle": "Участники вне разрешенных доменов",
+      "domainRestrictionWarningDescription": "{count} текущих участников не входят в активные email-доменные ограничения рабочего пространства. Существующие участия не меняются.",
+      "outsideAllowedDomainsBadge": "Вне доменной политики",
       "roleUpdateSuccess": "Роль участника успешно обновлена",
       "roleUpdateErrorTitle": "Обновление роли участника",
       "roleUpdateUnknownError": "Неизвестная ошибка",
@@ -212,6 +223,7 @@
       "emailLabel": "Email",
       "emailPlaceholder": "person@example.com",
       "emailHint": "Для принятия приглашения потребуется этот подтвержденный основной email.",
+      "allowedEmailDomainsHint": "Активное ограничение: принять приглашение можно только с доменов {domains}.",
       "roleLabel": "Роль",
       "roleHint": "Выберите роль, которую даст это приглашение.",
       "createdTitle": "Приглашение создано",
@@ -232,6 +244,9 @@
       "userIdHint": "Используйте точный внутренний ID аккаунта, который нужно добавить.",
       "roleLabel": "Роль",
       "roleHint": "Выберите роль, которую получит пользователь.",
+      "domainRestrictionWarningTitle": "Email-домен вне политики",
+      "domainRestrictionWarningDescription": "{email} не входит в активные разрешенные домены: {domains}. Подтвердите, чтобы всё равно добавить пользователя.",
+      "confirmDomainRestrictionOverride": "Подтвердить добавление",
       "success": "Участник успешно добавлен",
       "errorTitle": "Добавление участника",
       "unknownError": "Неизвестная ошибка"
@@ -302,6 +317,10 @@
         "email-verification-required": {
           "label": "Нужно подтвердить email",
           "description": "Подтвердите основной email перед принятием или отклонением этого приглашения."
+        },
+        "domain-restricted": {
+          "label": "Домен ограничен",
+          "description": "Это приглашение больше нельзя принять, потому что домен приглашенного email не входит в активные ограничения рабочего пространства."
         },
         "already-member": {
           "label": "Уже участник",

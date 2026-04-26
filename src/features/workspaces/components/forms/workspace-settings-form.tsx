@@ -10,7 +10,9 @@ import { Button } from "@components/ui/button";
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@components/ui/field";
 import { Input } from "@components/ui/input";
 import { Spinner } from "@components/ui/spinner";
+import { Textarea } from "@components/ui/textarea";
 import { updateWorkspace } from "@features/workspaces/actions/update-workspace";
+import { getWorkspaceAllowedEmailDomains } from "@features/workspaces/workspaces-domain-restrictions";
 import { translateWorkspaceErrorMessage } from "@features/workspaces/workspaces-errors";
 import {
   createUpdateWorkspaceFormSchema,
@@ -32,7 +34,14 @@ const getDefaultValues = (workspace: WorkspaceWithCounts): UpdateWorkspaceInput 
   id: workspace.id,
   name: workspace.name,
   slug: workspace.slug ?? "",
+  allowedEmailDomains: getWorkspaceAllowedEmailDomains(workspace.metadata),
 });
+
+const parseAllowedEmailDomainsText = (value: string) =>
+  value
+    .split(/[\n,]+/)
+    .map((domain) => domain.trim())
+    .filter(Boolean);
 
 export const WorkspaceSettingsForm = ({
   workspace,
@@ -134,6 +143,34 @@ export const WorkspaceSettingsForm = ({
                   autoComplete="off"
                 />
                 <FieldDescription className="text-xs">{tWorkspaces("slugHint")}</FieldDescription>
+                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+              </Field>
+            )}
+          />
+          <Controller
+            name="allowedEmailDomains"
+            control={control}
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel htmlFor="edit-workspace-allowed-email-domains">
+                  {tWorkspaces("allowedEmailDomainsLabel")}
+                </FieldLabel>
+                <Textarea
+                  id="edit-workspace-allowed-email-domains"
+                  value={(field.value ?? []).join("\n")}
+                  onChange={(event) =>
+                    field.onChange(parseAllowedEmailDomainsText(event.target.value))
+                  }
+                  onBlur={field.onBlur}
+                  aria-invalid={fieldState.invalid}
+                  placeholder={tWorkspaces("allowedEmailDomainsPlaceholder")}
+                  disabled={isPending || !canUpdateWorkspace}
+                  autoComplete="off"
+                  rows={4}
+                />
+                <FieldDescription className="text-xs">
+                  {tWorkspaces("allowedEmailDomainsHint")}
+                </FieldDescription>
                 {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
               </Field>
             )}

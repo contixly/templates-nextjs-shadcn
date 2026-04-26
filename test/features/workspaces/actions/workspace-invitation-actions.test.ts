@@ -240,6 +240,84 @@ describe("workspace invitation actions", () => {
     });
   });
 
+  it("creates invitations when the recipient domain is allowed by workspace restrictions", async () => {
+    mockFindWorkspaceDtoByIdAndUserId.mockResolvedValue({
+      id: "org1",
+      metadata: {
+        allowedEmailDomains: ["example.com"],
+      },
+    });
+    mockFindOrganizationMemberByOrganizationIdAndUserId.mockResolvedValue({
+      id: "member-actor",
+      role: "owner",
+    });
+    mockHasWorkspacePermission.mockResolvedValue(true);
+    mockMemberFindFirst.mockResolvedValue(null);
+    mockInvitationFindFirst.mockResolvedValue(null);
+    mockCreateInvitation.mockResolvedValue({ id: "invite1" });
+    mockFindWorkspaceInvitationById.mockResolvedValue({
+      id: "invite1",
+      organizationId: "org1",
+      organizationName: "Acme",
+      organizationSlug: "acme",
+      email: "alice@example.com",
+      role: "member",
+      roleLabels: ["member"],
+      status: "pending",
+      displayStatus: "pending",
+      expiresAt: new Date("2026-04-25T10:00:00.000Z"),
+      createdAt: new Date("2026-04-20T10:00:00.000Z"),
+      inviterId: "user1",
+      inviterName: "Owner",
+      inviterEmail: "owner@example.com",
+      invitationUrl: "https://example.com/invite/invite1",
+    });
+
+    await expect(
+      createWorkspaceInvitation({
+        organizationId: "org1",
+        email: "alice@example.com",
+        role: "member",
+      })
+    ).resolves.toEqual({
+      success: true,
+      data: expect.objectContaining({
+        id: "invite1",
+      }),
+    });
+  });
+
+  it("rejects invitation creation when the recipient domain is outside active restrictions", async () => {
+    mockFindWorkspaceDtoByIdAndUserId.mockResolvedValue({
+      id: "org1",
+      metadata: {
+        allowedEmailDomains: ["example.com"],
+      },
+    });
+    mockFindOrganizationMemberByOrganizationIdAndUserId.mockResolvedValue({
+      id: "member-actor",
+      role: "owner",
+    });
+    mockHasWorkspacePermission.mockResolvedValue(true);
+
+    await expect(
+      createWorkspaceInvitation({
+        organizationId: "org1",
+        email: "alice@outside.test",
+        role: "member",
+      })
+    ).resolves.toEqual({
+      success: false,
+      error: {
+        message: "validation.errors.invitationDomainRestricted",
+        code: 400,
+      },
+    });
+
+    expect(mockInvitationUpdateMany).not.toHaveBeenCalled();
+    expect(mockCreateInvitation).not.toHaveBeenCalled();
+  });
+
   it("rejects non-owner attempts to invite an owner before calling Better Auth", async () => {
     mockFindWorkspaceDtoByIdAndUserId.mockResolvedValue({ id: "org1" });
     mockFindOrganizationMemberByOrganizationIdAndUserId.mockResolvedValue({
@@ -268,7 +346,7 @@ describe("workspace invitation actions", () => {
   it("rejects add-member requests when the user is already a member", async () => {
     mockFindWorkspaceDtoByIdAndUserId.mockResolvedValue({ id: "org1" });
     mockHasWorkspacePermission.mockResolvedValue(true);
-    mockUserFindUnique.mockResolvedValue({ id: "user2" });
+    mockUserFindUnique.mockResolvedValue({ id: "user2", email: "user2@example.com" });
     mockFindOrganizationMemberByOrganizationIdAndUserId.mockImplementation(
       (_organizationId: string, userId: string) =>
         userId === "user1" ? { id: "member-actor", role: "owner" } : { id: "member1" }
@@ -293,7 +371,7 @@ describe("workspace invitation actions", () => {
   it("adds members through Better Auth with the selected assignable role", async () => {
     mockFindWorkspaceDtoByIdAndUserId.mockResolvedValue({ id: "org1" });
     mockHasWorkspacePermission.mockResolvedValue(true);
-    mockUserFindUnique.mockResolvedValue({ id: "user2" });
+    mockUserFindUnique.mockResolvedValue({ id: "user2", email: "user2@example.com" });
     mockFindOrganizationMemberByOrganizationIdAndUserId.mockImplementation(
       (_organizationId: string, userId: string) =>
         userId === "user1" ? { id: "member-actor", role: "owner" } : null
@@ -328,6 +406,118 @@ describe("workspace invitation actions", () => {
       headers: expect.any(Headers),
     });
     expect(mockMemberCreate).not.toHaveBeenCalled();
+  });
+
+  it("returns a direct-add warning when the target user is outside active domain restrictions", async () => {
+    mockFindWorkspaceDtoByIdAndUserId.mockResolvedValue({
+      id: "org1",
+      metadata: {
+        allowedEmailDomains: ["example.com"],
+      },
+    });
+    mockHasWorkspacePermission.mockResolvedValue(true);
+    mockUserFindUnique.mockResolvedValue({ id: "user2", email: "user2@outside.test" });
+    mockFindOrganizationMemberByOrganizationIdAndUserId.mockImplementation(
+      (_organizationId: string, userId: string) =>
+        userId === "user1" ? { id: "member-actor", role: "owner" } : null
+    );
+
+    await expect(
+      addWorkspaceMember({
+        organizationId: "org1",
+        userId: "user2",
+        role: "member",
+      })
+    ).resolves.toEqual({
+      success: true,
+      data: {
+        status: "domain-restriction-warning",
+        organizationId: "org1",
+        userId: "user2",
+        email: "user2@outside.test",
+        emailDomain: "outside.test",
+        allowedEmailDomains: ["example.com"],
+        role: "member",
+      },
+    });
+
+    expect(mockAddMember).not.toHaveBeenCalled();
+  });
+
+  it("adds an out-of-policy user when the direct-add warning is acknowledged", async () => {
+    mockFindWorkspaceDtoByIdAndUserId.mockResolvedValue({
+      id: "org1",
+      metadata: {
+        allowedEmailDomains: ["example.com"],
+      },
+    });
+    mockHasWorkspacePermission.mockResolvedValue(true);
+    mockUserFindUnique.mockResolvedValue({ id: "user2", email: "user2@outside.test" });
+    mockFindOrganizationMemberByOrganizationIdAndUserId.mockImplementation(
+      (_organizationId: string, userId: string) =>
+        userId === "user1" ? { id: "member-actor", role: "owner" } : null
+    );
+    mockAddMember.mockResolvedValue({
+      id: "member2",
+      organizationId: "org1",
+      userId: "user2",
+      role: "admin",
+    });
+
+    await expect(
+      addWorkspaceMember({
+        organizationId: "org1",
+        userId: "user2",
+        role: "admin",
+        acknowledgeDomainRestriction: true,
+      })
+    ).resolves.toEqual({
+      success: true,
+      data: {
+        organizationId: "org1",
+        userId: "user2",
+      },
+    });
+
+    expect(mockAddMember).toHaveBeenCalledWith({
+      body: {
+        organizationId: "org1",
+        userId: "user2",
+        role: "admin",
+      },
+      headers: expect.any(Headers),
+    });
+  });
+
+  it("rejects direct-add requests for a missing target user before domain checks", async () => {
+    mockFindWorkspaceDtoByIdAndUserId.mockResolvedValue({
+      id: "org1",
+      metadata: {
+        allowedEmailDomains: ["example.com"],
+      },
+    });
+    mockHasWorkspacePermission.mockResolvedValue(true);
+    mockUserFindUnique.mockResolvedValue(null);
+    mockFindOrganizationMemberByOrganizationIdAndUserId.mockImplementation(
+      (_organizationId: string, userId: string) =>
+        userId === "user1" ? { id: "member-actor", role: "owner" } : null
+    );
+
+    await expect(
+      addWorkspaceMember({
+        organizationId: "org1",
+        userId: "user2",
+        role: "member",
+      })
+    ).resolves.toEqual({
+      success: false,
+      error: {
+        message: "validation.errors.memberNotFound",
+        code: 404,
+      },
+    });
+
+    expect(mockAddMember).not.toHaveBeenCalled();
   });
 
   it("rejects non-owner attempts to directly add an owner before calling Better Auth", async () => {
@@ -497,5 +687,26 @@ describe("workspace invitation actions", () => {
       },
     });
     expect(mockRejectInvitation).not.toHaveBeenCalled();
+  });
+
+  it("rejects invitation acceptance when the decision loader marks it as domain-restricted", async () => {
+    mockLoadWorkspaceInvitationDecisionPageContext.mockResolvedValue({
+      invitation: {
+        id: "invite1",
+        organizationId: "org1",
+        email: "alice@outside.test",
+      },
+      state: "domain-restricted",
+      canRespond: false,
+    });
+
+    await expect(acceptWorkspaceInvitation({ invitationId: "invite1" })).resolves.toEqual({
+      success: false,
+      error: {
+        message: "validation.errors.invitationDomainRestricted",
+        code: 403,
+      },
+    });
+    expect(mockAcceptInvitation).not.toHaveBeenCalled();
   });
 });

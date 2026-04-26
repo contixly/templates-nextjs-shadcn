@@ -55,6 +55,10 @@ jest.mock("next-intl", () => ({
             directoryTitle: "Member directory",
             directoryDescription: "Review visible workspace members and invite existing users.",
             joinedLabel: "Joined",
+            domainRestrictionWarningTitle: "Members outside allowed domains",
+            domainRestrictionWarningDescription:
+              "{count} current member(s) are outside this workspace's active email-domain restrictions.",
+            outsideAllowedDomainsBadge: "Outside domain policy",
             emptyTitle: "No workspace users yet",
             emptyDescription: "This workspace does not have any visible members yet.",
             othersEmptyTitle: "No other workspace users",
@@ -94,7 +98,7 @@ jest.mock("next-intl", () => ({
       return path;
     }
 
-    return value.replace("{name}", values?.name ?? "");
+    return value.replace("{name}", values?.name ?? "").replace("{count}", values?.count ?? "");
   },
 }));
 
@@ -119,6 +123,8 @@ describe("WorkspaceSettingsUsersPage", () => {
             userId: "user-123",
             name: "Alice Adams",
             email: "alice@example.com",
+            emailDomain: "example.com",
+            isOutsideAllowedEmailDomains: false,
             image: null,
             roleLabels: ["owner", "billing"],
             joinedAt: new Date("2026-04-20T10:00:00.000Z"),
@@ -128,6 +134,8 @@ describe("WorkspaceSettingsUsersPage", () => {
             userId: "user-456",
             name: "Bob Brown",
             email: "bob@example.com",
+            emailDomain: "example.com",
+            isOutsideAllowedEmailDomains: false,
             image: null,
             roleLabels: ["member"],
             joinedAt: new Date("2026-04-21T10:00:00.000Z"),
@@ -137,6 +145,8 @@ describe("WorkspaceSettingsUsersPage", () => {
             userId: "user-789",
             name: "Casey Clark",
             email: "casey@example.com",
+            emailDomain: "example.com",
+            isOutsideAllowedEmailDomains: false,
             image: null,
             roleLabels: ["owner", "billing"],
             joinedAt: new Date("2026-04-22T10:00:00.000Z"),
@@ -220,6 +230,8 @@ describe("WorkspaceSettingsUsersPage", () => {
             userId: "user-123",
             name: "Alice Adams",
             email: "alice@example.com",
+            emailDomain: "example.com",
+            isOutsideAllowedEmailDomains: false,
             image: null,
             roleLabels: ["member"],
             joinedAt: new Date("2026-04-20T10:00:00.000Z"),
@@ -229,6 +241,8 @@ describe("WorkspaceSettingsUsersPage", () => {
             userId: "user-456",
             name: "Bob Brown",
             email: "bob@example.com",
+            emailDomain: "example.com",
+            isOutsideAllowedEmailDomains: false,
             image: null,
             roleLabels: ["member"],
             joinedAt: new Date("2026-04-21T10:00:00.000Z"),
@@ -250,6 +264,52 @@ describe("WorkspaceSettingsUsersPage", () => {
     expect(screen.queryByRole("combobox")).not.toBeInTheDocument();
   });
 
+  it("renders a page warning and row marker for members outside active domain restrictions", () => {
+    render(
+      <WorkspaceSettingsUsersPage
+        organizationId="org-1"
+        currentUserId="user-123"
+        canAddMembers
+        canUpdateMemberRoles
+        assignableWorkspaceRoles={["member", "admin"]}
+        members={[
+          {
+            id: "member-1",
+            userId: "user-123",
+            name: "Alice Adams",
+            email: "alice@example.com",
+            emailDomain: "example.com",
+            isOutsideAllowedEmailDomains: false,
+            image: null,
+            roleLabels: ["admin"],
+            joinedAt: new Date("2026-04-20T10:00:00.000Z"),
+          },
+          {
+            id: "member-2",
+            userId: "user-456",
+            name: "Bob Brown",
+            email: "bob@outside.test",
+            emailDomain: "outside.test",
+            isOutsideAllowedEmailDomains: true,
+            image: null,
+            roleLabels: ["member"],
+            joinedAt: new Date("2026-04-21T10:00:00.000Z"),
+          },
+        ]}
+      />
+    );
+
+    expect(screen.getByRole("alert")).toHaveTextContent("Members outside allowed domains");
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "1 current member(s) are outside this workspace's active email-domain restrictions."
+    );
+    const bobRow = screen.getByText("Bob Brown").closest("tr");
+    expect(bobRow).not.toBeNull();
+    expect(
+      within(bobRow as HTMLTableRowElement).getByText("Outside domain policy")
+    ).toBeInTheDocument();
+  });
+
   it("keeps the current user outside the table and shows a separate empty state for other users", () => {
     const { container } = render(
       <WorkspaceSettingsUsersPage
@@ -264,6 +324,8 @@ describe("WorkspaceSettingsUsersPage", () => {
             userId: "user-123",
             name: "Alice Adams",
             email: "alice@example.com",
+            emailDomain: "example.com",
+            isOutsideAllowedEmailDomains: false,
             image: null,
             roleLabels: ["owner"],
             joinedAt: new Date("2026-04-20T10:00:00.000Z"),

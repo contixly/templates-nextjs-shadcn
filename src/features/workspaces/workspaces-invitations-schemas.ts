@@ -46,6 +46,7 @@ export const addWorkspaceMemberSchema = z.object({
   organizationId: organizationIdSchema,
   userId: createMemberUserIdSchema(),
   role: createWorkspaceRoleSchema(),
+  acknowledgeDomainRestriction: z.boolean().optional(),
 });
 
 export const addWorkspaceMemberFormSchema = (tAny: AnyTranslationsFn) =>
@@ -53,6 +54,7 @@ export const addWorkspaceMemberFormSchema = (tAny: AnyTranslationsFn) =>
     organizationId: organizationIdSchema,
     userId: createMemberUserIdSchema(tAny),
     role: createWorkspaceRoleSchema(tAny),
+    acknowledgeDomainRestriction: z.boolean().optional(),
   });
 
 export const updateWorkspaceMemberRoleSchema = z.object({
