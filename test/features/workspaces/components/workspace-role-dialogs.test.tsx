@@ -28,6 +28,7 @@ jest.mock("next-intl", () => ({
           errors: {
             invitationEmailRequired: "Invitation email is required",
             invitationEmailInvalid: "Invitation email must be valid",
+            invitationDomainRestricted: "That email domain is not allowed by this workspace",
             memberIdRequired: "User ID is required",
             workspaceRoleInvalid: "Choose a supported workspace role",
           },
@@ -106,6 +107,8 @@ jest.mock("@/src/i18n/use-any-translations", () => ({
     const messages: Record<string, string> = {
       "validation.errors.invitationEmailRequired": "Invitation email is required",
       "validation.errors.invitationEmailInvalid": "Invitation email must be valid",
+      "validation.errors.invitationDomainRestricted":
+        "That email domain is not allowed by this workspace",
       "validation.errors.memberIdRequired": "User ID is required",
       "validation.errors.workspaceRoleInvalid": "Choose a supported workspace role",
     };
@@ -321,5 +324,33 @@ describe("workspace role dialogs", () => {
     expect(
       screen.getByText("Active restriction: example.com, admin.example.com")
     ).toBeInTheDocument();
+  });
+
+  it("marks invitation emails outside active allowed domains invalid before submit", async () => {
+    render(
+      <WorkspaceCreateInvitationDialog
+        organizationId={ORGANIZATION_ID}
+        assignableRoles={["member"]}
+        allowedEmailDomains={["jugru.org", "jugru.team", "jpoint.ru"]}
+      />
+    );
+
+    const emailField = screen.getByLabelText("Email");
+
+    await act(async () => {
+      fireEvent.change(emailField, {
+        target: { value: "me@kroniak.net" },
+      });
+    });
+
+    await waitFor(() => {
+      expect(emailField).toBeInvalid();
+    });
+
+    expect(
+      screen.getByText("That email domain is not allowed by this workspace")
+    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Create" })).toBeDisabled();
+    expect(createWorkspaceInvitation).not.toHaveBeenCalled();
   });
 });

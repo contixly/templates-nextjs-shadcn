@@ -18,7 +18,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@components/ui/select";
-import { Spinner } from "@components/ui/spinner";
 import {
   addWorkspaceMember,
   type AddWorkspaceMemberDomainRestrictionWarning,
@@ -31,6 +30,7 @@ import {
 import type { WorkspaceManageableRole } from "@features/workspaces/workspaces-roles";
 import { translateWorkspaceErrorMessage } from "@features/workspaces/workspaces-errors";
 import { useAnyTranslations } from "@/src/i18n/use-any-translations";
+import { ButtonLoading } from "@components/ui/custom/button-loading";
 
 interface WorkspaceAddMemberDialogProps {
   organizationId: string;
@@ -250,7 +250,7 @@ export const WorkspaceAddMemberDialog = ({
                 disabled={isPending || !hasAssignableRoles || !isValid}
                 onClick={confirmDomainRestrictionOverride}
               >
-                {isPending && <Spinner data-icon="inline-start" />}
+                <ButtonLoading loading={isPending} />
                 {tWorkspaces("confirmDomainRestrictionOverride")}
               </Button>
             ) : (
@@ -258,7 +258,7 @@ export const WorkspaceAddMemberDialog = ({
                 type="submit"
                 disabled={isPending || !hasAssignableRoles || !isDirty || !isValid}
               >
-                {isPending && <Spinner data-icon="inline-start" />}
+                <ButtonLoading loading={isPending} />
                 {tCommon("words.verbs.add")}
               </Button>
             )}

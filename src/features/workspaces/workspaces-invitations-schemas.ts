@@ -6,6 +6,10 @@ import {
   WORKSPACE_MANAGEABLE_ROLES,
   type WorkspaceManageableRole,
 } from "@features/workspaces/workspaces-roles";
+import {
+  extractWorkspaceEmailDomain,
+  normalizeWorkspaceAllowedEmailDomains,
+} from "@features/workspaces/workspaces-domain-restrictions";
 import { AnyTranslationsFn } from "@/src/i18n/config";
 
 const getErrorMessage = (
@@ -13,13 +17,36 @@ const getErrorMessage = (
   key: (typeof WORKSPACE_ERROR_KEYS)[keyof typeof WORKSPACE_ERROR_KEYS]
 ) => (tAny ? tAny(key) : key);
 
-const createInvitationEmailSchema = (tAny?: AnyTranslationsFn) =>
-  z
+const createInvitationEmailSchema = (
+  tAny?: AnyTranslationsFn,
+  allowedEmailDomains: readonly string[] = []
+) => {
+  const normalizedAllowedEmailDomains =
+    normalizeWorkspaceAllowedEmailDomains(allowedEmailDomains).domains;
+
+  return z
     .string()
     .trim()
     .min(1, getErrorMessage(tAny, WORKSPACE_ERROR_KEYS.invitationEmailRequired))
     .email(getErrorMessage(tAny, WORKSPACE_ERROR_KEYS.invitationEmailInvalid))
+    .superRefine((value, ctx) => {
+      if (normalizedAllowedEmailDomains.length === 0) {
+        return;
+      }
+
+      const emailDomain = extractWorkspaceEmailDomain(value);
+
+      if (!emailDomain || normalizedAllowedEmailDomains.includes(emailDomain)) {
+        return;
+      }
+
+      ctx.addIssue({
+        code: "custom",
+        message: getErrorMessage(tAny, WORKSPACE_ERROR_KEYS.invitationDomainRestricted),
+      });
+    })
     .transform((value) => value.toLowerCase());
+};
 
 const createMemberUserIdSchema = (tAny?: AnyTranslationsFn) =>
   z.string().trim().min(1, getErrorMessage(tAny, WORKSPACE_ERROR_KEYS.memberIdRequired)).pipe(id);
@@ -35,10 +62,13 @@ export const createWorkspaceInvitationSchema = z.object({
   role: createWorkspaceRoleSchema(),
 });
 
-export const createWorkspaceInvitationFormSchema = (tAny: AnyTranslationsFn) =>
+export const createWorkspaceInvitationFormSchema = (
+  tAny: AnyTranslationsFn,
+  allowedEmailDomains: readonly string[] = []
+) =>
   z.object({
     organizationId: organizationIdSchema,
-    email: createInvitationEmailSchema(tAny),
+    email: createInvitationEmailSchema(tAny, allowedEmailDomains),
     role: createWorkspaceRoleSchema(tAny),
   });
 

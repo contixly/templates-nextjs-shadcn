@@ -14,7 +14,6 @@ import {
 import { Modal, ModalProps } from "@components/ui/custom/modal";
 import { IconPlus } from "@tabler/icons-react";
 import { createWorkspace } from "@features/workspaces/actions/create-workspace";
-import { Spinner } from "@components/ui/spinner";
 import { useTranslations } from "next-intl";
 import { cn } from "@lib/utils";
 import { useAnyTranslations } from "@/src/i18n/use-any-translations";
@@ -22,6 +21,7 @@ import { translateWorkspaceErrorMessage } from "@features/workspaces/workspaces-
 import { useRouter } from "next/navigation";
 import routes from "@features/routes";
 import { getOrganizationRouteKey } from "@features/organizations/organizations-context";
+import { ButtonLoading } from "@components/ui/custom/button-loading";
 
 interface CreateWorkspaceDialogProps {
   onSuccess?: DispatchWithoutAction;
@@ -144,7 +144,7 @@ export const WorkspaceCreateDialog = ({
               {tCommon("words.verbs.cancel")}
             </Button>
             <Button type="submit" disabled={isPending || !isDirty || !isValid}>
-              {isPending && <Spinner data-icon="inline-start" />}
+              <ButtonLoading loading={isPending} />
               {tCommon("words.verbs.create")}
             </Button>
           </Field>

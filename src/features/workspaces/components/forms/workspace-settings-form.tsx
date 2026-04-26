@@ -9,7 +9,6 @@ import { useTranslations } from "next-intl";
 import { Button } from "@components/ui/button";
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@components/ui/field";
 import { Input } from "@components/ui/input";
-import { Spinner } from "@components/ui/spinner";
 import { Textarea } from "@components/ui/textarea";
 import { updateWorkspace } from "@features/workspaces/actions/update-workspace";
 import { getWorkspaceAllowedEmailDomains } from "@features/workspaces/workspaces-domain-restrictions";
@@ -20,6 +19,7 @@ import {
 } from "@features/workspaces/workspaces-schemas";
 import type { WorkspaceWithCounts } from "@features/workspaces/workspaces-types";
 import { useAnyTranslations } from "@/src/i18n/use-any-translations";
+import { ButtonLoading } from "@components/ui/custom/button-loading";
 
 interface WorkspaceSettingsFormProps {
   workspace: WorkspaceWithCounts;
@@ -194,7 +194,7 @@ export const WorkspaceSettingsForm = ({
               disabled={isPending || !isDirty || !isValid}
               className="min-w-fit"
             >
-              {isPending && <Spinner data-icon="inline-start" />}
+              <ButtonLoading loading={isPending} />
               {tCommon("words.verbs.save")}
             </Button>
           ) : null}

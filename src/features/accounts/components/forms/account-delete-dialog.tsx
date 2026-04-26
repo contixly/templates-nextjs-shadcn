@@ -11,7 +11,6 @@ import {
 import { Button } from "@components/ui/button";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@components/ui/field";
 import { Input } from "@components/ui/input";
-import { Spinner } from "@components/ui/spinner";
 import { IconAlertTriangle } from "@tabler/icons-react";
 import { toast } from "sonner";
 import routes from "@features/routes";
@@ -20,6 +19,7 @@ import { deleteAccount } from "@features/accounts/actions/delete-account";
 import { useTranslations } from "next-intl";
 import { useAnyTranslations } from "@/src/i18n/use-any-translations";
 import { translateAccountErrorMessage } from "@features/accounts/accounts-errors";
+import { ButtonLoading } from "@components/ui/custom/button-loading";
 
 export const AccountDeleteDialog = ({
   email,
@@ -138,7 +138,7 @@ export const AccountDeleteDialog = ({
               variant="destructive"
               disabled={isPending || !isDirty || !isValid}
             >
-              {isPending && <Spinner data-icon="inline-start" />}
+              <ButtonLoading loading={isPending} />
               {tCommon("words.verbs.delete")}
             </Button>
           </Field>
