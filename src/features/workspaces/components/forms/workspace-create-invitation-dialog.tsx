@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import React, { useState, useTransition } from "react";
+import React, { useMemo, useState, useTransition } from "react";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
@@ -19,7 +19,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@components/ui/select";
-import { Spinner } from "@components/ui/spinner";
 import { createWorkspaceInvitation } from "@features/workspaces/actions/create-workspace-invitation";
 import {
   createWorkspaceInvitationFormSchema,
@@ -29,15 +28,20 @@ import type { WorkspaceInvitationDto } from "@features/workspaces/workspaces-inv
 import type { WorkspaceManageableRole } from "@features/workspaces/workspaces-roles";
 import { translateWorkspaceErrorMessage } from "@features/workspaces/workspaces-errors";
 import { useAnyTranslations } from "@/src/i18n/use-any-translations";
+import { ButtonLoading } from "@components/ui/custom/button-loading";
 
 interface WorkspaceCreateInvitationDialogProps {
   organizationId: string;
   assignableRoles: WorkspaceManageableRole[];
+  allowedEmailDomains?: string[];
 }
+
+const EMPTY_ALLOWED_EMAIL_DOMAINS: string[] = [];
 
 export const WorkspaceCreateInvitationDialog = ({
   organizationId,
   assignableRoles,
+  allowedEmailDomains = EMPTY_ALLOWED_EMAIL_DOMAINS,
   trigger,
   ...props
 }: WorkspaceCreateInvitationDialogProps & Partial<ModalProps>) => {
@@ -51,6 +55,11 @@ export const WorkspaceCreateInvitationDialog = ({
   const [createdInvitation, setCreatedInvitation] = useState<WorkspaceInvitationDto | null>(null);
   const hasAssignableRoles = assignableRoles.length > 0;
   const defaultRole = assignableRoles[0] ?? "member";
+  const hasActiveDomainRestrictions = allowedEmailDomains.length > 0;
+  const formSchema = useMemo(
+    () => createWorkspaceInvitationFormSchema(tAny, allowedEmailDomains),
+    [allowedEmailDomains, tAny]
+  );
 
   const {
     control,
@@ -58,7 +67,7 @@ export const WorkspaceCreateInvitationDialog = ({
     reset,
     formState: { isDirty, isValid },
   } = useForm<CreateWorkspaceInvitationInput>({
-    resolver: zodResolver(createWorkspaceInvitationFormSchema(tAny)),
+    resolver: zodResolver(formSchema),
     mode: "all",
     defaultValues: {
       organizationId,
@@ -188,7 +197,13 @@ export const WorkspaceCreateInvitationDialog = ({
                     autoComplete="email"
                     inputMode="email"
                   />
-                  <FieldDescription>{tWorkspaces("emailHint")}</FieldDescription>
+                  <FieldDescription>
+                    {hasActiveDomainRestrictions
+                      ? tWorkspaces("allowedEmailDomainsHint", {
+                          domains: allowedEmailDomains.join(", "),
+                        })
+                      : tWorkspaces("emailHint")}
+                  </FieldDescription>
                   {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                 </Field>
               )}
@@ -241,7 +256,7 @@ export const WorkspaceCreateInvitationDialog = ({
                 type="submit"
                 disabled={isPending || !hasAssignableRoles || !isDirty || !isValid}
               >
-                {isPending && <Spinner data-icon="inline-start" />}
+                <ButtonLoading loading={isPending} />
                 {tCommon("words.verbs.create")}
               </Button>
             </Field>

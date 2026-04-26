@@ -26,6 +26,7 @@ import { resolveWorkspaceInvitationMutationError } from "@features/workspaces/wo
 import { WORKSPACE_ERROR_KEYS } from "@features/workspaces/workspaces-errors";
 import { canAssignWorkspaceRole } from "@features/workspaces/workspaces-roles";
 import { workspacesLogger } from "@features/workspaces/workspaces-logger";
+import { evaluateWorkspaceEmailDomainEligibility } from "@features/workspaces/workspaces-domain-restrictions";
 
 interface BetterAuthCreatedInvitation {
   id: string;
@@ -72,6 +73,21 @@ export const createWorkspaceInvitation = createProtectedActionWithInput<
         error: {
           message: WORKSPACE_ERROR_KEYS.workspaceRolePermissionDenied,
           code: HttpCodes.FORBIDDEN,
+        },
+      };
+    }
+
+    const domainEligibility = evaluateWorkspaceEmailDomainEligibility(
+      workspace.metadata,
+      normalizedEmail
+    );
+
+    if (!domainEligibility.allowed) {
+      return {
+        success: false,
+        error: {
+          message: WORKSPACE_ERROR_KEYS.invitationDomainRestricted,
+          code: HttpCodes.BAD_REQUEST,
         },
       };
     }

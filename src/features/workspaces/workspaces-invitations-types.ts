@@ -14,6 +14,7 @@ export type WorkspaceInvitationDecisionState =
   | "expired"
   | "recipient-mismatch"
   | "email-verification-required"
+  | "domain-restricted"
   | "already-member";
 
 export interface WorkspaceInvitationDto {

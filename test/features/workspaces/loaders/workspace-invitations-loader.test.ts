@@ -6,6 +6,7 @@ const mockFindManyAccessibleOrganizationsByUserId = jest.fn();
 const mockFindOrganizationMemberByOrganizationIdAndUserId = jest.fn();
 const mockFindManyPendingWorkspaceInvitationsByEmail = jest.fn();
 const mockFindWorkspaceInvitationById = jest.fn();
+const mockFindWorkspaceInvitationDomainRestrictionContext = jest.fn();
 const mockFindManyWorkspaceInvitationsByOrganizationIdAndUserId = jest.fn();
 const mockHasWorkspacePermission = jest.fn();
 const mockLoadWorkspaceSettingsPageContext = jest.fn();
@@ -26,6 +27,8 @@ jest.mock("@features/workspaces/workspaces-invitations-repository", () => ({
   findManyPendingWorkspaceInvitationsByEmail: (...args: unknown[]) =>
     mockFindManyPendingWorkspaceInvitationsByEmail(...args),
   findWorkspaceInvitationById: (...args: unknown[]) => mockFindWorkspaceInvitationById(...args),
+  findWorkspaceInvitationDomainRestrictionContext: (...args: unknown[]) =>
+    mockFindWorkspaceInvitationDomainRestrictionContext(...args),
   findManyWorkspaceInvitationsByOrganizationIdAndUserId: (...args: unknown[]) =>
     mockFindManyWorkspaceInvitationsByOrganizationIdAndUserId(...args),
 }));
@@ -74,6 +77,7 @@ describe("workspace invitation loaders", () => {
     mockFindOrganizationMemberByOrganizationIdAndUserId.mockReset();
     mockFindManyPendingWorkspaceInvitationsByEmail.mockReset();
     mockFindWorkspaceInvitationById.mockReset();
+    mockFindWorkspaceInvitationDomainRestrictionContext.mockReset();
     mockFindManyWorkspaceInvitationsByOrganizationIdAndUserId.mockReset();
     mockHasWorkspacePermission.mockReset();
     mockLoadWorkspaceSettingsPageContext.mockReset();
@@ -206,6 +210,48 @@ describe("workspace invitation loaders", () => {
     await expect(loadWorkspaceInvitationDecisionPageContext("invite-1")).resolves.toEqual({
       invitation: null,
       state: "recipient-mismatch",
+      canRespond: false,
+    });
+    expect(mockFindOrganizationMemberByOrganizationIdAndUserId).not.toHaveBeenCalled();
+  });
+
+  it("returns a domain-restricted state when a pending invitation no longer matches active restrictions", async () => {
+    mockLoadCurrentUserId.mockResolvedValue("user-1");
+    mockLoadCurrentUser.mockResolvedValue({
+      id: "user-1",
+      email: "alice@outside.test",
+      emailVerified: true,
+    });
+    mockFindWorkspaceInvitationById.mockResolvedValue({
+      id: "invite-1",
+      organizationId: "org-1",
+      organizationName: "Acme",
+      organizationSlug: "acme",
+      email: "alice@outside.test",
+      role: "member",
+      roleLabels: ["member"],
+      status: "pending",
+      displayStatus: "pending",
+      expiresAt: new Date("2026-04-25T10:00:00.000Z"),
+      createdAt: new Date("2026-04-20T10:00:00.000Z"),
+      inviterId: "user-2",
+      inviterName: "Inviter",
+      inviterEmail: "inviter@example.com",
+      invitationUrl: "https://example.com/invite/invite-1",
+    });
+    mockFindWorkspaceInvitationDomainRestrictionContext.mockResolvedValue({
+      organizationId: "org-1",
+      email: "alice@outside.test",
+      organizationMetadata: {
+        allowedEmailDomains: ["example.com"],
+      },
+    });
+
+    await expect(loadWorkspaceInvitationDecisionPageContext("invite-1")).resolves.toMatchObject({
+      invitation: expect.objectContaining({
+        id: "invite-1",
+      }),
+      state: "domain-restricted",
       canRespond: false,
     });
     expect(mockFindOrganizationMemberByOrganizationIdAndUserId).not.toHaveBeenCalled();

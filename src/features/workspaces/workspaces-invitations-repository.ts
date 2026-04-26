@@ -180,3 +180,39 @@ export const findWorkspaceInvitationById = async (invitationId: string) => {
 
   return toWorkspaceInvitationDto(invitation);
 };
+
+export const findWorkspaceInvitationDomainRestrictionContext = async (invitationId: string) => {
+  "use cache";
+  cacheLife("hours");
+  cacheTag(CACHE_WorkspaceInvitationByIdTag(invitationId));
+
+  const invitation = await prisma.invitation.findUnique({
+    where: {
+      id: invitationId,
+    },
+    select: {
+      email: true,
+      organizationId: true,
+      organization: {
+        select: {
+          metadata: true,
+        },
+      },
+    },
+  });
+
+  if (!invitation) {
+    return null;
+  }
+
+  cacheTag(
+    CACHE_OrganizationByIdTag(invitation.organizationId),
+    CACHE_WorkspaceInvitationsTag(invitation.organizationId)
+  );
+
+  return {
+    email: invitation.email,
+    organizationId: invitation.organizationId,
+    organizationMetadata: invitation.organization.metadata,
+  };
+};

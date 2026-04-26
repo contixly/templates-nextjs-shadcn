@@ -20,13 +20,34 @@ import { WORKSPACE_ERROR_KEYS } from "@features/workspaces/workspaces-errors";
 import { canAssignWorkspaceRole } from "@features/workspaces/workspaces-roles";
 import { updateWorkspaceCache } from "@features/workspaces/workspaces-types";
 import { workspacesLogger } from "@features/workspaces/workspaces-logger";
+import { evaluateWorkspaceEmailDomainEligibility } from "@features/workspaces/workspaces-domain-restrictions";
+
+export interface AddWorkspaceMemberDomainRestrictionWarning {
+  status: "domain-restriction-warning";
+  organizationId: string;
+  userId: string;
+  email: string;
+  emailDomain: string | null;
+  allowedEmailDomains: string[];
+  role: AddWorkspaceMemberInput["role"];
+}
+
+export type AddWorkspaceMemberResult =
+  | {
+      organizationId: string;
+      userId: string;
+    }
+  | AddWorkspaceMemberDomainRestrictionWarning;
 
 export const addWorkspaceMember = createProtectedActionWithInput<
   AddWorkspaceMemberInput,
-  { organizationId: string; userId: string }
+  AddWorkspaceMemberResult
 >(
   addWorkspaceMemberSchema,
-  async ({ organizationId, userId: targetUserId, role }, { userId, headers }) => {
+  async (
+    { organizationId, userId: targetUserId, role, acknowledgeDomainRestriction },
+    { userId, headers }
+  ) => {
     const workspace = await findWorkspaceDtoByIdAndUserId(organizationId, userId);
 
     if (!workspace) {
@@ -72,6 +93,7 @@ export const addWorkspaceMember = createProtectedActionWithInput<
         },
         select: {
           id: true,
+          email: true,
         },
       }),
       findOrganizationMemberByOrganizationIdAndUserId(organizationId, targetUserId, {
@@ -95,6 +117,26 @@ export const addWorkspaceMember = createProtectedActionWithInput<
         error: {
           message: WORKSPACE_ERROR_KEYS.memberAlreadyExists,
           code: HttpCodes.CONFLICT,
+        },
+      };
+    }
+
+    const domainEligibility = evaluateWorkspaceEmailDomainEligibility(
+      workspace.metadata,
+      targetUser.email
+    );
+
+    if (!domainEligibility.allowed && !acknowledgeDomainRestriction) {
+      return {
+        success: true,
+        data: {
+          status: "domain-restriction-warning",
+          organizationId,
+          userId: targetUser.id,
+          email: targetUser.email,
+          emailDomain: domainEligibility.emailDomain,
+          allowedEmailDomains: domainEligibility.allowedEmailDomains,
+          role,
         },
       };
     }

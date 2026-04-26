@@ -22,6 +22,11 @@ export const getWorkspaceInvitationDecisionError = (
         message: WORKSPACE_ERROR_KEYS.invitationEmailVerificationRequired,
         code: HttpCodes.FORBIDDEN,
       };
+    case "domain-restricted":
+      return {
+        message: WORKSPACE_ERROR_KEYS.invitationDomainRestricted,
+        code: HttpCodes.FORBIDDEN,
+      };
     case "already-member":
       return {
         message: WORKSPACE_ERROR_KEYS.invitationAlreadyMember,

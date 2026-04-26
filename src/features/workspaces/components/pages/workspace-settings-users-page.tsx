@@ -2,6 +2,7 @@
 
 import { useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { Alert, AlertDescription, AlertTitle } from "@components/ui/alert";
 import { Avatar, AvatarFallback, AvatarImage } from "@components/ui/avatar";
 import { Badge } from "@components/ui/badge";
 import { Button } from "@components/ui/button";
@@ -26,10 +27,9 @@ import {
   TableHeader,
   TableRow,
 } from "@components/ui/table";
-import { IconUserPlus, IconUsers } from "@tabler/icons-react";
+import { IconAlertTriangle, IconUserPlus, IconUsers } from "@tabler/icons-react";
 import { toast } from "sonner";
 import { accountsTools } from "@features/accounts/accounts-tools";
-import type { OrganizationMemberListItemDto } from "@features/organizations/organizations-types";
 import { updateWorkspaceMemberRole } from "@features/workspaces/actions/update-workspace-member-role";
 import { WorkspaceAddMemberDialog } from "@features/workspaces/components/forms/workspace-add-member-dialog";
 import { translateWorkspaceErrorMessage } from "@features/workspaces/workspaces-errors";
@@ -38,23 +38,23 @@ import {
   isWorkspaceManageableRole,
   type WorkspaceManageableRole,
 } from "@features/workspaces/workspaces-roles";
+import type { WorkspaceMemberListItemDto } from "@features/workspaces/workspaces-types";
 import { timeTools } from "@lib/time";
 import { useLocale, useTranslations } from "next-intl";
 import { useAnyTranslations } from "@/src/i18n/use-any-translations";
 
 interface WorkspaceSettingsUsersPageProps {
   organizationId: string;
-  members: OrganizationMemberListItemDto[];
+  members: WorkspaceMemberListItemDto[];
   currentUserId: string;
   canAddMembers: boolean;
   canUpdateMemberRoles: boolean;
   assignableWorkspaceRoles: WorkspaceManageableRole[];
 }
 
-const getDisplayName = (member: OrganizationMemberListItemDto) =>
-  member.name.trim() || member.email;
+const getDisplayName = (member: WorkspaceMemberListItemDto) => member.name.trim() || member.email;
 
-const getMemberRoleValue = (member: OrganizationMemberListItemDto) =>
+const getMemberRoleValue = (member: WorkspaceMemberListItemDto) =>
   member.role ?? member.roleLabels.join(",");
 
 const getRoleLabel = (roleLabel: string, tRoles: (role: WorkspaceManageableRole) => string) =>
@@ -76,7 +76,7 @@ const canRenderRoleControl = ({
 
 interface WorkspaceMemberRoleControlProps {
   organizationId: string;
-  member: OrganizationMemberListItemDto;
+  member: WorkspaceMemberListItemDto;
   displayName: string;
   currentRole: WorkspaceManageableRole;
   assignableWorkspaceRoles: WorkspaceManageableRole[];
@@ -153,7 +153,7 @@ const WorkspaceMemberRoleControl = ({
 };
 
 interface WorkspaceMemberRoleLabelsProps {
-  member: OrganizationMemberListItemDto;
+  member: WorkspaceMemberListItemDto;
   noRolesLabel: string;
   tRoles: (role: WorkspaceManageableRole) => string;
 }
@@ -192,6 +192,7 @@ export const WorkspaceSettingsUsersPage = ({
   const locale = useLocale();
   const currentMember = members.find((member) => member.userId === currentUserId) ?? null;
   const otherMembers = members.filter((member) => member.userId !== currentUserId);
+  const outOfPolicyMembers = members.filter((member) => member.isOutsideAllowedEmailDomains);
   const addMemberAction = canAddMembers ? (
     <WorkspaceAddMemberDialog
       organizationId={organizationId}
@@ -208,6 +209,18 @@ export const WorkspaceSettingsUsersPage = ({
   return (
     <>
       <SettingsPageIntro title={tPage("title")} description={tPage("description")} />
+
+      {outOfPolicyMembers.length > 0 ? (
+        <Alert className="ring-foreground/10 border-0 ring-1">
+          <IconAlertTriangle aria-hidden="true" />
+          <AlertTitle>{t("domainRestrictionWarningTitle")}</AlertTitle>
+          <AlertDescription>
+            {t("domainRestrictionWarningDescription", {
+              count: String(outOfPolicyMembers.length),
+            })}
+          </AlertDescription>
+        </Alert>
+      ) : null}
 
       {members.length === 0 ? (
         <SettingsSection
@@ -257,6 +270,9 @@ export const WorkspaceSettingsUsersPage = ({
                           {getDisplayName(currentMember)}
                         </p>
                         <Badge variant="secondary">{t("currentUserBadge")}</Badge>
+                        {currentMember.isOutsideAllowedEmailDomains ? (
+                          <Badge variant="outline">{t("outsideAllowedDomainsBadge")}</Badge>
+                        ) : null}
                       </div>
                       <p className="text-muted-foreground truncate text-sm">
                         {currentMember.email}
@@ -326,7 +342,12 @@ export const WorkspaceSettingsUsersPage = ({
                                   {accountsTools.getInitials(displayName)}
                                 </AvatarFallback>
                               </Avatar>
-                              <span className="font-medium">{displayName}</span>
+                              <div className="min-w-0 space-y-1">
+                                <span className="block truncate font-medium">{displayName}</span>
+                                {member.isOutsideAllowedEmailDomains ? (
+                                  <Badge variant="outline">{t("outsideAllowedDomainsBadge")}</Badge>
+                                ) : null}
+                              </div>
                             </div>
                           </TableCell>
                           <TableCell className="text-muted-foreground">{member.email}</TableCell>

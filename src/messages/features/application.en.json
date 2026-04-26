@@ -2,7 +2,7 @@
   "pages": {
     "home": {
       "title": "Home",
-      "description": "A Next.js template with organization-backed workspaces, invitations, member roles, shared settings surfaces, and reusable product scaffolding.",
+      "description": "A Next.js template with organization-backed workspaces, invitations, email-domain restrictions, member roles, shared settings surfaces, and reusable product scaffolding.",
       "openGraph": {
         "title": "Home",
         "description": "A template application with organization-backed workspace and collaboration flows."
@@ -10,8 +10,8 @@
       "heroBadge": "Organization-ready template",
       "heroTitlePrefix": "Workspace collaboration for",
       "heroTitleEmphasis": "your next service",
-      "heroDescription": "This template now includes Better Auth organizations, slug-aware workspace routing, member directories, invitation flows, and role-aware settings so you can start from a real multi-tenant foundation.",
-      "heroSecurity": "OAuth login, verified invitation acceptance, role-aware permissions",
+      "heroDescription": "This template now includes Better Auth organizations, slug-aware workspace routing, member directories, domain-aware invitation flows, and role-aware settings so you can start from a real multi-tenant foundation.",
+      "heroSecurity": "OAuth login, verified invitation acceptance, domain restrictions, role-aware permissions",
       "featuresTitle": "Organization and workspace flows are included",
       "featuresDescription": "The branch now ships the core collaboration surface most SaaS products need before domain-specific features begin.",
       "extensionsBadge": "Management surfaces",
@@ -45,23 +45,23 @@
         },
         "features": {
           "badge": "Included",
-          "title": "Invitations and onboarding",
-          "description": "Admins can create shareable workspace invitations, users can accept or reject them, and zero-workspace onboarding stays actionable."
+          "title": "Domain-aware invitations",
+          "description": "Admins can restrict invitations to allowed email domains, users can accept or reject valid invites, and zero-workspace onboarding stays actionable."
         },
         "ui": {
           "badge": "Included",
           "title": "Settings and member management",
-          "description": "Workspace settings include general settings, user lists, direct member adds, role edits, invitations, and placeholder sections for teams and roles."
+          "description": "Workspace settings include general settings, allowed email domains, user lists, direct member adds, role edits, invitations, and placeholder sections for teams and roles."
         }
       },
       "extensionBlocks": {
         "clients": {
           "title": "Workspace settings sections",
-          "description": "Extend the settings shell with billing, domains, audit logs, or other organization-level controls."
+          "description": "Extend the settings shell with billing, domain policies, audit logs, or other organization-level controls."
         },
         "webhooks": {
           "title": "Invitation lifecycle",
-          "description": "Build on pending, accepted, rejected, canceled, and expired invitation states with email delivery or notifications."
+          "description": "Build on pending, accepted, rejected, canceled, expired, and domain-restricted invitation states with email delivery or notifications."
         },
         "storage": {
           "title": "Role-aware permissions",

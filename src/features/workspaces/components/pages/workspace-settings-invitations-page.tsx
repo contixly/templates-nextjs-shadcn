@@ -27,6 +27,7 @@ interface WorkspaceSettingsInvitationsPageProps {
   invitations: WorkspaceInvitationDto[];
   canCreateInvitations: boolean;
   assignableWorkspaceRoles: WorkspaceManageableRole[];
+  allowedEmailDomains?: string[];
 }
 
 const getStatusVariant = (status: WorkspaceInvitationDto["displayStatus"]) => {
@@ -48,6 +49,7 @@ export const WorkspaceSettingsInvitationsPage = ({
   invitations,
   canCreateInvitations,
   assignableWorkspaceRoles,
+  allowedEmailDomains = [],
 }: WorkspaceSettingsInvitationsPageProps) => {
   const tCommon = useTranslations("common");
   const tPage = useTranslations("workspaces.pages.settings_invitations");
@@ -66,6 +68,7 @@ export const WorkspaceSettingsInvitationsPage = ({
             <WorkspaceCreateInvitationDialog
               organizationId={organizationId}
               assignableRoles={assignableWorkspaceRoles}
+              allowedEmailDomains={allowedEmailDomains}
             />
           ) : null
         }

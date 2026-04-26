@@ -2,15 +2,16 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import React, { useEffect, useMemo, useTransition } from "react";
+import React, { useEffect, useMemo, useRef, useTransition } from "react";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Button } from "@components/ui/button";
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@components/ui/field";
 import { Input } from "@components/ui/input";
-import { Spinner } from "@components/ui/spinner";
+import { Textarea } from "@components/ui/textarea";
 import { updateWorkspace } from "@features/workspaces/actions/update-workspace";
+import { getWorkspaceAllowedEmailDomains } from "@features/workspaces/workspaces-domain-restrictions";
 import { translateWorkspaceErrorMessage } from "@features/workspaces/workspaces-errors";
 import {
   createUpdateWorkspaceFormSchema,
@@ -18,6 +19,7 @@ import {
 } from "@features/workspaces/workspaces-schemas";
 import type { WorkspaceWithCounts } from "@features/workspaces/workspaces-types";
 import { useAnyTranslations } from "@/src/i18n/use-any-translations";
+import { ButtonLoading } from "@components/ui/custom/button-loading";
 
 interface WorkspaceSettingsFormProps {
   workspace: WorkspaceWithCounts;
@@ -28,10 +30,18 @@ interface WorkspaceSettingsFormProps {
   autoFocusNameField?: boolean;
 }
 
-const getDefaultValues = (workspace: WorkspaceWithCounts): UpdateWorkspaceInput => ({
+type WorkspaceSettingsFormInput = Omit<UpdateWorkspaceInput, "allowedEmailDomains"> & {
+  allowedEmailDomains?: string;
+};
+
+const formatAllowedEmailDomainsText = (workspace: WorkspaceWithCounts) =>
+  getWorkspaceAllowedEmailDomains(workspace.metadata).join("\n");
+
+const getDefaultValues = (workspace: WorkspaceWithCounts): WorkspaceSettingsFormInput => ({
   id: workspace.id,
   name: workspace.name,
   slug: workspace.slug ?? "",
+  allowedEmailDomains: formatAllowedEmailDomainsText(workspace),
 });
 
 export const WorkspaceSettingsForm = ({
@@ -47,6 +57,7 @@ export const WorkspaceSettingsForm = ({
   const tAny = useAnyTranslations("workspaces");
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+  const didMountRef = useRef(false);
 
   const defaultValues = useMemo(() => getDefaultValues(workspace), [workspace]);
   const formSchema = useMemo(
@@ -59,13 +70,18 @@ export const WorkspaceSettingsForm = ({
     handleSubmit,
     reset,
     formState: { isDirty, isValid },
-  } = useForm<UpdateWorkspaceInput>({
+  } = useForm<WorkspaceSettingsFormInput, unknown, UpdateWorkspaceInput>({
     resolver: zodResolver(formSchema),
     mode: "all",
     defaultValues,
   });
 
   useEffect(() => {
+    if (!didMountRef.current) {
+      didMountRef.current = true;
+      return;
+    }
+
     reset(defaultValues);
   }, [defaultValues, reset]);
 
@@ -138,6 +154,32 @@ export const WorkspaceSettingsForm = ({
               </Field>
             )}
           />
+          <Controller
+            name="allowedEmailDomains"
+            control={control}
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel htmlFor="edit-workspace-allowed-email-domains">
+                  {tWorkspaces("allowedEmailDomainsLabel")}
+                </FieldLabel>
+                <Textarea
+                  id="edit-workspace-allowed-email-domains"
+                  value={field.value ?? ""}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                  aria-invalid={fieldState.invalid}
+                  placeholder={tWorkspaces("allowedEmailDomainsPlaceholder")}
+                  disabled={isPending || !canUpdateWorkspace}
+                  autoComplete="off"
+                  rows={4}
+                />
+                <FieldDescription className="text-xs">
+                  {tWorkspaces("allowedEmailDomainsHint")}
+                </FieldDescription>
+                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+              </Field>
+            )}
+          />
         </FieldGroup>
 
         <Field orientation="horizontal" className="flex justify-end gap-2">
@@ -152,7 +194,7 @@ export const WorkspaceSettingsForm = ({
               disabled={isPending || !isDirty || !isValid}
               className="min-w-fit"
             >
-              {isPending && <Spinner data-icon="inline-start" />}
+              <ButtonLoading loading={isPending} />
               {tCommon("words.verbs.save")}
             </Button>
           ) : null}

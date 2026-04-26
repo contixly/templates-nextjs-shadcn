@@ -14,10 +14,10 @@ import {
 import type { WorkspaceWithCounts } from "@features/workspaces/workspaces-types";
 import { Modal, ModalProps } from "@components/ui/custom/modal";
 import { deleteWorkspace } from "@features/workspaces/actions/delete-workspace";
-import { Spinner } from "@components/ui/spinner";
 import { useTranslations } from "next-intl";
 import { useAnyTranslations } from "@/src/i18n/use-any-translations";
 import { translateWorkspaceErrorMessage } from "@features/workspaces/workspaces-errors";
+import { ButtonLoading } from "@components/ui/custom/button-loading";
 
 interface WorkspaceDeleteDialogProps {
   workspace: WorkspaceWithCounts | null;
@@ -134,7 +134,7 @@ export const WorkspaceDeleteDialog = ({
               variant="destructive"
               disabled={isPending || !isDirty || !isValid}
             >
-              {isPending && <Spinner data-icon="inline-start" />}
+              <ButtonLoading loading={isPending} />
               {tCommon("words.verbs.delete")}
             </Button>
           </Field>

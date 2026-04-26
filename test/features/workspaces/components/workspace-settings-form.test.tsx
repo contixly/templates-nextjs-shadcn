@@ -32,6 +32,9 @@ jest.mock("next-intl", () => ({
             slugLabel: "Slug рабочего пространства",
             slugPlaceholder: "Например: rabota",
             slugHint: "Только строчные буквы, цифры и дефисы",
+            allowedEmailDomainsLabel: "Разрешенные email-домены",
+            allowedEmailDomainsPlaceholder: "example.com",
+            allowedEmailDomainsHint: "Один точный домен на строку.",
             success: "Рабочее пространство успешно обновлено",
             errorTitle: "Обновление рабочего пространства",
             unknownError: "Неизвестная ошибка",
@@ -86,7 +89,31 @@ describe("WorkspaceSettingsForm", () => {
     mockRefresh.mockReset();
   });
 
-  it("loads the current workspace name and slug into the extracted page form", () => {
+  it("loads the current workspace name, slug, and allowed domains into the extracted page form", () => {
+    render(
+      <WorkspaceSettingsForm
+        workspace={{
+          id: WORKSPACE_ID,
+          name: "Client Workspace",
+          slug: "client-workspace",
+          logo: null,
+          metadata: {
+            allowedEmailDomains: ["example.com", "admin.example.com"],
+          },
+          createdAt: new Date("2026-04-20T10:00:00.000Z"),
+          updatedAt: new Date("2026-04-20T10:00:00.000Z"),
+        }}
+      />
+    );
+
+    expect(screen.getByDisplayValue("Client Workspace")).toBeInTheDocument();
+    expect(screen.getByDisplayValue("client-workspace")).toBeInTheDocument();
+    expect(screen.getByLabelText("Разрешенные email-домены")).toHaveValue(
+      "example.com\nadmin.example.com"
+    );
+  });
+
+  it("keeps domain separators while editing the allowed domains field", async () => {
     render(
       <WorkspaceSettingsForm
         workspace={{
@@ -101,8 +128,23 @@ describe("WorkspaceSettingsForm", () => {
       />
     );
 
-    expect(screen.getByDisplayValue("Client Workspace")).toBeInTheDocument();
-    expect(screen.getByDisplayValue("client-workspace")).toBeInTheDocument();
+    const allowedDomainsField = screen.getByLabelText("Разрешенные email-домены");
+
+    await act(async () => {
+      fireEvent.change(allowedDomainsField, {
+        target: { value: "example.com\n" },
+      });
+    });
+
+    expect(allowedDomainsField).toHaveValue("example.com\n");
+
+    await act(async () => {
+      fireEvent.change(allowedDomainsField, {
+        target: { value: "example.com," },
+      });
+    });
+
+    expect(allowedDomainsField).toHaveValue("example.com,");
   });
 
   it("refreshes the route and resets to the saved values after a successful update", async () => {
@@ -133,8 +175,10 @@ describe("WorkspaceSettingsForm", () => {
       />
     );
 
-    fireEvent.change(screen.getByLabelText("Название рабочего пространства"), {
-      target: { value: "Renamed Workspace" },
+    await act(async () => {
+      fireEvent.change(screen.getByLabelText("Название рабочего пространства"), {
+        target: { value: "Renamed Workspace" },
+      });
     });
 
     await waitFor(() => {
@@ -153,6 +197,60 @@ describe("WorkspaceSettingsForm", () => {
     expect(screen.getByDisplayValue("renamed-workspace")).toBeInTheDocument();
   });
 
+  it("submits edited allowed domains as a normalized list", async () => {
+    (updateWorkspace as jest.Mock).mockResolvedValue({
+      success: true,
+      data: {
+        id: WORKSPACE_ID,
+        name: "Client Workspace",
+        slug: "client-workspace",
+        logo: null,
+        metadata: {
+          allowedEmailDomains: ["example.com", "admin.example.com"],
+        },
+        createdAt: new Date("2026-04-20T10:00:00.000Z"),
+        updatedAt: new Date("2026-04-21T10:00:00.000Z"),
+      },
+    });
+
+    render(
+      <WorkspaceSettingsForm
+        workspace={{
+          id: WORKSPACE_ID,
+          name: "Client Workspace",
+          slug: "client-workspace",
+          logo: null,
+          metadata: null,
+          createdAt: new Date("2026-04-20T10:00:00.000Z"),
+          updatedAt: new Date("2026-04-20T10:00:00.000Z"),
+        }}
+      />
+    );
+
+    await act(async () => {
+      fireEvent.change(screen.getByLabelText("Разрешенные email-домены"), {
+        target: { value: "Example.COM\nadmin.example.com" },
+      });
+    });
+
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: "Сохранить" })).not.toBeDisabled();
+    });
+
+    await act(async () => {
+      fireEvent.submit(screen.getByRole("button", { name: "Сохранить" }).closest("form")!);
+    });
+
+    await waitFor(() => {
+      expect(updateWorkspace).toHaveBeenCalledWith({
+        id: WORKSPACE_ID,
+        name: "Client Workspace",
+        slug: "client-workspace",
+        allowedEmailDomains: ["example.com", "admin.example.com"],
+      });
+    });
+  });
+
   it("enables save when a workspace with a better-auth style id is edited", async () => {
     render(
       <WorkspaceSettingsForm
@@ -168,8 +266,10 @@ describe("WorkspaceSettingsForm", () => {
       />
     );
 
-    fireEvent.change(screen.getByLabelText("Название рабочего пространства"), {
-      target: { value: "Client Workspace Updated" },
+    await act(async () => {
+      fireEvent.change(screen.getByLabelText("Название рабочего пространства"), {
+        target: { value: "Client Workspace Updated" },
+      });
     });
 
     await waitFor(() => {
@@ -195,6 +295,7 @@ describe("WorkspaceSettingsForm", () => {
 
     expect(screen.getByLabelText("Название рабочего пространства")).toBeDisabled();
     expect(screen.getByLabelText("Slug рабочего пространства")).toBeDisabled();
+    expect(screen.getByLabelText("Разрешенные email-домены")).toBeDisabled();
     expect(screen.queryByRole("button", { name: "Сохранить" })).not.toBeInTheDocument();
   });
 });

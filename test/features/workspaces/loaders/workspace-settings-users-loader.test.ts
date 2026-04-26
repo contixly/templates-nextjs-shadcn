@@ -95,6 +95,8 @@ describe("loadWorkspaceSettingsUsersPageContext", () => {
           id: "member-1",
           userId: "user-123",
           roleLabels: ["owner", "billing"],
+          emailDomain: "example.com",
+          isOutsideAllowedEmailDomains: false,
         }),
       ],
     });
@@ -103,6 +105,62 @@ describe("loadWorkspaceSettingsUsersPageContext", () => {
       "org-42",
       "user-123"
     );
+  });
+
+  it("derives member domain-policy markers from active workspace restrictions", async () => {
+    mockLoadCurrentUserId.mockResolvedValue("user-123");
+    mockCountAccessibleOrganizationsByUserId.mockResolvedValue(2);
+    mockFindWorkspaceDtoByKeyAndUserId.mockResolvedValue({
+      id: "org-42",
+      name: "Acme",
+      slug: "acme",
+      logo: null,
+      metadata: {
+        allowedEmailDomains: ["example.com"],
+      },
+      createdAt: new Date("2026-04-20T10:00:00.000Z"),
+      updatedAt: new Date("2026-04-20T10:00:00.000Z"),
+    });
+    mockHasWorkspacePermission.mockResolvedValue(true);
+    mockFindOrganizationMemberByOrganizationIdAndUserId.mockResolvedValue({
+      id: "member-current",
+      role: "owner",
+    });
+    mockFindManyAccessibleOrganizationMembersByIdAndUserId.mockResolvedValue([
+      {
+        id: "member-1",
+        userId: "user-123",
+        name: "Alice Adams",
+        email: "alice@example.com",
+        image: null,
+        roleLabels: ["owner"],
+        joinedAt: new Date("2026-04-20T10:00:00.000Z"),
+      },
+      {
+        id: "member-2",
+        userId: "user-456",
+        name: "Bob Brown",
+        email: "bob@outside.test",
+        image: null,
+        roleLabels: ["member"],
+        joinedAt: new Date("2026-04-21T10:00:00.000Z"),
+      },
+    ]);
+
+    await expect(loadWorkspaceSettingsUsersPageContext("org-42")).resolves.toMatchObject({
+      members: [
+        expect.objectContaining({
+          userId: "user-123",
+          emailDomain: "example.com",
+          isOutsideAllowedEmailDomains: false,
+        }),
+        expect.objectContaining({
+          userId: "user-456",
+          emailDomain: "outside.test",
+          isOutsideAllowedEmailDomains: true,
+        }),
+      ],
+    });
   });
 
   it("keeps the workspace readable while disabling all admin capabilities for a regular member", async () => {

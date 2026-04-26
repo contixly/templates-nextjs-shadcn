@@ -7,6 +7,7 @@ import {
   findOrganizationMemberByOrganizationIdAndUserId,
 } from "@features/organizations/organizations-repository";
 import {
+  findWorkspaceInvitationDomainRestrictionContext,
   findManyPendingWorkspaceInvitationsByEmail,
   findManyWorkspaceInvitationsByOrganizationIdAndUserId,
   findWorkspaceInvitationById,
@@ -21,6 +22,7 @@ import {
   loadWorkspaceSettingsPageContext,
   type WorkspaceSettingsPageContext,
 } from "@features/workspaces/workspaces-settings";
+import { evaluateWorkspaceEmailDomainEligibility } from "@features/workspaces/workspaces-domain-restrictions";
 
 export interface WorkspaceSettingsInvitationsPageContext extends WorkspaceSettingsPageContext {
   invitations: WorkspaceInvitationDto[];
@@ -132,6 +134,21 @@ export const loadWorkspaceInvitationDecisionPageContext = async (
     return {
       invitation: resolvedInvitation,
       state: "email-verification-required",
+      canRespond: false,
+    };
+  }
+
+  const domainRestrictionContext =
+    await findWorkspaceInvitationDomainRestrictionContext(invitationId);
+  const domainEligibility = evaluateWorkspaceEmailDomainEligibility(
+    domainRestrictionContext?.organizationMetadata,
+    resolvedInvitation.email
+  );
+
+  if (!domainEligibility.allowed) {
+    return {
+      invitation: resolvedInvitation,
+      state: "domain-restricted",
       canRespond: false,
     };
   }

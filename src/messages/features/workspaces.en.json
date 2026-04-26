@@ -74,6 +74,7 @@
       "duplicateName": "A workspace with this name already exists",
       "duplicateSlug": "A workspace with this slug already exists",
       "updatePermissionDenied": "You do not have permission to update this workspace",
+      "allowedEmailDomainInvalid": "Enter valid email domains only. “{domain}” is not valid.",
       "confirmationRequired": "Confirmation text is required",
       "confirmationMismatch": "Confirmation text does not match workspace name",
       "atLeastOneWorkspace": "You must have at least one workspace",
@@ -82,6 +83,7 @@
       "invitationEmailInvalid": "Invitation email must be valid",
       "invitationAlreadyExists": "A pending invitation for this email already exists",
       "invitationRecipientAlreadyMember": "That email already belongs to a workspace member",
+      "invitationDomainRestricted": "That email domain is not allowed by this workspace",
       "invitationPermissionDenied": "You do not have permission to invite users to this workspace",
       "invitationNotFound": "Invitation not found",
       "invitationNotPending": "This invitation can no longer be changed",
@@ -123,6 +125,9 @@
       "slugLabel": "Workspace Slug",
       "slugPlaceholder": "e.g., work-personal-projects",
       "slugHint": "Lowercase letters, numbers, and hyphens only",
+      "allowedEmailDomainsLabel": "Allowed Email Domains",
+      "allowedEmailDomainsPlaceholder": "example.com\nteam.example.com",
+      "allowedEmailDomainsHint": "One exact domain per line or comma. Leave empty to allow any email domain.",
       "success": "Workspace updated successfully",
       "errorTitle": "Update Workspace",
       "unknownError": "Unknown error"
@@ -141,6 +146,9 @@
       "slugLabel": "Workspace Slug",
       "slugPlaceholder": "e.g., work-personal-projects",
       "slugHint": "Lowercase letters, numbers, and hyphens only",
+      "allowedEmailDomainsLabel": "Allowed Email Domains",
+      "allowedEmailDomainsPlaceholder": "example.com\nteam.example.com",
+      "allowedEmailDomainsHint": "One exact domain per line or comma. Leave empty to allow any email domain.",
       "success": "Workspace updated successfully",
       "errorTitle": "Update Workspace",
       "unknownError": "Unknown error"
@@ -160,6 +168,9 @@
       "directoryTitle": "Member directory",
       "directoryDescription": "Review visible workspace members and invite existing users.",
       "joinedLabel": "Joined",
+      "domainRestrictionWarningTitle": "Members outside allowed domains",
+      "domainRestrictionWarningDescription": "{count} current member(s) are outside this workspace's active email-domain restrictions. Existing memberships are unchanged.",
+      "outsideAllowedDomainsBadge": "Outside domain policy",
       "roleUpdateSuccess": "Member role updated successfully",
       "roleUpdateErrorTitle": "Update Member Role",
       "roleUpdateUnknownError": "Unknown error",
@@ -212,6 +223,7 @@
       "emailLabel": "Email",
       "emailPlaceholder": "person@example.com",
       "emailHint": "The invitation will require this verified primary email at acceptance time.",
+      "allowedEmailDomainsHint": "Active restriction: invitations can be accepted only from {domains}.",
       "roleLabel": "Role",
       "roleHint": "Choose the role this invitation will grant.",
       "createdTitle": "Invitation created",
@@ -232,6 +244,9 @@
       "userIdHint": "Use the exact internal user ID for the account you want to add.",
       "roleLabel": "Role",
       "roleHint": "Choose the role this user will receive.",
+      "domainRestrictionWarningTitle": "Email domain outside policy",
+      "domainRestrictionWarningDescription": "{email} is outside the active allowed domains: {domains}. Confirm to add this user anyway.",
+      "confirmDomainRestrictionOverride": "Confirm Add",
       "success": "Member added successfully",
       "errorTitle": "Add Member",
       "unknownError": "Unknown error"
@@ -302,6 +317,10 @@
         "email-verification-required": {
           "label": "Email verification required",
           "description": "Verify your primary email before accepting or rejecting this invitation."
+        },
+        "domain-restricted": {
+          "label": "Domain restricted",
+          "description": "This invitation can no longer be accepted because the invited email domain is outside the workspace's active restrictions."
         },
         "already-member": {
           "label": "Already a member",
