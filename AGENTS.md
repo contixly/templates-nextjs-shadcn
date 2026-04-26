@@ -83,6 +83,7 @@ All mutations must be server actions. Location: `features/{feature}/actions/`.
 ## UI & Component Patterns
 
 - **Style**: `shadcn/ui` with `radix-lyra` style and `neutral` base color.
+- **Shadcn Components**: Do not edit base shadcn components in `src/components/ui/`. If different component behavior is required, override or compose it in `src/components/ui/custom/`.
 - **Icons**: `@tabler/icons-react` for specific feature icons.
 - **Forms**: Use `React Hook Form` + `Zod` + `useTransition`.
 - **Fields**: Use shared `Field`, `FieldLabel`, `FieldError` components from `@components/ui/field`.
