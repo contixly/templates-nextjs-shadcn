@@ -2,6 +2,7 @@
 
 import { useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { Alert, AlertDescription, AlertTitle } from "@components/ui/alert";
 import { Avatar, AvatarFallback, AvatarImage } from "@components/ui/avatar";
 import { Badge } from "@components/ui/badge";
 import { Button } from "@components/ui/button";
@@ -26,7 +27,7 @@ import {
   TableHeader,
   TableRow,
 } from "@components/ui/table";
-import { IconUserPlus, IconUsers } from "@tabler/icons-react";
+import { IconAlertTriangle, IconUserPlus, IconUsers } from "@tabler/icons-react";
 import { toast } from "sonner";
 import { accountsTools } from "@features/accounts/accounts-tools";
 import { updateWorkspaceMemberRole } from "@features/workspaces/actions/update-workspace-member-role";
@@ -210,14 +211,15 @@ export const WorkspaceSettingsUsersPage = ({
       <SettingsPageIntro title={tPage("title")} description={tPage("description")} />
 
       {outOfPolicyMembers.length > 0 ? (
-        <div role="alert" className="border-border bg-muted/40 mb-6 space-y-1 border p-4 text-sm">
-          <p className="font-medium">{t("domainRestrictionWarningTitle")}</p>
-          <p className="text-muted-foreground">
+        <Alert className="ring-foreground/10 border-0 ring-1">
+          <IconAlertTriangle aria-hidden="true" />
+          <AlertTitle>{t("domainRestrictionWarningTitle")}</AlertTitle>
+          <AlertDescription>
             {t("domainRestrictionWarningDescription", {
               count: String(outOfPolicyMembers.length),
             })}
-          </p>
-        </div>
+          </AlertDescription>
+        </Alert>
       ) : null}
 
       {members.length === 0 ? (
