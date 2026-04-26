@@ -66,6 +66,12 @@ const createWorkspaceSlugSchema = (tAny?: AnyTranslationsFn) =>
 
 const slug = createWorkspaceSlugSchema();
 
+const splitWorkspaceAllowedEmailDomainsText = (value: string) =>
+  value
+    .split(/[\n,]+/)
+    .map((domain) => domain.trim())
+    .filter(Boolean);
+
 const createWorkspaceAllowedEmailDomainsSchema = (tAny?: AnyTranslationsFn) =>
   z
     .array(z.string())
@@ -86,6 +92,33 @@ const createWorkspaceAllowedEmailDomainsSchema = (tAny?: AnyTranslationsFn) =>
     })
     .transform((values) =>
       values === undefined ? undefined : normalizeWorkspaceAllowedEmailDomains(values).domains
+    );
+
+const createWorkspaceAllowedEmailDomainsFormSchema = (tAny?: AnyTranslationsFn) =>
+  z
+    .string()
+    .optional()
+    .superRefine((value, ctx) => {
+      const normalization = normalizeWorkspaceAllowedEmailDomains(
+        value === undefined ? [] : splitWorkspaceAllowedEmailDomainsText(value)
+      );
+
+      if (normalization.invalidDomains.length === 0) {
+        return;
+      }
+
+      ctx.addIssue({
+        code: "custom",
+        message: getErrorMessage(tAny, WORKSPACE_ERROR_KEYS.allowedEmailDomainInvalid, {
+          domain: normalization.invalidDomains[0],
+        }),
+      });
+    })
+    .transform((value) =>
+      value === undefined
+        ? undefined
+        : normalizeWorkspaceAllowedEmailDomains(splitWorkspaceAllowedEmailDomainsText(value))
+            .domains
     );
 
 export const createWorkspaceSchema = z.object({
@@ -109,7 +142,7 @@ export const createUpdateWorkspaceFormSchema = (previousName: string, tAny: AnyT
     id: organizationIdSchema,
     name: createWorkspaceNameSchema(previousName, tAny).optional(),
     slug: createWorkspaceSlugSchema(tAny).optional(),
-    allowedEmailDomains: createWorkspaceAllowedEmailDomainsSchema(tAny),
+    allowedEmailDomains: createWorkspaceAllowedEmailDomainsFormSchema(tAny),
   });
 
 const createDeleteWorkspaceSchema = (tAny?: AnyTranslationsFn) =>

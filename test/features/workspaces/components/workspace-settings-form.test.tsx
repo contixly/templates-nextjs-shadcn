@@ -113,6 +113,40 @@ describe("WorkspaceSettingsForm", () => {
     );
   });
 
+  it("keeps domain separators while editing the allowed domains field", async () => {
+    render(
+      <WorkspaceSettingsForm
+        workspace={{
+          id: WORKSPACE_ID,
+          name: "Client Workspace",
+          slug: "client-workspace",
+          logo: null,
+          metadata: null,
+          createdAt: new Date("2026-04-20T10:00:00.000Z"),
+          updatedAt: new Date("2026-04-20T10:00:00.000Z"),
+        }}
+      />
+    );
+
+    const allowedDomainsField = screen.getByLabelText("Разрешенные email-домены");
+
+    await act(async () => {
+      fireEvent.change(allowedDomainsField, {
+        target: { value: "example.com\n" },
+      });
+    });
+
+    expect(allowedDomainsField).toHaveValue("example.com\n");
+
+    await act(async () => {
+      fireEvent.change(allowedDomainsField, {
+        target: { value: "example.com," },
+      });
+    });
+
+    expect(allowedDomainsField).toHaveValue("example.com,");
+  });
+
   it("refreshes the route and resets to the saved values after a successful update", async () => {
     (updateWorkspace as jest.Mock).mockResolvedValue({
       success: true,
@@ -141,8 +175,10 @@ describe("WorkspaceSettingsForm", () => {
       />
     );
 
-    fireEvent.change(screen.getByLabelText("Название рабочего пространства"), {
-      target: { value: "Renamed Workspace" },
+    await act(async () => {
+      fireEvent.change(screen.getByLabelText("Название рабочего пространства"), {
+        target: { value: "Renamed Workspace" },
+      });
     });
 
     await waitFor(() => {
@@ -191,8 +227,10 @@ describe("WorkspaceSettingsForm", () => {
       />
     );
 
-    fireEvent.change(screen.getByLabelText("Разрешенные email-домены"), {
-      target: { value: "Example.COM\nadmin.example.com" },
+    await act(async () => {
+      fireEvent.change(screen.getByLabelText("Разрешенные email-домены"), {
+        target: { value: "Example.COM\nadmin.example.com" },
+      });
     });
 
     await waitFor(() => {
@@ -228,8 +266,10 @@ describe("WorkspaceSettingsForm", () => {
       />
     );
 
-    fireEvent.change(screen.getByLabelText("Название рабочего пространства"), {
-      target: { value: "Client Workspace Updated" },
+    await act(async () => {
+      fireEvent.change(screen.getByLabelText("Название рабочего пространства"), {
+        target: { value: "Client Workspace Updated" },
+      });
     });
 
     await waitFor(() => {

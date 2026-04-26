@@ -99,7 +99,7 @@ describe("workspace form schemas", () => {
 
     const result = schema.safeParse({
       id: "RkFBy8l5f36JR4Mwl1dExZxvzCjD8X7H",
-      allowedEmailDomains: ["bad domain.test"],
+      allowedEmailDomains: "bad domain.test",
     });
 
     expect(result.success).toBe(false);

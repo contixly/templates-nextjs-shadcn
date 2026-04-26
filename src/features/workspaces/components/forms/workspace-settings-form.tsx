@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import React, { useEffect, useMemo, useTransition } from "react";
+import React, { useEffect, useMemo, useRef, useTransition } from "react";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -30,18 +30,19 @@ interface WorkspaceSettingsFormProps {
   autoFocusNameField?: boolean;
 }
 
-const getDefaultValues = (workspace: WorkspaceWithCounts): UpdateWorkspaceInput => ({
+type WorkspaceSettingsFormInput = Omit<UpdateWorkspaceInput, "allowedEmailDomains"> & {
+  allowedEmailDomains?: string;
+};
+
+const formatAllowedEmailDomainsText = (workspace: WorkspaceWithCounts) =>
+  getWorkspaceAllowedEmailDomains(workspace.metadata).join("\n");
+
+const getDefaultValues = (workspace: WorkspaceWithCounts): WorkspaceSettingsFormInput => ({
   id: workspace.id,
   name: workspace.name,
   slug: workspace.slug ?? "",
-  allowedEmailDomains: getWorkspaceAllowedEmailDomains(workspace.metadata),
+  allowedEmailDomains: formatAllowedEmailDomainsText(workspace),
 });
-
-const parseAllowedEmailDomainsText = (value: string) =>
-  value
-    .split(/[\n,]+/)
-    .map((domain) => domain.trim())
-    .filter(Boolean);
 
 export const WorkspaceSettingsForm = ({
   workspace,
@@ -56,6 +57,7 @@ export const WorkspaceSettingsForm = ({
   const tAny = useAnyTranslations("workspaces");
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+  const didMountRef = useRef(false);
 
   const defaultValues = useMemo(() => getDefaultValues(workspace), [workspace]);
   const formSchema = useMemo(
@@ -68,13 +70,18 @@ export const WorkspaceSettingsForm = ({
     handleSubmit,
     reset,
     formState: { isDirty, isValid },
-  } = useForm<UpdateWorkspaceInput>({
+  } = useForm<WorkspaceSettingsFormInput, unknown, UpdateWorkspaceInput>({
     resolver: zodResolver(formSchema),
     mode: "all",
     defaultValues,
   });
 
   useEffect(() => {
+    if (!didMountRef.current) {
+      didMountRef.current = true;
+      return;
+    }
+
     reset(defaultValues);
   }, [defaultValues, reset]);
 
@@ -157,10 +164,8 @@ export const WorkspaceSettingsForm = ({
                 </FieldLabel>
                 <Textarea
                   id="edit-workspace-allowed-email-domains"
-                  value={(field.value ?? []).join("\n")}
-                  onChange={(event) =>
-                    field.onChange(parseAllowedEmailDomainsText(event.target.value))
-                  }
+                  value={field.value ?? ""}
+                  onChange={field.onChange}
                   onBlur={field.onBlur}
                   aria-invalid={fieldState.invalid}
                   placeholder={tWorkspaces("allowedEmailDomainsPlaceholder")}
