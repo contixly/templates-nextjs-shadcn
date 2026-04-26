@@ -23,6 +23,7 @@ auth, and domain setup.
 - Workspace management, settings, member directory, and invitation surfaces
 - Role-aware owner/admin/member controls for adding members and updating member roles
 - Invitation lifecycle: create, list, copy link, accept, reject, expire, and personal pending-invitation entry points
+- Workspace email-domain restrictions for invitation creation, invitation acceptance, and out-of-policy member warnings
 - Zero-workspace onboarding that keeps workspace creation and invitation review available
 - Internationalization with `next-intl` and typed message catalogs
 - Feature Slice Design structure for isolating business logic
@@ -44,15 +45,18 @@ Workspaces are the product-facing concept, while Better Auth organizations provi
 permission model. Routes under `/w/:organizationKey/...` resolve either an organization slug or id, and the global
 `/dashboard` route redirects to the best available workspace context: active organization or a deterministic fallback.
 
-Workspace settings include general workspace details, users, invitations, and placeholder sections for teams and roles.
-Authorized users can create workspaces, update workspace details, switch the active workspace, add existing users by id,
-create shareable invitations, and update assignable member roles. Workspace switchers preserve equivalent base workspace
-routes when switching context and fall back to the selected workspace dashboard for unknown or complex routes. Regular
-members retain read-only access to the directory and settings context where they do not have management permissions.
+Workspace settings include general workspace details, allowed email domains, users, invitations, and placeholder sections
+for teams and roles. Authorized users can create workspaces, update workspace details, switch the active workspace, add
+existing users by id, create shareable invitations, and update assignable member roles. Workspace switchers preserve
+equivalent base workspace routes when switching context and fall back to the selected workspace dashboard for unknown or
+complex routes. Regular members retain read-only access to the directory and settings context where they do not have
+management permissions.
 
 Invitations are stored in PostgreSQL, tied to organizations, and exposed through both admin and current-user flows.
 Invitees can open a dedicated invitation route after authentication, review the inviter, workspace, role, and expiration
-details, then accept or reject when their verified primary email matches the invitation.
+details, then accept or reject when their verified primary email matches the invitation and the workspace's active
+allowed-domain policy. Workspace admins can restrict new invitations to exact email domains, and existing members outside
+the active policy are surfaced with warnings rather than removed automatically.
 
 ## Getting Started
 

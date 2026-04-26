@@ -2,7 +2,7 @@
   "pages": {
     "home": {
       "title": "Главная",
-      "description": "Next.js-шаблон с рабочими пространствами на базе организаций, приглашениями, ролями участников, общими настройками и готовым продуктовым каркасом.",
+      "description": "Next.js-шаблон с рабочими пространствами на базе организаций, приглашениями, ограничениями по email-доменам, ролями участников, общими настройками и готовым продуктовым каркасом.",
       "openGraph": {
         "title": "Главная",
         "description": "Шаблон приложения с рабочими пространствами и совместной работой на базе организаций."
@@ -10,8 +10,8 @@
       "heroBadge": "Шаблон с организациями",
       "heroTitlePrefix": "Совместная работа в workspace для",
       "heroTitleEmphasis": "вашего следующего сервиса",
-      "heroDescription": "В шаблоне теперь есть Better Auth organizations, workspace-маршруты со slug, списки участников, приглашения и настройки с учетом ролей, чтобы начинать с полноценной multi-tenant основы.",
-      "heroSecurity": "OAuth-вход, проверка email для приглашений, permissions по ролям",
+      "heroDescription": "В шаблоне теперь есть Better Auth organizations, workspace-маршруты со slug, списки участников, приглашения с учетом доменной политики и настройки по ролям, чтобы начинать с полноценной multi-tenant основы.",
+      "heroSecurity": "OAuth-вход, проверка email для приглашений, доменные ограничения, permissions по ролям",
       "featuresTitle": "Потоки организаций и workspace уже включены",
       "featuresDescription": "Ветка поставляет базовый слой совместной работы, который нужен большинству SaaS-продуктов до добавления предметной логики.",
       "extensionsBadge": "Поверхности управления",
@@ -45,23 +45,23 @@
         },
         "features": {
           "badge": "Включено",
-          "title": "Приглашения и onboarding",
-          "description": "Администраторы создают shareable workspace invitations, пользователи принимают или отклоняют их, а zero-workspace onboarding остается actionable."
+          "title": "Приглашения с доменной политикой",
+          "description": "Администраторы ограничивают приглашения разрешенными email-доменами, пользователи принимают или отклоняют валидные инвайты, а zero-workspace onboarding остается actionable."
         },
         "ui": {
           "badge": "Включено",
           "title": "Настройки и участники",
-          "description": "Workspace settings включают общие настройки, список пользователей, прямое добавление участников, смену ролей, приглашения и заглушки Teams/Roles."
+          "description": "Workspace settings включают общие настройки, разрешенные email-домены, список пользователей, прямое добавление участников, смену ролей, приглашения и заглушки Teams/Roles."
         }
       },
       "extensionBlocks": {
         "clients": {
           "title": "Разделы настроек workspace",
-          "description": "Расширяйте settings shell биллингом, доменами, аудитом или другими organization-level controls."
+          "description": "Расширяйте settings shell биллингом, доменными политиками, аудитом или другими organization-level controls."
         },
         "webhooks": {
           "title": "Жизненный цикл приглашений",
-          "description": "Используйте статусы pending, accepted, rejected, canceled и expired для email-доставки или уведомлений."
+          "description": "Используйте статусы pending, accepted, rejected, canceled, expired и domain-restricted для email-доставки или уведомлений."
         },
         "storage": {
           "title": "Permissions по ролям",
