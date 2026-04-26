@@ -135,7 +135,6 @@ Each feature should have its own logger instance in `{feature}-logger.ts`.
 
 - **Middleware Location**: `proxy.ts` (not `middleware.ts` to avoid Next.js auto-detection).
 - **Auth Provider**: Better Auth with session validation via `auth.api.getSession()`.
-- **User ID Header**: Middleware injects `x-user-id` header (via `USER_ID_HEADER` from `@features/accounts/accounts-types`) for authenticated requests.
 - **Route Protection**: Public routes (login, auth API), protected routes (require valid session), and API routes have different handling in the proxy.
 - **Current User**: Use `loadCurrentUserId()` from `@features/accounts/accounts-actions` in server actions to get the authenticated user ID.
 
