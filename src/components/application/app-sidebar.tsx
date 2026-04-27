@@ -27,9 +27,10 @@ interface SidebarProviderWrapperProps extends React.ComponentProps<"div"> {
 }
 
 export const SidebarProviderWrapper = async ({
+  children,
   globalSpinner = false,
   renderFallbackClosedSidebar = true,
-  ...props
+  ...providerProps
 }: SidebarProviderWrapperProps) => {
   const getSideBarStatePromise = getTFromCookie<boolean>(SIDEBAR_COOKIE_KEY);
 
@@ -41,11 +42,13 @@ export const SidebarProviderWrapper = async ({
             <Spinner className="size-10" />
           </div>
         ) : renderFallbackClosedSidebar ? (
-          <SidebarProviderComponent defaultOpen={false} {...props} />
+          <SidebarProviderComponent defaultOpen={false} {...providerProps} />
         ) : null
       }
     >
-      <SidebarProviderLoader getSideBarStatePromise={getSideBarStatePromise} {...props} />
+      <SidebarProviderLoader getSideBarStatePromise={getSideBarStatePromise} {...providerProps}>
+        {children}
+      </SidebarProviderLoader>
     </Suspense>
   );
 };
