@@ -30,7 +30,7 @@ import {
 import type { WorkspaceManageableRole } from "@features/workspaces/workspaces-roles";
 import { translateWorkspaceErrorMessage } from "@features/workspaces/workspaces-errors";
 import { useAnyTranslations } from "@/src/i18n/use-any-translations";
-import { ButtonLoading } from "@components/ui/custom/button-loading";
+import { LoadingButton } from "@components/ui/custom/button-loading";
 
 interface WorkspaceAddMemberDialogProps {
   organizationId: string;
@@ -245,22 +245,22 @@ export const WorkspaceAddMemberDialog = ({
               {tCommon("words.verbs.cancel")}
             </Button>
             {domainRestrictionWarning ? (
-              <Button
+              <LoadingButton
                 type="button"
+                loading={isPending}
                 disabled={isPending || !hasAssignableRoles || !isValid}
                 onClick={confirmDomainRestrictionOverride}
               >
-                <ButtonLoading loading={isPending} />
                 {tWorkspaces("confirmDomainRestrictionOverride")}
-              </Button>
+              </LoadingButton>
             ) : (
-              <Button
+              <LoadingButton
                 type="submit"
+                loading={isPending}
                 disabled={isPending || !hasAssignableRoles || !isDirty || !isValid}
               >
-                <ButtonLoading loading={isPending} />
                 {tCommon("words.verbs.add")}
-              </Button>
+              </LoadingButton>
             )}
           </Field>
         </FieldGroup>

@@ -19,7 +19,7 @@ import {
 } from "@features/workspaces/workspaces-schemas";
 import type { WorkspaceWithCounts } from "@features/workspaces/workspaces-types";
 import { useAnyTranslations } from "@/src/i18n/use-any-translations";
-import { ButtonLoading } from "@components/ui/custom/button-loading";
+import { LoadingButton } from "@components/ui/custom/button-loading";
 
 interface WorkspaceSettingsFormProps {
   workspace: WorkspaceWithCounts;
@@ -189,14 +189,14 @@ export const WorkspaceSettingsForm = ({
             </Button>
           )}
           {canUpdateWorkspace ? (
-            <Button
+            <LoadingButton
               type="submit"
+              loading={isPending}
               disabled={isPending || !isDirty || !isValid}
               className="min-w-fit"
             >
-              <ButtonLoading loading={isPending} />
               {tCommon("words.verbs.save")}
-            </Button>
+            </LoadingButton>
           ) : null}
         </Field>
       </FieldGroup>

@@ -19,7 +19,7 @@ import { deleteAccount } from "@features/accounts/actions/delete-account";
 import { useTranslations } from "next-intl";
 import { useAnyTranslations } from "@/src/i18n/use-any-translations";
 import { translateAccountErrorMessage } from "@features/accounts/accounts-errors";
-import { ButtonLoading } from "@components/ui/custom/button-loading";
+import { LoadingButton } from "@components/ui/custom/button-loading";
 
 export const AccountDeleteDialog = ({
   email,
@@ -133,14 +133,14 @@ export const AccountDeleteDialog = ({
             >
               {tCommon("words.verbs.cancel")}
             </Button>
-            <Button
+            <LoadingButton
               type="submit"
               variant="destructive"
+              loading={isPending}
               disabled={isPending || !isDirty || !isValid}
             >
-              <ButtonLoading loading={isPending} />
               {tCommon("words.verbs.delete")}
-            </Button>
+            </LoadingButton>
           </Field>
         </FieldGroup>
       </form>

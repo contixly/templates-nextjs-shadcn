@@ -36,7 +36,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@components/ui/card";
-import { ButtonLoading } from "@components/ui/custom/button-loading";
+import { LoadingButton } from "@components/ui/custom/button-loading";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@components/ui/empty";
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@components/ui/field";
 import { Input } from "@components/ui/input";
@@ -171,10 +171,13 @@ const TeamCreateForm = ({ organizationId }: TeamCreateFormProps) => {
                   disabled={isPending}
                   autoComplete="off"
                 />
-                <Button type="submit" disabled={isPending || !isDirty || !isValid}>
-                  <ButtonLoading loading={isPending} />
+                <LoadingButton
+                  type="submit"
+                  loading={isPending}
+                  disabled={isPending || !isDirty || !isValid}
+                >
                   {tCommon("words.verbs.create")}
-                </Button>
+                </LoadingButton>
               </div>
               <FieldDescription>{t("createNameHint")}</FieldDescription>
               {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
@@ -255,14 +258,14 @@ const TeamRenameForm = ({ team, canUpdateTeams }: TeamRenameFormProps) => {
                   disabled={isPending}
                   autoComplete="off"
                 />
-                <Button
+                <LoadingButton
                   type="submit"
                   variant="outline"
+                  loading={isPending}
                   disabled={isPending || !isDirty || !isValid}
                 >
-                  <ButtonLoading loading={isPending} />
                   {tCommon("words.verbs.save")}
-                </Button>
+                </LoadingButton>
               </div>
               {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
             </Field>
@@ -313,17 +316,17 @@ const TeamActiveControl = ({
 
   if (isActive) {
     return (
-      <Button
+      <LoadingButton
         type="button"
         size="sm"
         variant="secondary"
+        loading={isPending}
         disabled={isPending}
         onClick={updateActiveTeam}
       >
-        <ButtonLoading loading={isPending} />
         <IconCheck data-icon="inline-start" />
         {t("activeBadge")}
-      </Button>
+      </LoadingButton>
     );
   }
 
@@ -332,16 +335,16 @@ const TeamActiveControl = ({
   }
 
   return (
-    <Button
+    <LoadingButton
       type="button"
       size="sm"
       variant="outline"
+      loading={isPending}
       disabled={isPending}
       onClick={updateActiveTeam}
     >
-      <ButtonLoading loading={isPending} />
       {t("setActiveAction")}
-    </Button>
+    </LoadingButton>
   );
 };
 
@@ -492,15 +495,15 @@ const TeamMemberAddForm = ({
                     </SelectGroup>
                   </SelectContent>
                 </Select>
-                <Button
+                <LoadingButton
                   type="submit"
                   variant="outline"
+                  loading={isPending}
                   disabled={isPending || !hasAvailableMembers || !isDirty || !isValid}
                 >
-                  <ButtonLoading loading={isPending} />
                   <IconUserPlus data-icon="inline-start" />
                   {tCommon("words.verbs.add")}
-                </Button>
+                </LoadingButton>
               </div>
               <FieldDescription>
                 {hasAvailableMembers ? t("addMemberHint") : t("addMemberEmptyHint")}
@@ -552,18 +555,18 @@ const TeamMemberRemoveControl = ({
   };
 
   return (
-    <Button
+    <LoadingButton
       type="button"
       size="sm"
       variant="ghost"
+      loading={isPending}
       disabled={isPending}
       onClick={removeMember}
       aria-label={t("removeMemberAriaLabel", { name: getDisplayName(member) })}
     >
-      <ButtonLoading loading={isPending} />
       <IconUserMinus data-icon="inline-start" />
       {t("removeMemberAction")}
-    </Button>
+    </LoadingButton>
   );
 };
 

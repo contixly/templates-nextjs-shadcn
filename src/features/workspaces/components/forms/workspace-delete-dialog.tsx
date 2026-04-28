@@ -17,7 +17,7 @@ import { deleteWorkspace } from "@features/workspaces/actions/delete-workspace";
 import { useTranslations } from "next-intl";
 import { useAnyTranslations } from "@/src/i18n/use-any-translations";
 import { translateWorkspaceErrorMessage } from "@features/workspaces/workspaces-errors";
-import { ButtonLoading } from "@components/ui/custom/button-loading";
+import { LoadingButton } from "@components/ui/custom/button-loading";
 
 interface WorkspaceDeleteDialogProps {
   workspace: WorkspaceWithCounts | null;
@@ -129,14 +129,14 @@ export const WorkspaceDeleteDialog = ({
             >
               {tCommon("words.verbs.cancel")}
             </Button>
-            <Button
+            <LoadingButton
               type="submit"
               variant="destructive"
+              loading={isPending}
               disabled={isPending || !isDirty || !isValid}
             >
-              <ButtonLoading loading={isPending} />
               {tCommon("words.verbs.delete")}
-            </Button>
+            </LoadingButton>
           </Field>
         </FieldGroup>
       </form>

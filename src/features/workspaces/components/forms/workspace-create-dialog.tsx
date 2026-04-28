@@ -21,7 +21,7 @@ import { translateWorkspaceErrorMessage } from "@features/workspaces/workspaces-
 import { useRouter } from "next/navigation";
 import routes from "@features/routes";
 import { getOrganizationRouteKey } from "@features/organizations/organizations-context";
-import { ButtonLoading } from "@components/ui/custom/button-loading";
+import { LoadingButton } from "@components/ui/custom/button-loading";
 
 interface CreateWorkspaceDialogProps {
   onSuccess?: DispatchWithoutAction;
@@ -143,10 +143,13 @@ export const WorkspaceCreateDialog = ({
             >
               {tCommon("words.verbs.cancel")}
             </Button>
-            <Button type="submit" disabled={isPending || !isDirty || !isValid}>
-              <ButtonLoading loading={isPending} />
+            <LoadingButton
+              type="submit"
+              loading={isPending}
+              disabled={isPending || !isDirty || !isValid}
+            >
               {tCommon("words.verbs.create")}
-            </Button>
+            </LoadingButton>
           </Field>
         </FieldGroup>
       </form>
