@@ -72,13 +72,9 @@ export const setActiveWorkspaceTeam = createProtectedActionWithInput<
           teamId,
         },
         headers,
-        ...(teamId
-          ? {
-              query: {
-                disableCookieCache: true,
-              },
-            }
-          : {}),
+        query: {
+          disableCookieCache: true,
+        },
       });
     } catch (error) {
       const resolvedError = resolveWorkspaceTeamMutationError(error);

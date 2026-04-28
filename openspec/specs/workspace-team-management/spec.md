@@ -152,6 +152,7 @@ organization without changing organization-scoped route context.
 - **WHEN** an authenticated user clears their active team selection
 - **THEN** the system removes `session.activeTeamId`
 - **AND** keeps the active workspace organization unchanged
+- **AND** exposes the cleared active team state in subsequent Better Auth session reads
 
 #### Scenario: Invalid active team is rejected
 - **WHEN** an authenticated user attempts to set an active team that does not belong to the current active workspace

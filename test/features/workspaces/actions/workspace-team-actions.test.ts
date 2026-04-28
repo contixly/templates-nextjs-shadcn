@@ -309,6 +309,36 @@ describe("workspace team actions", () => {
     );
   });
 
+  it("clears the active team from a fresh Better Auth session without switching organizations", async () => {
+    mockSetActiveTeam.mockResolvedValue(null);
+
+    await expect(
+      setActiveWorkspaceTeam({
+        organizationId: ORGANIZATION_ID,
+        teamId: null,
+      })
+    ).resolves.toEqual({
+      success: true,
+      data: {
+        organizationId: ORGANIZATION_ID,
+        teamId: null,
+      },
+    });
+
+    expect(mockFindWorkspaceTeamOwnership).not.toHaveBeenCalled();
+    expect(mockFindWorkspaceTeamMembership).not.toHaveBeenCalled();
+    expect(mockSetActiveOrganization).not.toHaveBeenCalled();
+    expect(mockSetActiveTeam).toHaveBeenCalledWith({
+      body: {
+        teamId: null,
+      },
+      headers: expect.any(Headers),
+      query: {
+        disableCookieCache: true,
+      },
+    });
+  });
+
   it("rejects cross-workspace team-member assignment", async () => {
     mockFindWorkspaceTeamOwnership.mockResolvedValue({
       id: TEAM_ID,
