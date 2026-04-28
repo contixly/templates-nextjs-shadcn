@@ -14,6 +14,14 @@ if (isProduction && !configuredBaseUrl) {
   throw new Error("NEXT_PUBLIC_APP_BASE_URL must be configured in production.");
 }
 
+export const REMOTE_CACHING_ENABLED = process.env.REMOTE_CACHING_ENABLED ?? false;
+export const REDIS_URL = process.env.REDIS_URL ?? null;
+export const REDIS_PASSWORD = process.env.REDIS_PASSWORD ?? null;
+
+if (REMOTE_CACHING_ENABLED && !REDIS_URL) {
+  throw new Error("REDIS_URL must be configured when REMOTE_CACHING_ENABLED is true.");
+}
+
 export const APP_BASE_URL = normalizeBaseUrl(configuredBaseUrl ?? DEFAULT_DEVELOPMENT_BASE_URL);
 export const APP_BASE_DOMAIN = new URL(APP_BASE_URL).host;
 

@@ -50,6 +50,14 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   cacheComponents: true,
+
+  cacheHandler: "src/server/cache.ts",
+  cacheHandlers: {
+    default: "src/server/cache.ts",
+    remote: "src/server/cache.ts",
+  },
+  cacheMaxMemorySize: 0, // Disable Next's built-in in-memory handler
+
   experimental: {
     authInterrupts: true,
     viewTransition: true,
