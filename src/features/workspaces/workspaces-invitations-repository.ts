@@ -8,6 +8,7 @@ import {
   buildWorkspaceInvitationUrl,
   CACHE_PendingWorkspaceInvitationsByEmailTag,
   CACHE_WorkspaceInvitationByIdTag,
+  CACHE_WorkspaceInvitationsByTeamIdTag,
   CACHE_WorkspaceInvitationsTag,
   normalizeWorkspaceInvitationEmail,
   splitWorkspaceInvitationRoleLabels,
@@ -77,6 +78,9 @@ const toWorkspaceInvitationDto = (invitation: InvitationRecord): WorkspaceInvita
   invitationUrl: buildWorkspaceInvitationUrl(invitation.id),
 });
 
+const getWorkspaceInvitationRecordTeamCacheTags = (invitation: Pick<InvitationRecord, "teamId">) =>
+  invitation.teamId ? [CACHE_WorkspaceInvitationsByTeamIdTag(invitation.teamId)] : [];
+
 export const findManyWorkspaceInvitationsByOrganizationIdAndUserId = async (
   organizationId: string,
   userId: string
@@ -118,6 +122,7 @@ export const findManyWorkspaceInvitationsByOrganizationIdAndUserId = async (
       ...invitations.flatMap((invitation) => [
         CACHE_WorkspaceInvitationByIdTag(invitation.id),
         CACHE_PendingWorkspaceInvitationsByEmailTag(invitation.email),
+        ...getWorkspaceInvitationRecordTeamCacheTags(invitation),
       ])
     );
   }
@@ -155,6 +160,7 @@ export const findManyPendingWorkspaceInvitationsByEmail = async (
       ...invitations.flatMap((invitation) => [
         CACHE_WorkspaceInvitationByIdTag(invitation.id),
         CACHE_WorkspaceInvitationsTag(invitation.organizationId),
+        ...getWorkspaceInvitationRecordTeamCacheTags(invitation),
       ])
     );
   }
@@ -184,7 +190,8 @@ export const findWorkspaceInvitationById = async (invitationId: string) => {
 
   cacheTag(
     CACHE_WorkspaceInvitationsTag(invitation.organizationId),
-    CACHE_PendingWorkspaceInvitationsByEmailTag(invitation.email)
+    CACHE_PendingWorkspaceInvitationsByEmailTag(invitation.email),
+    ...getWorkspaceInvitationRecordTeamCacheTags(invitation)
   );
 
   return toWorkspaceInvitationDto(invitation);

@@ -46,6 +46,10 @@ jest.mock("@lib/logger", () => ({
 }));
 
 import {
+  CACHE_WorkspaceInvitationsByTeamIdTag,
+  CACHE_WorkspaceInvitationsTag,
+} from "@features/workspaces/workspaces-invitations-cache";
+import {
   findManyWorkspaceTeamMembersByTeamIdAndUserId,
   findManyWorkspaceTeamsByOrganizationIdAndUserId,
   findWorkspaceTeamByOrganizationIdAndNormalizedName,
@@ -187,8 +191,10 @@ describe("workspace teams repository", () => {
       "organization_org-1_teams",
       "organization_org-1",
       "organization_org-1_members",
+      CACHE_WorkspaceInvitationsTag("org-1"),
       "workspace_team_team-1",
       "workspace_team_team-1_members",
+      CACHE_WorkspaceInvitationsByTeamIdTag("team-1"),
       "organizations_user_user-1",
       "organizations_user_user-2",
     ]);

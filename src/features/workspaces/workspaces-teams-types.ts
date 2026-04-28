@@ -4,6 +4,10 @@ import {
   CACHE_OrganizationMembersTag,
   CACHE_OrganizationsByUserIdTag,
 } from "@features/organizations/organizations-types";
+import {
+  CACHE_WorkspaceInvitationsByTeamIdTag,
+  CACHE_WorkspaceInvitationsTag,
+} from "@features/workspaces/workspaces-invitations-cache";
 export {
   normalizeWorkspaceTeamName,
   normalizeWorkspaceTeamNameForComparison,
@@ -65,10 +69,15 @@ const getWorkspaceTeamCacheTags = ({
             CACHE_WorkspaceTeamsTag(organizationId),
             CACHE_OrganizationByIdTag(organizationId),
             CACHE_OrganizationMembersTag(organizationId),
+            CACHE_WorkspaceInvitationsTag(organizationId),
           ]
         : []),
       ...(teamId
-        ? [CACHE_WorkspaceTeamByIdTag(teamId), CACHE_WorkspaceTeamMembersTag(teamId)]
+        ? [
+            CACHE_WorkspaceTeamByIdTag(teamId),
+            CACHE_WorkspaceTeamMembersTag(teamId),
+            CACHE_WorkspaceInvitationsByTeamIdTag(teamId),
+          ]
         : []),
       ...userIds.flatMap((userId) => (userId ? [CACHE_OrganizationsByUserIdTag(userId)] : [])),
     ])

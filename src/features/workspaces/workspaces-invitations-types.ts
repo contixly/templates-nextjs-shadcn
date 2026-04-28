@@ -1,6 +1,14 @@
 import routes from "@features/routes";
 import { APP_BASE_URL } from "@lib/environment";
-import { revalidateTags, updateTags } from "@lib/cache";
+export {
+  CACHE_PendingWorkspaceInvitationsByEmailTag,
+  CACHE_WorkspaceInvitationByIdTag,
+  CACHE_WorkspaceInvitationsByTeamIdTag,
+  CACHE_WorkspaceInvitationsTag,
+  normalizeWorkspaceInvitationEmail,
+  revalidateWorkspaceInvitationCache,
+  updateWorkspaceInvitationCache,
+} from "@features/workspaces/workspaces-invitations-cache";
 
 export type WorkspaceInvitationStoredStatus = "pending" | "accepted" | "rejected" | "canceled";
 
@@ -54,8 +62,6 @@ export type WorkspaceInvitationDecisionContext =
       canRespond: false;
     };
 
-export const normalizeWorkspaceInvitationEmail = (value: string) => value.trim().toLowerCase();
-
 export const splitWorkspaceInvitationRoleLabels = (role: string) =>
   Array.from(
     new Set(
@@ -101,41 +107,3 @@ export const buildWorkspaceInvitationUrl = (invitationId: string) =>
     }),
     APP_BASE_URL
   ).toString();
-
-export const CACHE_WorkspaceInvitationsTag = (organizationId: string) =>
-  `organization_${organizationId}_invitations`;
-
-export const CACHE_WorkspaceInvitationByIdTag = (invitationId: string) =>
-  `invitation_${invitationId}`;
-
-export const CACHE_PendingWorkspaceInvitationsByEmailTag = (email: string) =>
-  `invitation_email_${normalizeWorkspaceInvitationEmail(email)}`;
-
-const getWorkspaceInvitationCacheTags = ({
-  invitationId,
-  organizationId,
-  email,
-}: {
-  invitationId?: string | null;
-  organizationId?: string | null;
-  email?: string | null;
-}) =>
-  Array.from(
-    new Set([
-      ...(organizationId ? [CACHE_WorkspaceInvitationsTag(organizationId)] : []),
-      ...(invitationId ? [CACHE_WorkspaceInvitationByIdTag(invitationId)] : []),
-      ...(email ? [CACHE_PendingWorkspaceInvitationsByEmailTag(email)] : []),
-    ])
-  );
-
-export const updateWorkspaceInvitationCache = (options: {
-  invitationId?: string | null;
-  organizationId?: string | null;
-  email?: string | null;
-}) => updateTags(getWorkspaceInvitationCacheTags(options));
-
-export const revalidateWorkspaceInvitationCache = (options: {
-  invitationId?: string | null;
-  organizationId?: string | null;
-  email?: string | null;
-}) => revalidateTags(getWorkspaceInvitationCacheTags(options));

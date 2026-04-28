@@ -416,12 +416,6 @@ describe("workspace team actions", () => {
       },
     });
 
-    expect(mockSetActiveTeam).toHaveBeenCalledWith({
-      body: {
-        teamId: null,
-      },
-      headers: expect.any(Headers),
-    });
     expect(mockGetSession).toHaveBeenCalledWith({
       headers: expect.any(Headers),
       query: {
@@ -433,11 +427,54 @@ describe("workspace team actions", () => {
         organizationId: ORGANIZATION_ID,
         teamId: TEAM_ID,
       },
+    });
+    expect(mockSetActiveTeam).toHaveBeenCalledWith({
+      body: {
+        teamId: null,
+      },
       headers: expect.any(Headers),
       query: {
         disableCookieCache: true,
       },
     });
+    expect(mockRemoveTeam.mock.invocationCallOrder[0]).toBeLessThan(
+      mockSetActiveTeam.mock.invocationCallOrder[0]
+    );
+  });
+
+  it("does not clear the active team when deleting the team fails", async () => {
+    mockFindWorkspaceTeamOwnership.mockResolvedValue({
+      id: TEAM_ID,
+      organizationId: ORGANIZATION_ID,
+      name: "Design",
+    });
+    mockGetSession.mockResolvedValue({
+      session: {
+        activeTeamId: TEAM_ID,
+      },
+    });
+    mockRemoveTeam.mockRejectedValue(new Error("Team not found"));
+
+    await expect(
+      deleteWorkspaceTeam({
+        organizationId: ORGANIZATION_ID,
+        teamId: TEAM_ID,
+      })
+    ).resolves.toEqual({
+      success: false,
+      error: {
+        message: "validation.errors.teamNotFound",
+        code: 404,
+      },
+    });
+
+    expect(mockRemoveTeam).toHaveBeenCalledWith({
+      body: {
+        organizationId: ORGANIZATION_ID,
+        teamId: TEAM_ID,
+      },
+    });
+    expect(mockSetActiveTeam).not.toHaveBeenCalled();
   });
 
   it("keeps the current active team when deleting a different team", async () => {

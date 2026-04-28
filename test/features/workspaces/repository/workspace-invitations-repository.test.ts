@@ -49,12 +49,14 @@ import {
 import {
   CACHE_PendingWorkspaceInvitationsByEmailTag,
   CACHE_WorkspaceInvitationByIdTag,
+  CACHE_WorkspaceInvitationsByTeamIdTag,
   CACHE_WorkspaceInvitationsTag,
 } from "@features/workspaces/workspaces-invitations-types";
 
 const invitationRecord = {
   id: "invite1",
   organizationId: "org1",
+  teamId: "team1",
   email: "alice@example.com",
   role: "owner, member, owner",
   status: "pending",
@@ -65,6 +67,10 @@ const invitationRecord = {
     id: "org1",
     name: "Acme",
     slug: "acme",
+  },
+  team: {
+    id: "team1",
+    name: "Design",
   },
   inviter: {
     id: "user2",
@@ -102,7 +108,8 @@ describe("workspace invitations repository", () => {
     expect(cacheTagMock).toHaveBeenNthCalledWith(
       2,
       CACHE_WorkspaceInvitationByIdTag("invite1"),
-      CACHE_WorkspaceInvitationsTag("org1")
+      CACHE_WorkspaceInvitationsTag("org1"),
+      CACHE_WorkspaceInvitationsByTeamIdTag("team1")
     );
     expect(invitations).toEqual([
       expect.objectContaining({
@@ -130,7 +137,29 @@ describe("workspace invitations repository", () => {
     expect(cacheTagMock).toHaveBeenNthCalledWith(
       2,
       CACHE_WorkspaceInvitationByIdTag("invite1"),
-      CACHE_PendingWorkspaceInvitationsByEmailTag("alice@example.com")
+      CACHE_PendingWorkspaceInvitationsByEmailTag("alice@example.com"),
+      CACHE_WorkspaceInvitationsByTeamIdTag("team1")
+    );
+  });
+
+  it("tags invitation detail lookups by workspace, recipient email, and team", async () => {
+    findUniqueMock.mockResolvedValue(invitationRecord);
+
+    await expect(findWorkspaceInvitationById("invite1")).resolves.toEqual(
+      expect.objectContaining({
+        id: "invite1",
+        teamId: "team1",
+        teamName: "Design",
+      })
+    );
+
+    expect(cacheLifeMock).toHaveBeenCalledWith("hours");
+    expect(cacheTagMock).toHaveBeenNthCalledWith(1, CACHE_WorkspaceInvitationByIdTag("invite1"));
+    expect(cacheTagMock).toHaveBeenNthCalledWith(
+      2,
+      CACHE_WorkspaceInvitationsTag("org1"),
+      CACHE_PendingWorkspaceInvitationsByEmailTag("alice@example.com"),
+      CACHE_WorkspaceInvitationsByTeamIdTag("team1")
     );
   });
 

@@ -81,6 +81,7 @@ The system MUST allow only authorized workspace members to create, rename, and d
   workspace
 - **THEN** the system updates that team's name
 - **AND** refreshes the teams settings page so the new name appears
+- **AND** refreshes invitation views that display the renamed team's name
 
 #### Scenario: Renaming a team to a duplicate name is rejected
 - **WHEN** a workspace member with `team:update` permission submits a name already used by another team in the same
@@ -92,7 +93,9 @@ The system MUST allow only authorized workspace members to create, rename, and d
 - **WHEN** a workspace member with `team:delete` permission deletes an existing team in the current workspace
 - **THEN** the system removes that team and its team memberships
 - **AND** clears `session.activeTeamId` only when the deleted team was the current session's active team
+- **AND** clears `session.activeTeamId` only after the team deletion succeeds
 - **AND** leaves `session.activeTeamId` unchanged when the deleted team is not the current session's active team
+- **AND** refreshes invitation views that display the deleted team's name
 - **AND** refreshes the teams settings page so the removed team no longer appears
 
 #### Scenario: Deleting the last explicit team succeeds
