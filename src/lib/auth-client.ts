@@ -33,6 +33,9 @@ export const authClient = createAuthClient({
       cookieName: LAST_LOGIN_METHOD_KEY,
     }),
     organizationClient({
+      teams: {
+        enabled: true,
+      },
       schema: inferOrgAdditionalFields<typeof auth>(),
     }),
     genericOAuthClient(),

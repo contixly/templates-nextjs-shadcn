@@ -9,7 +9,7 @@ import { useTranslations } from "next-intl";
 import { IconUserPlus } from "@tabler/icons-react";
 import { Button } from "@components/ui/button";
 import { Modal, type ModalProps } from "@components/ui/custom/modal";
-import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@components/ui/field";
+import { Field, FieldGroup, FieldLabel } from "@components/ui/field";
 import { Input } from "@components/ui/input";
 import {
   Select,
@@ -30,7 +30,9 @@ import {
 import type { WorkspaceManageableRole } from "@features/workspaces/workspaces-roles";
 import { translateWorkspaceErrorMessage } from "@features/workspaces/workspaces-errors";
 import { useAnyTranslations } from "@/src/i18n/use-any-translations";
-import { ButtonLoading } from "@components/ui/custom/button-loading";
+import { LoadingButton } from "@components/ui/custom/button-loading";
+import { FieldMessage } from "@components/ui/custom/field-message";
+import { FormErrorNotice } from "@components/ui/custom/form-error-notice";
 
 interface WorkspaceAddMemberDialogProps {
   organizationId: string;
@@ -50,6 +52,7 @@ export const WorkspaceAddMemberDialog = ({
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [open, onOpenChange] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
   const hasAssignableRoles = assignableRoles.length > 0;
   const defaultRole = assignableRoles[0] ?? "member";
 
@@ -89,6 +92,7 @@ export const WorkspaceAddMemberDialog = ({
   const handleOpenChange = (nextOpen: boolean) => {
     if (!nextOpen) {
       setDomainRestrictionWarning(null);
+      setFormError(null);
     }
 
     onOpenChange(nextOpen);
@@ -100,6 +104,7 @@ export const WorkspaceAddMemberDialog = ({
     }
 
     startTransition(async () => {
+      setFormError(null);
       const result = await addWorkspaceMember(data);
 
       if (result.success && isDomainRestrictionWarning(result.data)) {
@@ -126,11 +131,9 @@ export const WorkspaceAddMemberDialog = ({
         return;
       }
 
-      toast.error(tWorkspaces("errorTitle"), {
-        description:
-          translateWorkspaceErrorMessage(result.error?.message, tAny) ??
-          tWorkspaces("unknownError"),
-      });
+      setFormError(
+        translateWorkspaceErrorMessage(result.error?.message, tAny) ?? tWorkspaces("unknownError")
+      );
     });
   };
 
@@ -179,9 +182,13 @@ export const WorkspaceAddMemberDialog = ({
                   disabled={isPending}
                   autoFocus
                   autoComplete="off"
+                  aria-describedby="workspace-add-member-user-id-message"
                 />
-                <FieldDescription>{tWorkspaces("userIdHint")}</FieldDescription>
-                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                <FieldMessage
+                  id="workspace-add-member-user-id-message"
+                  description={tWorkspaces("userIdHint")}
+                  errors={[fieldState.error]}
+                />
               </Field>
             )}
           />
@@ -205,6 +212,7 @@ export const WorkspaceAddMemberDialog = ({
                   <SelectTrigger
                     id="workspace-add-member-role"
                     aria-invalid={fieldState.invalid}
+                    aria-describedby="workspace-add-member-role-message"
                     className="w-full"
                   >
                     <SelectValue />
@@ -217,8 +225,11 @@ export const WorkspaceAddMemberDialog = ({
                     ))}
                   </SelectContent>
                 </Select>
-                <FieldDescription>{tWorkspaces("roleHint")}</FieldDescription>
-                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                <FieldMessage
+                  id="workspace-add-member-role-message"
+                  description={tWorkspaces("roleHint")}
+                  errors={[fieldState.error]}
+                />
               </Field>
             )}
           />
@@ -235,6 +246,10 @@ export const WorkspaceAddMemberDialog = ({
             </div>
           ) : null}
 
+          {formError ? (
+            <FormErrorNotice title={tWorkspaces("errorTitle")}>{formError}</FormErrorNotice>
+          ) : null}
+
           <Field orientation="horizontal" className="flex justify-end gap-2">
             <Button
               type="button"
@@ -245,22 +260,22 @@ export const WorkspaceAddMemberDialog = ({
               {tCommon("words.verbs.cancel")}
             </Button>
             {domainRestrictionWarning ? (
-              <Button
+              <LoadingButton
                 type="button"
-                disabled={isPending || !hasAssignableRoles || !isValid}
+                loading={isPending}
+                disabled={isPending || !hasAssignableRoles}
                 onClick={confirmDomainRestrictionOverride}
               >
-                <ButtonLoading loading={isPending} />
                 {tWorkspaces("confirmDomainRestrictionOverride")}
-              </Button>
+              </LoadingButton>
             ) : (
-              <Button
+              <LoadingButton
                 type="submit"
+                loading={isPending}
                 disabled={isPending || !hasAssignableRoles || !isDirty || !isValid}
               >
-                <ButtonLoading loading={isPending} />
                 {tCommon("words.verbs.add")}
-              </Button>
+              </LoadingButton>
             )}
           </Field>
         </FieldGroup>

@@ -4,6 +4,7 @@ This directory stores text versions of release notes for published template vers
 
 ## Available releases
 
+- [v0.0.6](./0.0.6.md) - Better Auth Teams release with workspace team management, team-targeted invitations, active team sessions, and team persistence
 - [v0.0.5](./0.0.5.md) - Workspace email-domain restriction release with allowed domains, invitation enforcement, member warnings, and shadcn UI additions
 - [v0.0.4](./0.0.4.md) - Security hardening release with response headers, safer auth redirects, protected action fixes, and invitation privacy
 - [v0.0.3](./0.0.3.md) - Organization-backed workspace release with invitations, member roles, and settings surfaces

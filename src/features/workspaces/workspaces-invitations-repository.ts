@@ -8,6 +8,7 @@ import {
   buildWorkspaceInvitationUrl,
   CACHE_PendingWorkspaceInvitationsByEmailTag,
   CACHE_WorkspaceInvitationByIdTag,
+  CACHE_WorkspaceInvitationsByTeamIdTag,
   CACHE_WorkspaceInvitationsTag,
   normalizeWorkspaceInvitationEmail,
   splitWorkspaceInvitationRoleLabels,
@@ -24,6 +25,7 @@ const logger = workspacesLogger.child({ type: "repository", module: "workspace-i
 const invitationSelect = {
   id: true,
   organizationId: true,
+  teamId: true,
   email: true,
   role: true,
   status: true,
@@ -35,6 +37,12 @@ const invitationSelect = {
       id: true,
       name: true,
       slug: true,
+    },
+  },
+  team: {
+    select: {
+      id: true,
+      name: true,
     },
   },
   inviter: {
@@ -55,6 +63,8 @@ const toWorkspaceInvitationDto = (invitation: InvitationRecord): WorkspaceInvita
   organizationId: invitation.organizationId,
   organizationName: invitation.organization.name,
   organizationSlug: invitation.organization.slug,
+  teamId: invitation.teamId,
+  teamName: invitation.team?.name ?? null,
   email: invitation.email,
   role: invitation.role,
   roleLabels: splitWorkspaceInvitationRoleLabels(invitation.role),
@@ -67,6 +77,9 @@ const toWorkspaceInvitationDto = (invitation: InvitationRecord): WorkspaceInvita
   inviterEmail: invitation.inviter.email,
   invitationUrl: buildWorkspaceInvitationUrl(invitation.id),
 });
+
+const getWorkspaceInvitationRecordTeamCacheTags = (invitation: Pick<InvitationRecord, "teamId">) =>
+  invitation.teamId ? [CACHE_WorkspaceInvitationsByTeamIdTag(invitation.teamId)] : [];
 
 export const findManyWorkspaceInvitationsByOrganizationIdAndUserId = async (
   organizationId: string,
@@ -109,6 +122,7 @@ export const findManyWorkspaceInvitationsByOrganizationIdAndUserId = async (
       ...invitations.flatMap((invitation) => [
         CACHE_WorkspaceInvitationByIdTag(invitation.id),
         CACHE_PendingWorkspaceInvitationsByEmailTag(invitation.email),
+        ...getWorkspaceInvitationRecordTeamCacheTags(invitation),
       ])
     );
   }
@@ -146,6 +160,7 @@ export const findManyPendingWorkspaceInvitationsByEmail = async (
       ...invitations.flatMap((invitation) => [
         CACHE_WorkspaceInvitationByIdTag(invitation.id),
         CACHE_WorkspaceInvitationsTag(invitation.organizationId),
+        ...getWorkspaceInvitationRecordTeamCacheTags(invitation),
       ])
     );
   }
@@ -175,7 +190,8 @@ export const findWorkspaceInvitationById = async (invitationId: string) => {
 
   cacheTag(
     CACHE_WorkspaceInvitationsTag(invitation.organizationId),
-    CACHE_PendingWorkspaceInvitationsByEmailTag(invitation.email)
+    CACHE_PendingWorkspaceInvitationsByEmailTag(invitation.email),
+    ...getWorkspaceInvitationRecordTeamCacheTags(invitation)
   );
 
   return toWorkspaceInvitationDto(invitation);

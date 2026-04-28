@@ -5,6 +5,7 @@ const mockLoadRequestHeaders = jest.fn();
 const mockFindWorkspaceDtoByIdAndUserId = jest.fn();
 const mockFindOrganizationMemberByOrganizationIdAndUserId = jest.fn();
 const mockFindWorkspaceInvitationById = jest.fn();
+const mockFindWorkspaceTeamOwnership = jest.fn();
 const mockLoadWorkspaceInvitationDecisionPageContext = jest.fn();
 const mockHasWorkspacePermission = jest.fn();
 const mockHeaders = jest.fn();
@@ -20,6 +21,7 @@ const mockInvitationFindFirst = jest.fn();
 const mockInvitationUpdateMany = jest.fn();
 const mockUserFindUnique = jest.fn();
 const mockUpdateTags = jest.fn();
+const mockUpdateWorkspaceTeamCache = jest.fn();
 
 jest.mock("@lib/logger", () => ({
   loggerFactory: {
@@ -59,6 +61,14 @@ jest.mock("@features/organizations/organizations-repository", () => ({
 
 jest.mock("@features/workspaces/workspaces-invitations-repository", () => ({
   findWorkspaceInvitationById: (...args: unknown[]) => mockFindWorkspaceInvitationById(...args),
+}));
+
+jest.mock("@features/workspaces/workspaces-teams-repository", () => ({
+  findWorkspaceTeamOwnership: (...args: unknown[]) => mockFindWorkspaceTeamOwnership(...args),
+}));
+
+jest.mock("@features/workspaces/workspaces-teams-types", () => ({
+  updateWorkspaceTeamCache: (...args: unknown[]) => mockUpdateWorkspaceTeamCache(...args),
 }));
 
 jest.mock("@features/workspaces/workspaces-invitations", () => ({
@@ -139,6 +149,7 @@ describe("workspace invitation actions", () => {
     mockFindWorkspaceDtoByIdAndUserId.mockReset();
     mockFindOrganizationMemberByOrganizationIdAndUserId.mockReset();
     mockFindWorkspaceInvitationById.mockReset();
+    mockFindWorkspaceTeamOwnership.mockReset();
     mockLoadWorkspaceInvitationDecisionPageContext.mockReset();
     mockHasWorkspacePermission.mockReset();
     mockHeaders.mockReset();
@@ -154,6 +165,7 @@ describe("workspace invitation actions", () => {
     mockInvitationUpdateMany.mockReset();
     mockUserFindUnique.mockReset();
     mockUpdateTags.mockReset();
+    mockUpdateWorkspaceTeamCache.mockReset();
 
     mockLoadCurrentUserId.mockResolvedValue("user1");
     mockLoadRequestHeaders.mockResolvedValue(new Headers([["x-test", "1"]]));
@@ -238,6 +250,100 @@ describe("workspace invitation actions", () => {
       },
       headers: expect.any(Headers),
     });
+  });
+
+  it("creates invitations with a valid team target", async () => {
+    mockFindWorkspaceDtoByIdAndUserId.mockResolvedValue({ id: "org1" });
+    mockFindOrganizationMemberByOrganizationIdAndUserId.mockResolvedValue({
+      id: "member-actor",
+      role: "owner",
+    });
+    mockHasWorkspacePermission.mockResolvedValue(true);
+    mockFindWorkspaceTeamOwnership.mockResolvedValue({
+      id: "team1",
+      organizationId: "org1",
+      name: "Design",
+    });
+    mockMemberFindFirst.mockResolvedValue(null);
+    mockInvitationFindFirst.mockResolvedValue(null);
+    mockCreateInvitation.mockResolvedValue({ id: "invite1" });
+    mockFindWorkspaceInvitationById.mockResolvedValue({
+      id: "invite1",
+      organizationId: "org1",
+      organizationName: "Acme",
+      organizationSlug: "acme",
+      teamId: "team1",
+      teamName: "Design",
+      email: "alice@example.com",
+      role: "member",
+      roleLabels: ["member"],
+      status: "pending",
+      displayStatus: "pending",
+      expiresAt: new Date("2026-04-25T10:00:00.000Z"),
+      createdAt: new Date("2026-04-20T10:00:00.000Z"),
+      inviterId: "user1",
+      inviterName: "Owner",
+      inviterEmail: "owner@example.com",
+      invitationUrl: "https://example.com/invite/invite1",
+    });
+
+    await expect(
+      createWorkspaceInvitation({
+        organizationId: "org1",
+        email: "alice@example.com",
+        role: "member",
+        teamId: "team1",
+      })
+    ).resolves.toEqual({
+      success: true,
+      data: expect.objectContaining({
+        teamId: "team1",
+        teamName: "Design",
+      }),
+    });
+
+    expect(mockFindWorkspaceTeamOwnership).toHaveBeenCalledWith("team1", "org1");
+    expect(mockCreateInvitation).toHaveBeenCalledWith({
+      body: {
+        organizationId: "org1",
+        email: "alice@example.com",
+        role: "member",
+        teamId: "team1",
+      },
+      headers: expect.any(Headers),
+    });
+    expect(mockUpdateWorkspaceTeamCache).toHaveBeenCalledWith({
+      organizationId: "org1",
+      teamId: "team1",
+      userIds: ["user1"],
+    });
+  });
+
+  it("rejects invitation creation with an invalid team target", async () => {
+    mockFindWorkspaceDtoByIdAndUserId.mockResolvedValue({ id: "org1" });
+    mockFindOrganizationMemberByOrganizationIdAndUserId.mockResolvedValue({
+      id: "member-actor",
+      role: "owner",
+    });
+    mockHasWorkspacePermission.mockResolvedValue(true);
+    mockFindWorkspaceTeamOwnership.mockResolvedValue(null);
+
+    await expect(
+      createWorkspaceInvitation({
+        organizationId: "org1",
+        email: "alice@example.com",
+        role: "member",
+        teamId: "teamoutside",
+      })
+    ).resolves.toEqual({
+      success: false,
+      error: {
+        message: "validation.errors.invitationTeamInvalid",
+        code: 400,
+      },
+    });
+
+    expect(mockCreateInvitation).not.toHaveBeenCalled();
   });
 
   it("creates invitations when the recipient domain is allowed by workspace restrictions", async () => {
@@ -628,6 +734,7 @@ describe("workspace invitation actions", () => {
       invitation: {
         id: "invite1",
         organizationId: "org1",
+        teamId: "team1",
         email: "alice@example.com",
       },
       state: "pending",
@@ -658,6 +765,11 @@ describe("workspace invitation actions", () => {
         organizationId: "org1",
       },
       headers: expect.any(Headers),
+    });
+    expect(mockUpdateWorkspaceTeamCache).toHaveBeenCalledWith({
+      organizationId: "org1",
+      teamId: "team1",
+      userIds: ["user1"],
     });
     expect(result).toEqual({
       success: true,

@@ -4,12 +4,16 @@ import React from "react";
 import workspaceRoutes from "@features/workspaces/workspaces-routes";
 import {
   loadWorkspaceSettingsPageContext,
+  loadWorkspaceSettingsTeamsPageContext,
   loadWorkspaceSettingsUsersPageContext,
 } from "@features/workspaces/workspaces-settings";
 import { loadWorkspaceSettingsInvitationsPageContext as loadWorkspaceInvitationsContext } from "@features/workspaces/workspaces-invitations";
 
+const mockWorkspaceSettingsTeamsPage = jest.fn();
+
 jest.mock("@features/workspaces/workspaces-settings", () => ({
   loadWorkspaceSettingsPageContext: jest.fn(),
+  loadWorkspaceSettingsTeamsPageContext: jest.fn(),
   loadWorkspaceSettingsUsersPageContext: jest.fn(),
 }));
 
@@ -35,12 +39,14 @@ jest.mock("@features/workspaces/components/pages/workspace-settings-invitations-
   WorkspaceSettingsInvitationsPage: ({
     invitations,
     canCreateInvitations,
+    teams,
   }: {
     invitations: Array<{ id: string }>;
     canCreateInvitations: boolean;
+    teams: Array<{ id: string }>;
   }) => (
     <div data-testid="workspace-settings-invitations-page">
-      {String(canCreateInvitations)}:{invitations.length}
+      {String(canCreateInvitations)}:{invitations.length}:{teams.length}
     </div>
   ),
 }));
@@ -69,6 +75,14 @@ jest.mock("@features/workspaces/components/pages/workspace-settings-users-page",
   ),
 }));
 
+jest.mock("@features/workspaces/components/pages/workspace-settings-teams-page", () => ({
+  WorkspaceSettingsTeamsPage: (props: { teams: Array<{ id: string }> }) => {
+    mockWorkspaceSettingsTeamsPage(props);
+
+    return <div data-testid="workspace-settings-teams-page">teams:{props.teams.length}</div>;
+  },
+}));
+
 jest.mock("@lib/metadata", () => ({
   buildPageMetadata: jest.fn(async () => ({ title: "Workspace Settings" })),
 }));
@@ -82,8 +96,10 @@ jest.mock("next/navigation", () => ({
 describe("workspace settings root route", () => {
   beforeEach(() => {
     (loadWorkspaceSettingsPageContext as jest.Mock).mockReset();
+    (loadWorkspaceSettingsTeamsPageContext as jest.Mock).mockReset();
     (loadWorkspaceSettingsUsersPageContext as jest.Mock).mockReset();
     (loadWorkspaceInvitationsContext as jest.Mock).mockReset();
+    mockWorkspaceSettingsTeamsPage.mockReset();
   });
 
   it("redirects the settings root to the canonical workspace settings section", async () => {
@@ -113,6 +129,7 @@ describe("workspace settings root route", () => {
 describe("workspace settings section routes", () => {
   beforeEach(() => {
     (loadWorkspaceSettingsPageContext as jest.Mock).mockReset();
+    (loadWorkspaceSettingsTeamsPageContext as jest.Mock).mockReset();
     (loadWorkspaceSettingsUsersPageContext as jest.Mock).mockReset();
     (loadWorkspaceInvitationsContext as jest.Mock).mockReset();
   });
@@ -189,6 +206,7 @@ describe("workspace settings section routes", () => {
           id: "invite-1",
         },
       ],
+      teams: [{ id: "team-1" }],
       canCreateInvitations: true,
     });
 
@@ -202,7 +220,7 @@ describe("workspace settings section routes", () => {
     render(element);
 
     expect(screen.getByTestId("settings-page-section")).toHaveAttribute("data-mode", "wide");
-    expect(screen.getByTestId("workspace-settings-invitations-page")).toHaveTextContent("true:1");
+    expect(screen.getByTestId("workspace-settings-invitations-page")).toHaveTextContent("true:1:1");
   });
 
   it("renders the workspace settings form page inside a readable section", async () => {
@@ -246,13 +264,21 @@ describe("workspace settings section routes", () => {
     expect(screen.getByTestId("workspace-settings-placeholder-page")).toHaveTextContent("roles");
   });
 
-  it("renders the teams placeholder inside a readable section", async () => {
-    (loadWorkspaceSettingsPageContext as jest.Mock).mockResolvedValue({
+  it("renders the implemented workspace teams page for canonical section urls", async () => {
+    (loadWorkspaceSettingsTeamsPageContext as jest.Mock).mockResolvedValue({
       workspace: { id: "workspace-123", slug: "client-workspace" },
       canUpdateWorkspace: true,
       canDeleteWorkspace: false,
       canCreateInvitations: true,
       canonicalOrganizationKey: "client-workspace",
+      teams: [{ id: "team-1" }],
+      teamMembersByTeamId: {},
+      assignableMembers: [],
+      canCreateTeams: true,
+      canUpdateTeams: true,
+      canDeleteTeams: true,
+      canAddTeamMembers: true,
+      canRemoveTeamMembers: true,
     });
 
     const pageModule =
@@ -263,7 +289,10 @@ describe("workspace settings section routes", () => {
 
     render(element);
 
-    expect(screen.getByTestId("settings-page-section")).toHaveAttribute("data-mode", "readable");
-    expect(screen.getByTestId("workspace-settings-placeholder-page")).toHaveTextContent("teams");
+    expect(screen.getByTestId("settings-page-section")).toHaveAttribute("data-mode", "wide");
+    expect(screen.getByTestId("workspace-settings-teams-page")).toHaveTextContent("teams:1");
+    const teamsPageProps = mockWorkspaceSettingsTeamsPage.mock.calls[0]?.[0];
+    expect(teamsPageProps).not.toHaveProperty("activeTeamId");
+    expect(teamsPageProps).not.toHaveProperty("currentUserId");
   });
 });

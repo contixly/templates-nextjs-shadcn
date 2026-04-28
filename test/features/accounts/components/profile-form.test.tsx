@@ -15,7 +15,7 @@ jest.mock("next-intl", () => ({
       accounts: {
         validation: {
           errors: {
-            profileNameRequired: "Имя профиля обязательно",
+            profileNameRequired: "Введите отображаемое имя",
           },
         },
         ui: {
@@ -89,7 +89,7 @@ describe("ProfileForm", () => {
     expect(button).toHaveClass("min-w-fit");
   });
 
-  it("localizes action error keys before showing them in toast", async () => {
+  it("localizes action error keys before showing them inline", async () => {
     (updateProfile as jest.Mock).mockResolvedValue({
       success: false,
       error: {
@@ -129,10 +129,10 @@ describe("ProfileForm", () => {
     });
 
     await waitFor(() => {
-      expect(toast.error).toHaveBeenCalledWith("Обновление профиля", {
-        description: "Имя профиля обязательно",
-      });
+      expect(screen.getByText("Введите отображаемое имя")).toBeVisible();
     });
+    expect(screen.getByText("Обновление профиля")).toBeVisible();
+    expect(toast.error).not.toHaveBeenCalled();
   });
 
   it("passes through non-translated action messages unchanged", async () => {
@@ -175,9 +175,9 @@ describe("ProfileForm", () => {
     });
 
     await waitFor(() => {
-      expect(toast.error).toHaveBeenCalledWith("Обновление профиля", {
-        description: "404",
-      });
+      expect(screen.getByText("404")).toBeVisible();
     });
+    expect(screen.getByText("Обновление профиля")).toBeVisible();
+    expect(toast.error).not.toHaveBeenCalled();
   });
 });

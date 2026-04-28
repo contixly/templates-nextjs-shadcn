@@ -24,6 +24,7 @@ export default async function WorkspaceSettingsInvitationsPage({
     workspace,
     canonicalOrganizationKey,
     invitations,
+    teams,
     canCreateInvitations,
     assignableWorkspaceRoles,
   } = await loadWorkspaceSettingsInvitationsPageContext(organizationKey);
@@ -41,6 +42,7 @@ export default async function WorkspaceSettingsInvitationsPage({
       <WorkspaceSettingsInvitationsContent
         organizationId={workspace.id}
         invitations={invitations}
+        teams={teams}
         canCreateInvitations={canCreateInvitations}
         assignableWorkspaceRoles={assignableWorkspaceRoles}
         allowedEmailDomains={getWorkspaceAllowedEmailDomains(workspace.metadata)}

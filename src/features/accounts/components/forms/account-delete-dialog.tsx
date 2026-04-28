@@ -9,7 +9,7 @@ import {
   DeleteAccountInput,
 } from "@features/accounts/accounts-schemas";
 import { Button } from "@components/ui/button";
-import { Field, FieldError, FieldGroup, FieldLabel } from "@components/ui/field";
+import { Field, FieldGroup, FieldLabel } from "@components/ui/field";
 import { Input } from "@components/ui/input";
 import { IconAlertTriangle } from "@tabler/icons-react";
 import { toast } from "sonner";
@@ -19,7 +19,9 @@ import { deleteAccount } from "@features/accounts/actions/delete-account";
 import { useTranslations } from "next-intl";
 import { useAnyTranslations } from "@/src/i18n/use-any-translations";
 import { translateAccountErrorMessage } from "@features/accounts/accounts-errors";
-import { ButtonLoading } from "@components/ui/custom/button-loading";
+import { LoadingButton } from "@components/ui/custom/button-loading";
+import { FieldMessage } from "@components/ui/custom/field-message";
+import { FormErrorNotice } from "@components/ui/custom/form-error-notice";
 
 export const AccountDeleteDialog = ({
   email,
@@ -32,6 +34,7 @@ export const AccountDeleteDialog = ({
   const tAny = useAnyTranslations("accounts");
   const [isPending, startTransition] = useTransition();
   const [open, onOpenChange] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
   const router = useRouter();
 
   const schema = useMemo(() => createDeleteAccountFormSchema(email, tAny), [email, tAny]);
@@ -55,19 +58,27 @@ export const AccountDeleteDialog = ({
     }
   }, [open, reset]);
 
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (!nextOpen) {
+      setFormError(null);
+    }
+
+    onOpenChange(nextOpen);
+  };
+
   const submit: SubmitHandler<DeleteAccountInput> = (data) => {
     startTransition(async () => {
+      setFormError(null);
       const result = await deleteAccount(data);
 
       if (result.success) {
         toast.success(tAccounts("success"));
-        onOpenChange(false);
+        handleOpenChange(false);
         router.push(routes.application.pages.home.path());
       } else {
-        toast.error(tAccounts("errorTitle"), {
-          description:
-            translateAccountErrorMessage(result.error?.message, tAny) ?? tAccounts("unknownError"),
-        });
+        setFormError(
+          translateAccountErrorMessage(result.error?.message, tAny) ?? tAccounts("unknownError")
+        );
       }
     });
   };
@@ -75,7 +86,7 @@ export const AccountDeleteDialog = ({
   return (
     <Modal
       open={open}
-      onOpenChange={onOpenChange}
+      onOpenChange={handleOpenChange}
       title={tAccounts("title")}
       description={tAccounts("description")}
       trigger={
@@ -118,29 +129,37 @@ export const AccountDeleteDialog = ({
                   disabled={isPending}
                   autoFocus
                   autoComplete="off"
+                  aria-describedby="delete-account-confirmation-message"
                 />
-                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                <FieldMessage
+                  id="delete-account-confirmation-message"
+                  errors={[fieldState.error]}
+                />
               </Field>
             )}
           />
+
+          {formError ? (
+            <FormErrorNotice title={tAccounts("errorTitle")}>{formError}</FormErrorNotice>
+          ) : null}
 
           <Field orientation="horizontal" className="flex justify-end gap-2">
             <Button
               type="button"
               variant="outline"
-              onClick={() => onOpenChange(false)}
+              onClick={() => handleOpenChange(false)}
               disabled={isPending}
             >
               {tCommon("words.verbs.cancel")}
             </Button>
-            <Button
+            <LoadingButton
               type="submit"
               variant="destructive"
+              loading={isPending}
               disabled={isPending || !isDirty || !isValid}
             >
-              <ButtonLoading loading={isPending} />
               {tCommon("words.verbs.delete")}
-            </Button>
+            </LoadingButton>
           </Field>
         </FieldGroup>
       </form>
