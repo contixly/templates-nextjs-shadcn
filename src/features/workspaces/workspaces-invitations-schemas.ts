@@ -60,6 +60,7 @@ export const createWorkspaceInvitationSchema = z.object({
   organizationId: organizationIdSchema,
   email: createInvitationEmailSchema(),
   role: createWorkspaceRoleSchema(),
+  teamId: id.nullable().optional(),
 });
 
 export const createWorkspaceInvitationFormSchema = (
@@ -70,6 +71,7 @@ export const createWorkspaceInvitationFormSchema = (
     organizationId: organizationIdSchema,
     email: createInvitationEmailSchema(tAny, allowedEmailDomains),
     role: createWorkspaceRoleSchema(tAny),
+    teamId: id.nullable().optional(),
   });
 
 export const addWorkspaceMemberSchema = z.object({

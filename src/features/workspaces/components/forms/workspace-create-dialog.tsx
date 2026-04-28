@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import React, { DispatchWithoutAction, useEffect, useState, useTransition } from "react";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import { Button } from "@components/ui/button";
-import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@components/ui/field";
+import { Field, FieldGroup, FieldLabel } from "@components/ui/field";
 import { Input } from "@components/ui/input";
 import {
   createWorkspaceFormSchema,
@@ -21,7 +21,9 @@ import { translateWorkspaceErrorMessage } from "@features/workspaces/workspaces-
 import { useRouter } from "next/navigation";
 import routes from "@features/routes";
 import { getOrganizationRouteKey } from "@features/organizations/organizations-context";
-import { ButtonLoading } from "@components/ui/custom/button-loading";
+import { LoadingButton } from "@components/ui/custom/button-loading";
+import { FieldMessage } from "@components/ui/custom/field-message";
+import { FormErrorNotice } from "@components/ui/custom/form-error-notice";
 
 interface CreateWorkspaceDialogProps {
   onSuccess?: DispatchWithoutAction;
@@ -38,6 +40,7 @@ export const WorkspaceCreateDialog = ({
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [open, onOpenChange] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
   const localizedTrigger =
     trigger && React.isValidElement<{ className?: string }>(trigger)
       ? React.cloneElement(trigger, {
@@ -63,6 +66,7 @@ export const WorkspaceCreateDialog = ({
 
   const submit: SubmitHandler<CreateWorkspaceInput> = (data) => {
     startTransition(async () => {
+      setFormError(null);
       const result = await createWorkspace(data);
 
       if (result.success) {
@@ -78,11 +82,9 @@ export const WorkspaceCreateDialog = ({
         }
         router.refresh();
       } else {
-        toast.error(tWorkspaces("errorTitle"), {
-          description:
-            translateWorkspaceErrorMessage(result.error?.message, tAny) ??
-            tWorkspaces("unknownError"),
-        });
+        setFormError(
+          translateWorkspaceErrorMessage(result.error?.message, tAny) ?? tWorkspaces("unknownError")
+        );
       }
     });
   };
@@ -93,10 +95,18 @@ export const WorkspaceCreateDialog = ({
     }
   }, [open, reset]);
 
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (!nextOpen) {
+      setFormError(null);
+    }
+
+    onOpenChange(nextOpen);
+  };
+
   return (
     <Modal
       open={open}
-      onOpenChange={onOpenChange}
+      onOpenChange={handleOpenChange}
       title={tWorkspaces("title")}
       description={tWorkspaces("description")}
       trigger={
@@ -127,26 +137,36 @@ export const WorkspaceCreateDialog = ({
                     disabled={isPending}
                     autoFocus
                     autoComplete="off"
+                    aria-describedby="workspace-name-message"
                   />
-                  <FieldDescription className="text-xs">{tWorkspaces("nameHint")}</FieldDescription>
-                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                  <FieldMessage
+                    id="workspace-name-message"
+                    description={tWorkspaces("nameHint")}
+                    errors={[fieldState.error]}
+                  />
                 </Field>
               )}
             />
           </FieldGroup>
+          {formError ? (
+            <FormErrorNotice title={tWorkspaces("errorTitle")}>{formError}</FormErrorNotice>
+          ) : null}
           <Field orientation="horizontal" className="flex justify-end gap-2">
             <Button
               type="button"
               variant="outline"
-              onClick={() => onOpenChange(false)}
+              onClick={() => handleOpenChange(false)}
               disabled={isPending}
             >
               {tCommon("words.verbs.cancel")}
             </Button>
-            <Button type="submit" disabled={isPending || !isDirty || !isValid}>
-              <ButtonLoading loading={isPending} />
+            <LoadingButton
+              type="submit"
+              loading={isPending}
+              disabled={isPending || !isDirty || !isValid}
+            >
               {tCommon("words.verbs.create")}
-            </Button>
+            </LoadingButton>
           </Field>
         </FieldGroup>
       </form>

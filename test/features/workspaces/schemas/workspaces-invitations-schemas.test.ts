@@ -13,6 +13,7 @@ describe("workspace invitation and member schemas", () => {
         organizationId: "RkFBy8l5f36JR4Mwl1dExZxvzCjD8X7H",
         email: "ADMIN@EXAMPLE.COM",
         role: "admin",
+        teamId: "d6qzollaqro6y66v7j52bhqo",
       }).success
     ).toBe(true);
     expect(
@@ -30,6 +31,17 @@ describe("workspace invitation and member schemas", () => {
         role: "owner",
       }).success
     ).toBe(true);
+  });
+
+  it("accepts workspace-only invitations without a team target", () => {
+    const result = createWorkspaceInvitationFormSchema(tAny).safeParse({
+      organizationId: "RkFBy8l5f36JR4Mwl1dExZxvzCjD8X7H",
+      email: "admin@example.com",
+      role: "member",
+      teamId: null,
+    });
+
+    expect(result.success).toBe(true);
   });
 
   it("rejects unsupported role values with localized form errors", () => {

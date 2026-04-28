@@ -39,12 +39,14 @@ jest.mock("next-intl", () => ({
               columns: {
                 email: "Email",
                 role: "Role",
+                team: "Team",
                 inviter: "Inviter",
                 created: "Created",
                 expires: "Expires",
                 status: "Status",
                 actions: "Actions",
               },
+              noTeam: "Workspace only",
             },
           },
         },
@@ -73,13 +75,15 @@ jest.mock("@lib/time", () => ({
 jest.mock("@features/workspaces/components/forms/workspace-create-invitation-dialog", () => ({
   WorkspaceCreateInvitationDialog: ({
     organizationId,
+    teams,
     assignableRoles,
   }: {
     organizationId: string;
+    teams: Array<{ id: string }>;
     assignableRoles: string[];
   }) => (
     <div data-testid="workspace-create-invitation-dialog">
-      {organizationId}:{assignableRoles.join(",")}
+      {organizationId}:{assignableRoles.join(",")}:{teams.length}
     </div>
   ),
 }));
@@ -90,6 +94,16 @@ describe("WorkspaceSettingsInvitationsPage", () => {
       <WorkspaceSettingsInvitationsPage
         organizationId="org-1"
         canCreateInvitations
+        teams={[
+          {
+            id: "team-1",
+            organizationId: "org-1",
+            name: "Design",
+            memberCount: 2,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          },
+        ]}
         assignableWorkspaceRoles={["member", "admin"]}
         invitations={[
           {
@@ -97,6 +111,8 @@ describe("WorkspaceSettingsInvitationsPage", () => {
             organizationId: "org-1",
             organizationName: "Acme",
             organizationSlug: "acme",
+            teamId: "team-1",
+            teamName: "Design",
             email: "alice@example.com",
             role: "member",
             roleLabels: ["member"],
@@ -119,10 +135,12 @@ describe("WorkspaceSettingsInvitationsPage", () => {
       screen.getByRole("heading", { level: 2, name: "Invitation activity" })
     ).toBeInTheDocument();
     expect(screen.getByTestId("workspace-create-invitation-dialog")).toHaveTextContent(
-      "org-1:member,admin"
+      "org-1:member,admin:1"
     );
     expect(screen.getByRole("columnheader", { name: "Email" })).toBeInTheDocument();
+    expect(screen.getByRole("columnheader", { name: "Team" })).toBeInTheDocument();
     expect(screen.getByText("alice@example.com")).toBeInTheDocument();
+    expect(screen.getByText("Design")).toBeInTheDocument();
     expect(screen.getByText("Alice Admin")).toBeInTheDocument();
     expect(screen.getByText("member")).toBeInTheDocument();
     expect(screen.getByText("Pending")).toBeInTheDocument();
@@ -135,6 +153,7 @@ describe("WorkspaceSettingsInvitationsPage", () => {
       <WorkspaceSettingsInvitationsPage
         organizationId="org-1"
         canCreateInvitations={false}
+        teams={[]}
         assignableWorkspaceRoles={[]}
         invitations={[]}
       />

@@ -26,10 +26,10 @@ jest.mock("next-intl", () => ({
       workspaces: {
         validation: {
           errors: {
-            invitationEmailRequired: "Invitation email is required",
-            invitationEmailInvalid: "Invitation email must be valid",
-            invitationDomainRestricted: "That email domain is not allowed by this workspace",
-            memberIdRequired: "User ID is required",
+            invitationEmailRequired: "Enter an invitation email address",
+            invitationEmailInvalid: "Enter a valid invitation email address",
+            invitationDomainRestricted: "Use an email domain allowed by this workspace",
+            memberIdRequired: "Enter a user ID",
             workspaceRoleInvalid: "Choose a supported workspace role",
           },
         },
@@ -105,11 +105,11 @@ jest.mock("next/navigation", () => ({
 jest.mock("@/src/i18n/use-any-translations", () => ({
   useAnyTranslations: () => (key: string) => {
     const messages: Record<string, string> = {
-      "validation.errors.invitationEmailRequired": "Invitation email is required",
-      "validation.errors.invitationEmailInvalid": "Invitation email must be valid",
+      "validation.errors.invitationEmailRequired": "Enter an invitation email address",
+      "validation.errors.invitationEmailInvalid": "Enter a valid invitation email address",
       "validation.errors.invitationDomainRestricted":
-        "That email domain is not allowed by this workspace",
-      "validation.errors.memberIdRequired": "User ID is required",
+        "Use an email domain allowed by this workspace",
+      "validation.errors.memberIdRequired": "Enter a user ID",
       "validation.errors.workspaceRoleInvalid": "Choose a supported workspace role",
     };
 
@@ -139,7 +139,7 @@ jest.mock("@components/ui/select", () => ({
     disabled?: boolean;
   }) => (
     <select
-      aria-label="Role"
+      aria-label={disabled ? "Team" : "Role"}
       value={value}
       onChange={(event) => onValueChange?.(event.target.value)}
       disabled={disabled}
@@ -148,6 +148,7 @@ jest.mock("@components/ui/select", () => ({
     </select>
   ),
   SelectContent: ({ children }: { children?: React.ReactNode }) => <>{children}</>,
+  SelectGroup: ({ children }: { children?: React.ReactNode }) => <>{children}</>,
   SelectItem: ({ value, children }: { value: string; children?: React.ReactNode }) => (
     <option value={value}>{children}</option>
   ),
@@ -308,6 +309,7 @@ describe("workspace role dialogs", () => {
         organizationId: ORGANIZATION_ID,
         email: "admin@example.com",
         role: "admin",
+        teamId: null,
       });
     });
   });
@@ -341,15 +343,14 @@ describe("workspace role dialogs", () => {
       fireEvent.change(emailField, {
         target: { value: "me@kroniak.net" },
       });
+      fireEvent.blur(emailField);
     });
 
     await waitFor(() => {
       expect(emailField).toBeInvalid();
     });
 
-    expect(
-      screen.getByText("That email domain is not allowed by this workspace")
-    ).toBeInTheDocument();
+    expect(screen.getByText("Use an email domain allowed by this workspace")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Create" })).toBeDisabled();
     expect(createWorkspaceInvitation).not.toHaveBeenCalled();
   });

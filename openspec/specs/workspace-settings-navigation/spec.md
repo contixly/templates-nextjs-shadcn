@@ -48,15 +48,21 @@ accessible workspace members, while exposing the invitations section only to mem
 - **WHEN** an authenticated workspace member without invitation-create permission opens the workspace settings navigation
 - **THEN** the menu does not include the invitations section page
 
-#### Scenario: Future sections remain visible before implementation
+#### Scenario: Teams section renders implemented management surface
 
 - **WHEN** an authenticated user opens the workspace settings navigation
-- **THEN** the menu still includes teams and roles section pages
-- **AND** each section has its own route even if the section is not yet implemented
+- **THEN** the menu includes the teams section page
+- **AND** that page renders its implemented Better Auth Teams management UI instead of placeholder copy
 
-#### Scenario: Unimplemented sections render stub content
+#### Scenario: Future roles section remains visible before implementation
 
-- **WHEN** an authenticated user opens the teams or roles page before those features are implemented
+- **WHEN** an authenticated user opens the workspace settings navigation
+- **THEN** the menu still includes the roles section page
+- **AND** that section has its own route even if the section is not yet implemented
+
+#### Scenario: Unimplemented roles section renders stub content
+
+- **WHEN** an authenticated user opens the roles page before that feature is implemented
 - **THEN** the system renders a placeholder state for that section
 - **AND** does not expose non-functional management controls on that page
 

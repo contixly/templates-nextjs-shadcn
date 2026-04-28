@@ -126,6 +126,12 @@ export const WorkspaceInvitationDecisionPage = ({
             </dd>
           </div>
           <div>
+            <dt className="text-muted-foreground text-sm">{t("details.team")}</dt>
+            <dd className="mt-1 text-sm font-medium">
+              {invitation.teamName ?? t("details.noTeam")}
+            </dd>
+          </div>
+          <div>
             <dt className="text-muted-foreground text-sm">{t("details.inviter")}</dt>
             <dd className="mt-1 text-sm font-medium">{invitation.inviterName}</dd>
           </div>

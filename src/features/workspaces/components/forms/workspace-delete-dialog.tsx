@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import React, { useEffect, useMemo, useState, useTransition } from "react";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import { Button } from "@components/ui/button";
-import { Field, FieldError, FieldGroup, FieldLabel } from "@components/ui/field";
+import { Field, FieldGroup, FieldLabel } from "@components/ui/field";
 import { Input } from "@components/ui/input";
 import {
   createDeleteWorkspaceFormSchema,
@@ -17,7 +17,9 @@ import { deleteWorkspace } from "@features/workspaces/actions/delete-workspace";
 import { useTranslations } from "next-intl";
 import { useAnyTranslations } from "@/src/i18n/use-any-translations";
 import { translateWorkspaceErrorMessage } from "@features/workspaces/workspaces-errors";
-import { ButtonLoading } from "@components/ui/custom/button-loading";
+import { LoadingButton } from "@components/ui/custom/button-loading";
+import { FieldMessage } from "@components/ui/custom/field-message";
+import { FormErrorNotice } from "@components/ui/custom/form-error-notice";
 
 interface WorkspaceDeleteDialogProps {
   workspace: WorkspaceWithCounts | null;
@@ -34,6 +36,7 @@ export const WorkspaceDeleteDialog = ({
   const tAny = useAnyTranslations("workspaces");
   const [isPending, startTransition] = useTransition();
   const [open, onOpenChange] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
   const defaultValues = useMemo(
     () => ({
       id: workspace?.id,
@@ -60,22 +63,29 @@ export const WorkspaceDeleteDialog = ({
     }
   }, [open, reset, defaultValues]);
 
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (!nextOpen) {
+      setFormError(null);
+    }
+
+    onOpenChange(nextOpen);
+  };
+
   const submit: SubmitHandler<DeleteWorkspaceInput> = (data) => {
     if (!workspace?.id) return;
 
     startTransition(async () => {
+      setFormError(null);
       const result = await deleteWorkspace(data);
 
       if (result.success) {
         toast.success(tWorkspaces("success"));
-        onOpenChange(false);
+        handleOpenChange(false);
         onSuccess?.();
       } else {
-        toast.error(tWorkspaces("errorTitle"), {
-          description:
-            translateWorkspaceErrorMessage(result.error?.message, tAny) ??
-            tWorkspaces("unknownError"),
-        });
+        setFormError(
+          translateWorkspaceErrorMessage(result.error?.message, tAny) ?? tWorkspaces("unknownError")
+        );
       }
     });
   };
@@ -85,7 +95,7 @@ export const WorkspaceDeleteDialog = ({
   return (
     <Modal
       open={open}
-      onOpenChange={onOpenChange}
+      onOpenChange={handleOpenChange}
       title={tWorkspaces("title")}
       description={tWorkspaces("description")}
       trigger={
@@ -114,29 +124,37 @@ export const WorkspaceDeleteDialog = ({
                   disabled={isPending}
                   autoFocus
                   autoComplete="off"
+                  aria-describedby="delete-workspace-confirmation-message"
                 />
-                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                <FieldMessage
+                  id="delete-workspace-confirmation-message"
+                  errors={[fieldState.error]}
+                />
               </Field>
             )}
           />
+
+          {formError ? (
+            <FormErrorNotice title={tWorkspaces("errorTitle")}>{formError}</FormErrorNotice>
+          ) : null}
 
           <Field orientation="horizontal" className="flex justify-end gap-2">
             <Button
               type="button"
               variant="outline"
-              onClick={() => onOpenChange(false)}
+              onClick={() => handleOpenChange(false)}
               disabled={isPending}
             >
               {tCommon("words.verbs.cancel")}
             </Button>
-            <Button
+            <LoadingButton
               type="submit"
               variant="destructive"
+              loading={isPending}
               disabled={isPending || !isDirty || !isValid}
             >
-              <ButtonLoading loading={isPending} />
               {tCommon("words.verbs.delete")}
-            </Button>
+            </LoadingButton>
           </Field>
         </FieldGroup>
       </form>

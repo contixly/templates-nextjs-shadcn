@@ -192,6 +192,8 @@ describe("workspace management actions", () => {
       },
       headers: expect.any(Headers),
     });
+    expect(mockCreateOrganization.mock.calls[0]?.[0]?.body).not.toHaveProperty("teamId");
+    expect(mockCreateOrganization.mock.calls[0]?.[0]?.body).not.toHaveProperty("teams");
     expect(mockSetActiveOrganization).toHaveBeenCalledWith({
       body: {
         organizationId: ORGANIZATION_ID,

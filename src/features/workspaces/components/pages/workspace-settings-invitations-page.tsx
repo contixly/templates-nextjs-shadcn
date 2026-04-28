@@ -21,10 +21,12 @@ import { timeTools } from "@lib/time";
 import type { WorkspaceInvitationDto } from "@features/workspaces/workspaces-invitations-types";
 import type { WorkspaceManageableRole } from "@features/workspaces/workspaces-roles";
 import { WorkspaceCreateInvitationDialog } from "@features/workspaces/components/forms/workspace-create-invitation-dialog";
+import type { WorkspaceTeamListItemDto } from "@features/workspaces/workspaces-teams-types";
 
 interface WorkspaceSettingsInvitationsPageProps {
   organizationId: string;
   invitations: WorkspaceInvitationDto[];
+  teams: WorkspaceTeamListItemDto[];
   canCreateInvitations: boolean;
   assignableWorkspaceRoles: WorkspaceManageableRole[];
   allowedEmailDomains?: string[];
@@ -47,6 +49,7 @@ const getStatusVariant = (status: WorkspaceInvitationDto["displayStatus"]) => {
 export const WorkspaceSettingsInvitationsPage = ({
   organizationId,
   invitations,
+  teams,
   canCreateInvitations,
   assignableWorkspaceRoles,
   allowedEmailDomains = [],
@@ -67,6 +70,7 @@ export const WorkspaceSettingsInvitationsPage = ({
           canCreateInvitations ? (
             <WorkspaceCreateInvitationDialog
               organizationId={organizationId}
+              teams={teams}
               assignableRoles={assignableWorkspaceRoles}
               allowedEmailDomains={allowedEmailDomains}
             />
@@ -89,6 +93,7 @@ export const WorkspaceSettingsInvitationsPage = ({
               <TableRow>
                 <TableHead>{t("table.columns.email")}</TableHead>
                 <TableHead>{t("table.columns.role")}</TableHead>
+                <TableHead>{t("table.columns.team")}</TableHead>
                 <TableHead>{t("table.columns.inviter")}</TableHead>
                 <TableHead>{t("table.columns.created")}</TableHead>
                 <TableHead>{t("table.columns.expires")}</TableHead>
@@ -108,6 +113,13 @@ export const WorkspaceSettingsInvitationsPage = ({
                         </Badge>
                       ))}
                     </div>
+                  </TableCell>
+                  <TableCell>
+                    {invitation.teamName ? (
+                      <Badge variant="secondary">{invitation.teamName}</Badge>
+                    ) : (
+                      <span className="text-muted-foreground">{t("table.noTeam")}</span>
+                    )}
                   </TableCell>
                   <TableCell>{invitation.inviterName}</TableCell>
                   <TableCell>{timeTools.formatDate(invitation.createdAt, locale)}</TableCell>

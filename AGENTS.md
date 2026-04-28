@@ -49,7 +49,7 @@ The project follows FSD principles. Each feature is self-contained in `features/
 - `npm run lint` - Run ESLint.
 - `npm run format` - Format code with Prettier.
 - `npm run test` - Run all Jest tests.
-- `npm run test -- --testPathPattern=<pattern>` - Run a single test file (e.g., `npm run test -- --testPathPattern=workspaces`).
+- `npm run test -- --testPathPatterns=<pattern>` - Run a single test file (e.g., `npm run test -- --testPathPatterns=workspaces`).
 - `npm run shadcn:upgrade` - Upgrade all shadcn/ui components to latest.
 - `npx prisma migrate dev --name <name>` - Create and apply a migration.
 - `npx prisma generate` - Regenerate Prisma client.

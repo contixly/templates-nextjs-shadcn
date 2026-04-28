@@ -78,13 +78,13 @@
   },
   "validation": {
     "errors": {
-      "profileNameRequired": "Имя профиля обязательно",
-      "profileNameMustBeString": "Имя должно быть строкой",
-      "profileNameTooShort": "Имя должно содержать не менее {min} символов",
-      "profileNameTooLong": "Имя должно содержать не более {max} символов",
-      "profileNameUnchanged": "Новое имя профиля должно отличаться от текущего",
-      "confirmationEmailInvalid": "Неверный формат email",
-      "confirmationEmailMismatch": "Email должен совпадать с адресом аккаунта"
+      "profileNameRequired": "Введите отображаемое имя",
+      "profileNameMustBeString": "Введите отображаемое имя текстом",
+      "profileNameTooShort": "Используйте не менее {min} символов в отображаемом имени",
+      "profileNameTooLong": "Используйте не более {max} символов в отображаемом имени",
+      "profileNameUnchanged": "Введите отображаемое имя, отличающееся от текущего",
+      "confirmationEmailInvalid": "Введите корректный email",
+      "confirmationEmailMismatch": "Введите email аккаунта точно как показано"
     }
   },
   "ui": {

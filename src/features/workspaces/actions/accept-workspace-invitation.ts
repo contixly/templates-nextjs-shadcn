@@ -21,6 +21,7 @@ import {
   type WorkspaceWithCounts,
 } from "@features/workspaces/workspaces-types";
 import { workspacesLogger } from "@features/workspaces/workspaces-logger";
+import { updateWorkspaceTeamCache } from "@features/workspaces/workspaces-teams-types";
 
 export const acceptWorkspaceInvitation = createProtectedActionWithInput<
   UpdateWorkspaceInvitationDecisionInput,
@@ -80,6 +81,11 @@ export const acceptWorkspaceInvitation = createProtectedActionWithInput<
       email: context.invitation.email,
     });
     updateWorkspaceCache({ workspaceId: context.invitation.organizationId, userId });
+    updateWorkspaceTeamCache({
+      organizationId: context.invitation.organizationId,
+      teamId: context.invitation.teamId,
+      userIds: [userId],
+    });
     updateTags([CACHE_OrganizationMembersTag(context.invitation.organizationId)]);
 
     const workspace = await findWorkspaceDtoByIdAndUserId(

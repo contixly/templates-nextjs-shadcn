@@ -18,11 +18,13 @@ auth, and domain setup.
 
 - Authentication with protected and public routes
 - Better Auth organizations used as the backing model for workspaces
+- Better Auth Teams enabled for explicit workspace subgroups without automatic default teams
 - Organization-scoped workspace routes under `/w/:organizationKey/...` with slug-preferred URLs and active/fallback
   workspace resolution
-- Workspace management, settings, member directory, and invitation surfaces
+- Workspace management, settings, member directory, team management, and invitation surfaces
 - Role-aware owner/admin/member controls for adding members and updating member roles
-- Invitation lifecycle: create, list, copy link, accept, reject, expire, and personal pending-invitation entry points
+- Invitation lifecycle: create, list, copy link, accept, reject, expire, optional team targeting, and personal
+  pending-invitation entry points
 - Workspace email-domain restrictions for invitation creation, invitation acceptance, and out-of-policy member warnings
 - Zero-workspace onboarding that keeps workspace creation and invitation review available
 - Internationalization with `next-intl` and typed message catalogs
@@ -36,7 +38,7 @@ auth, and domain setup.
 
 - **Frontend**: Next.js 16, React 19, TypeScript, Tailwind CSS v4, shadcn/ui
 - **Backend**: Next.js Server Actions, Prisma ORM, PostgreSQL
-- **Auth**: Better Auth with OAuth providers and the organization plugin
+- **Auth**: Better Auth with OAuth providers and the organization plugin with Teams enabled
 - **Localization**: `next-intl`
 
 ## Workspace and Organization Model
@@ -45,18 +47,20 @@ Workspaces are the product-facing concept, while Better Auth organizations provi
 permission model. Routes under `/w/:organizationKey/...` resolve either an organization slug or id, and the global
 `/dashboard` route redirects to the best available workspace context: active organization or a deterministic fallback.
 
-Workspace settings include general workspace details, allowed email domains, users, invitations, and placeholder sections
-for teams and roles. Authorized users can create workspaces, update workspace details, switch the active workspace, add
-existing users by id, create shareable invitations, and update assignable member roles. Workspace switchers preserve
-equivalent base workspace routes when switching context and fall back to the selected workspace dashboard for unknown or
-complex routes. Regular members retain read-only access to the directory and settings context where they do not have
-management permissions.
+Workspace settings include general workspace details, allowed email domains, users, invitations, explicit Better Auth
+Teams, and a placeholder section for roles. Authorized users can create workspaces, update workspace details, switch the
+active workspace, add existing users by id, create and manage teams, add existing workspace members to teams, create
+shareable invitations, optionally target invitations to a team, and update assignable member roles. New workspaces do
+not create an automatic default team; the workspace organization remains the implicit all-members context, and zero
+explicit teams is a valid state. Workspace switchers preserve equivalent base workspace routes when switching context
+and fall back to the selected workspace dashboard for unknown or complex routes. Regular members retain read-only access
+to the directory, teams, and settings context where they do not have management permissions.
 
 Invitations are stored in PostgreSQL, tied to organizations, and exposed through both admin and current-user flows.
-Invitees can open a dedicated invitation route after authentication, review the inviter, workspace, role, and expiration
-details, then accept or reject when their verified primary email matches the invitation and the workspace's active
-allowed-domain policy. Workspace admins can restrict new invitations to exact email domains, and existing members outside
-the active policy are surfaced with warnings rather than removed automatically.
+Invitees can open a dedicated invitation route after authentication, review the inviter, workspace, optional target
+team, role, and expiration details, then accept or reject when their verified primary email matches the invitation and
+the workspace's active allowed-domain policy. Workspace admins can restrict new invitations to exact email domains, and
+existing members outside the active policy are surfaced with warnings rather than removed automatically.
 
 ## Getting Started
 

@@ -23,11 +23,11 @@ jest.mock("next-intl", () => ({
       workspaces: {
         validation: {
           errors: {
-            nameRequired: "Название рабочего пространства обязательно",
-            nameTooLong: "Название рабочего пространства должно содержать не более 50 символов",
+            nameRequired: "Введите название рабочего пространства",
+            nameTooLong: "Используйте не более 50 символов в названии рабочего пространства",
             nameInvalidCharacters:
-              "Название рабочего пространства может содержать только буквы, цифры, пробелы, дефисы и подчёркивания",
-            duplicateName: "Рабочее пространство с таким названием уже существует",
+              "Используйте только буквы, цифры, пробелы, дефисы и подчёркивания",
+            duplicateName: "Введите другое название рабочего пространства; это уже занято",
           },
         },
         ui: {
@@ -114,9 +114,7 @@ describe("WorkspaceCreateDialog", () => {
     fireEvent.change(input, { target: { value: "   " } });
     fireEvent.blur(input);
 
-    expect(
-      await screen.findByText("Название рабочего пространства обязательно")
-    ).toBeInTheDocument();
+    expect(await screen.findByText("Введите название рабочего пространства")).toBeInTheDocument();
   });
 
   it("extends custom triggers so long labels can wrap instead of truncating", () => {
@@ -142,7 +140,7 @@ describe("WorkspaceCreateDialog", () => {
     expect(trigger.className).toContain("[&>span:last-child]:whitespace-normal");
   });
 
-  it("localizes action error keys before showing them in toast", async () => {
+  it("localizes action error keys before showing them inline", async () => {
     (createWorkspace as jest.Mock).mockResolvedValue({
       success: false,
       error: {
@@ -162,10 +160,12 @@ describe("WorkspaceCreateDialog", () => {
     });
 
     await waitFor(() => {
-      expect(toast.error).toHaveBeenCalledWith("Создание рабочего пространства", {
-        description: "Рабочее пространство с таким названием уже существует",
-      });
+      expect(
+        screen.getByText("Введите другое название рабочего пространства; это уже занято")
+      ).toBeVisible();
     });
+    expect(screen.getByText("Создание рабочего пространства")).toBeVisible();
+    expect(toast.error).not.toHaveBeenCalled();
   });
 
   it("passes through non-translated action messages unchanged", async () => {
@@ -188,10 +188,10 @@ describe("WorkspaceCreateDialog", () => {
     });
 
     await waitFor(() => {
-      expect(toast.error).toHaveBeenCalledWith("Создание рабочего пространства", {
-        description: "500",
-      });
+      expect(screen.getByText("500")).toBeVisible();
     });
+    expect(screen.getByText("Создание рабочего пространства")).toBeVisible();
+    expect(toast.error).not.toHaveBeenCalled();
   });
 
   it("redirects to the created workspace dashboard after success", async () => {

@@ -23,10 +23,13 @@ import {
   type WorkspaceSettingsPageContext,
 } from "@features/workspaces/workspaces-settings";
 import { evaluateWorkspaceEmailDomainEligibility } from "@features/workspaces/workspaces-domain-restrictions";
+import { findManyWorkspaceTeamsByOrganizationIdAndUserId } from "@features/workspaces/workspaces-teams-repository";
+import type { WorkspaceTeamListItemDto } from "@features/workspaces/workspaces-teams-types";
 
 export interface WorkspaceSettingsInvitationsPageContext extends WorkspaceSettingsPageContext {
   invitations: WorkspaceInvitationDto[];
   canCreateInvitations: boolean;
+  teams: WorkspaceTeamListItemDto[];
 }
 
 const loadRequiredCurrentUserId = async () => {
@@ -61,10 +64,10 @@ export const loadWorkspaceSettingsInvitationsPageContext = async (
     forbidden();
   }
 
-  const invitations = await findManyWorkspaceInvitationsByOrganizationIdAndUserId(
-    workspaceContext.workspace.id,
-    userId
-  );
+  const [invitations, teams] = await Promise.all([
+    findManyWorkspaceInvitationsByOrganizationIdAndUserId(workspaceContext.workspace.id, userId),
+    findManyWorkspaceTeamsByOrganizationIdAndUserId(workspaceContext.workspace.id, userId),
+  ]);
   const now = new Date();
 
   return {
@@ -72,6 +75,7 @@ export const loadWorkspaceSettingsInvitationsPageContext = async (
     invitations: invitations.map((invitation) =>
       withResolvedWorkspaceInvitationDisplayStatus(invitation, now)
     ),
+    teams,
   };
 };
 

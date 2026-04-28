@@ -94,10 +94,18 @@ export const auth = betterAuth({
     }),
     organization({
       requireEmailVerificationOnInvitation: true,
+      teams: {
+        enabled: true,
+        defaultTeam: {
+          enabled: false,
+        },
+        allowRemovingAllTeams: true,
+      },
       schema: {
         session: {
           fields: {
             activeOrganizationId: "activeOrganizationId",
+            activeTeamId: "activeTeamId",
           },
         },
       },
