@@ -144,7 +144,8 @@ organization without changing organization-scoped route context.
 
 #### Scenario: User sets active team
 - **WHEN** an authenticated user selects a team that belongs to their current active workspace organization
-- **THEN** the system stores that team as `session.activeTeamId`
+- **THEN** the system updates `session.activeOrganizationId` to that workspace organization before setting the team
+- **AND** stores that team as `session.activeTeamId`
 - **AND** exposes the selected team as the active team in subsequent Better Auth session reads
 
 #### Scenario: User clears active team

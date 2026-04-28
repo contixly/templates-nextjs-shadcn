@@ -58,11 +58,27 @@ export const setActiveWorkspaceTeam = createProtectedActionWithInput<
     }
 
     try {
+      if (teamId) {
+        await auth.api.setActiveOrganization({
+          body: {
+            organizationId,
+          },
+          headers,
+        });
+      }
+
       await auth.api.setActiveTeam({
         body: {
           teamId,
         },
         headers,
+        ...(teamId
+          ? {
+              query: {
+                disableCookieCache: true,
+              },
+            }
+          : {}),
       });
     } catch (error) {
       const resolvedError = resolveWorkspaceTeamMutationError(error);

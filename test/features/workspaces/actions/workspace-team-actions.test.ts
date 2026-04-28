@@ -9,6 +9,7 @@ const mockUpdateTeam = jest.fn();
 const mockRemoveTeam = jest.fn();
 const mockSetActiveTeam = jest.fn();
 const mockGetSession = jest.fn();
+const mockSetActiveOrganization = jest.fn();
 const mockAddTeamMember = jest.fn();
 const mockRemoveTeamMember = jest.fn();
 const mockFindWorkspaceTeamByIdAndOrganizationIdAndUserId = jest.fn();
@@ -86,6 +87,7 @@ jest.mock("@server/auth", () => ({
       removeTeam: (...args: unknown[]) => mockRemoveTeam(...args),
       setActiveTeam: (...args: unknown[]) => mockSetActiveTeam(...args),
       getSession: (...args: unknown[]) => mockGetSession(...args),
+      setActiveOrganization: (...args: unknown[]) => mockSetActiveOrganization(...args),
       addTeamMember: (...args: unknown[]) => mockAddTeamMember(...args),
       removeTeamMember: (...args: unknown[]) => mockRemoveTeamMember(...args),
     },
@@ -113,6 +115,7 @@ jest.mock("next/navigation", () => ({
 import { addWorkspaceTeamMember } from "@features/workspaces/actions/add-workspace-team-member";
 import { createWorkspaceTeam } from "@features/workspaces/actions/create-workspace-team";
 import { deleteWorkspaceTeam } from "@features/workspaces/actions/delete-workspace-team";
+import { setActiveWorkspaceTeam } from "@features/workspaces/actions/set-active-workspace-team";
 import { updateWorkspaceTeam } from "@features/workspaces/actions/update-workspace-team";
 
 describe("workspace team actions", () => {
@@ -126,6 +129,7 @@ describe("workspace team actions", () => {
     mockRemoveTeam.mockReset();
     mockSetActiveTeam.mockReset();
     mockGetSession.mockReset();
+    mockSetActiveOrganization.mockReset();
     mockAddTeamMember.mockReset();
     mockRemoveTeamMember.mockReset();
     mockFindWorkspaceTeamByIdAndOrganizationIdAndUserId.mockReset();
@@ -260,6 +264,49 @@ describe("workspace team actions", () => {
       },
       headers: expect.any(Headers),
     });
+  });
+
+  it("syncs the active organization before setting a workspace team active", async () => {
+    mockFindWorkspaceTeamOwnership.mockResolvedValue({
+      id: TEAM_ID,
+      organizationId: ORGANIZATION_ID,
+      name: "Design",
+    });
+    mockFindWorkspaceTeamMembership.mockResolvedValue({ id: "membership-1" });
+    mockSetActiveOrganization.mockResolvedValue({ id: ORGANIZATION_ID });
+    mockSetActiveTeam.mockResolvedValue({ id: TEAM_ID });
+
+    await expect(
+      setActiveWorkspaceTeam({
+        organizationId: ORGANIZATION_ID,
+        teamId: TEAM_ID,
+      })
+    ).resolves.toEqual({
+      success: true,
+      data: {
+        organizationId: ORGANIZATION_ID,
+        teamId: TEAM_ID,
+      },
+    });
+
+    expect(mockSetActiveOrganization).toHaveBeenCalledWith({
+      body: {
+        organizationId: ORGANIZATION_ID,
+      },
+      headers: expect.any(Headers),
+    });
+    expect(mockSetActiveTeam).toHaveBeenCalledWith({
+      body: {
+        teamId: TEAM_ID,
+      },
+      headers: expect.any(Headers),
+      query: {
+        disableCookieCache: true,
+      },
+    });
+    expect(mockSetActiveOrganization.mock.invocationCallOrder[0]).toBeLessThan(
+      mockSetActiveTeam.mock.invocationCallOrder[0]
+    );
   });
 
   it("rejects cross-workspace team-member assignment", async () => {
