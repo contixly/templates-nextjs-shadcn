@@ -3,9 +3,14 @@ import { act, fireEvent, render, screen, waitFor } from "@testing-library/react"
 import React from "react";
 import { WorkspaceSettingsForm } from "@features/workspaces/components/forms/workspace-settings-form";
 import { updateWorkspace } from "@features/workspaces/actions/update-workspace";
+import { toast } from "sonner";
 
 const WORKSPACE_ID = "d6qzollaqro6y66v7j52bhqo";
 const mockRefresh = jest.fn();
+
+const settleFormValidation = async () => {
+  await act(async () => {});
+};
 
 jest.mock("next-intl", () => ({
   useTranslations: (namespace: string) => (key: string) => {
@@ -21,7 +26,9 @@ jest.mock("next-intl", () => ({
       workspaces: {
         validation: {
           errors: {
-            duplicateName: "Рабочее пространство с таким названием уже существует",
+            nameRequired: "Введите название рабочего пространства",
+            nameUnchanged: "Введите новое название рабочего пространства",
+            duplicateName: "Введите другое название рабочего пространства; это уже занято",
           },
         },
         ui: {
@@ -89,7 +96,7 @@ describe("WorkspaceSettingsForm", () => {
     mockRefresh.mockReset();
   });
 
-  it("loads the current workspace name, slug, and allowed domains into the extracted page form", () => {
+  it("loads the current workspace name, slug, and allowed domains into the extracted page form", async () => {
     render(
       <WorkspaceSettingsForm
         workspace={{
@@ -105,6 +112,8 @@ describe("WorkspaceSettingsForm", () => {
         }}
       />
     );
+
+    await settleFormValidation();
 
     expect(screen.getByDisplayValue("Client Workspace")).toBeInTheDocument();
     expect(screen.getByDisplayValue("client-workspace")).toBeInTheDocument();
@@ -145,6 +154,107 @@ describe("WorkspaceSettingsForm", () => {
     });
 
     expect(allowedDomainsField).toHaveValue("example.com,");
+  });
+
+  it("uses one compact supporting message row for each editable field", async () => {
+    const { container } = render(
+      <WorkspaceSettingsForm
+        workspace={{
+          id: WORKSPACE_ID,
+          name: "Client Workspace",
+          slug: "client-workspace",
+          logo: null,
+          metadata: null,
+          createdAt: new Date("2026-04-20T10:00:00.000Z"),
+          updatedAt: new Date("2026-04-20T10:00:00.000Z"),
+        }}
+      />
+    );
+
+    await waitFor(() => {
+      expect(container.querySelectorAll('[data-slot="field-message"]')).toHaveLength(3);
+    });
+    expect(container.querySelectorAll('[data-slot="field-description"]')).toHaveLength(0);
+    expect(screen.getByLabelText("Название рабочего пространства")).toHaveAccessibleDescription(
+      "Максимум 50 символов"
+    );
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  });
+
+  it("shows field validation during editing and replaces the hint in the same message row", async () => {
+    render(
+      <WorkspaceSettingsForm
+        workspace={{
+          id: WORKSPACE_ID,
+          name: "Client Workspace",
+          slug: "client-workspace",
+          logo: null,
+          metadata: null,
+          createdAt: new Date("2026-04-20T10:00:00.000Z"),
+          updatedAt: new Date("2026-04-20T10:00:00.000Z"),
+        }}
+      />
+    );
+
+    const nameField = screen.getByLabelText("Название рабочего пространства");
+
+    expect(nameField).toHaveAccessibleDescription("Максимум 50 символов");
+
+    await act(async () => {
+      fireEvent.change(nameField, {
+        target: { value: "" },
+      });
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText("Введите название рабочего пространства")).toBeInTheDocument();
+    });
+    expect(nameField).toHaveAccessibleDescription("Введите название рабочего пространства");
+  });
+
+  it("renders server action errors inline instead of sending them to a toast", async () => {
+    (updateWorkspace as jest.Mock).mockResolvedValue({
+      success: false,
+      error: {
+        message: "validation.errors.duplicateName",
+      },
+    });
+
+    render(
+      <WorkspaceSettingsForm
+        workspace={{
+          id: WORKSPACE_ID,
+          name: "Client Workspace",
+          slug: "client-workspace",
+          logo: null,
+          metadata: null,
+          createdAt: new Date("2026-04-20T10:00:00.000Z"),
+          updatedAt: new Date("2026-04-20T10:00:00.000Z"),
+        }}
+      />
+    );
+
+    await act(async () => {
+      fireEvent.change(screen.getByLabelText("Название рабочего пространства"), {
+        target: { value: "Existing Workspace" },
+      });
+    });
+
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: "Сохранить" })).not.toBeDisabled();
+    });
+
+    await act(async () => {
+      fireEvent.submit(screen.getByRole("button", { name: "Сохранить" }).closest("form")!);
+    });
+
+    await waitFor(() => {
+      expect(
+        screen.getByText("Введите другое название рабочего пространства; это уже занято")
+      ).toBeVisible();
+    });
+    expect(screen.getByText("Обновление рабочего пространства")).toBeVisible();
+    expect(toast.error).not.toHaveBeenCalled();
   });
 
   it("refreshes the route and resets to the saved values after a successful update", async () => {
@@ -277,7 +387,7 @@ describe("WorkspaceSettingsForm", () => {
     });
   });
 
-  it("renders the form in read-only mode when workspace updates are not allowed", () => {
+  it("renders the form in read-only mode when workspace updates are not allowed", async () => {
     render(
       <WorkspaceSettingsForm
         workspace={{
@@ -292,6 +402,8 @@ describe("WorkspaceSettingsForm", () => {
         canUpdateWorkspace={false}
       />
     );
+
+    await settleFormValidation();
 
     expect(screen.getByLabelText("Название рабочего пространства")).toBeDisabled();
     expect(screen.getByLabelText("Slug рабочего пространства")).toBeDisabled();

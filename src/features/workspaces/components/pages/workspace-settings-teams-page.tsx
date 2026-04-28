@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useTransition } from "react";
+import { useMemo, useState, useTransition } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
@@ -37,8 +37,10 @@ import {
   CardTitle,
 } from "@components/ui/card";
 import { LoadingButton } from "@components/ui/custom/button-loading";
+import { FieldMessage } from "@components/ui/custom/field-message";
+import { FormErrorNotice } from "@components/ui/custom/form-error-notice";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@components/ui/empty";
-import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@components/ui/field";
+import { Field, FieldGroup, FieldLabel } from "@components/ui/field";
 import { Input } from "@components/ui/input";
 import {
   Select,
@@ -120,6 +122,7 @@ const TeamCreateForm = ({ organizationId }: TeamCreateFormProps) => {
   const tAny = useAnyTranslations("workspaces");
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+  const [formError, setFormError] = useState<string | null>(null);
   const formSchema = useMemo(() => createWorkspaceTeamFormSchema(tAny), [tAny]);
   const {
     control,
@@ -137,6 +140,7 @@ const TeamCreateForm = ({ organizationId }: TeamCreateFormProps) => {
 
   const submit: SubmitHandler<CreateWorkspaceTeamInput> = (data) => {
     startTransition(async () => {
+      setFormError(null);
       const result = await createWorkspaceTeam(data);
 
       if (result.success) {
@@ -146,10 +150,9 @@ const TeamCreateForm = ({ organizationId }: TeamCreateFormProps) => {
         return;
       }
 
-      toast.error(t("createErrorTitle"), {
-        description:
-          translateWorkspaceErrorMessage(result.error?.message, tAny) ?? t("unknownError"),
-      });
+      setFormError(
+        translateWorkspaceErrorMessage(result.error?.message, tAny) ?? t("unknownError")
+      );
     });
   };
 
@@ -170,6 +173,7 @@ const TeamCreateForm = ({ organizationId }: TeamCreateFormProps) => {
                   placeholder={t("createNamePlaceholder")}
                   disabled={isPending}
                   autoComplete="off"
+                  aria-describedby="workspace-team-create-name-message"
                 />
                 <LoadingButton
                   type="submit"
@@ -179,11 +183,17 @@ const TeamCreateForm = ({ organizationId }: TeamCreateFormProps) => {
                   {tCommon("words.verbs.create")}
                 </LoadingButton>
               </div>
-              <FieldDescription>{t("createNameHint")}</FieldDescription>
-              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+              <FieldMessage
+                id="workspace-team-create-name-message"
+                description={t("createNameHint")}
+                errors={[fieldState.error]}
+              />
             </Field>
           )}
         />
+        {formError ? (
+          <FormErrorNotice title={t("createErrorTitle")}>{formError}</FormErrorNotice>
+        ) : null}
       </FieldGroup>
     </form>
   );
@@ -200,6 +210,7 @@ const TeamRenameForm = ({ team, canUpdateTeams }: TeamRenameFormProps) => {
   const tAny = useAnyTranslations("workspaces");
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+  const [formError, setFormError] = useState<string | null>(null);
   const formSchema = useMemo(
     () => createUpdateWorkspaceTeamFormSchema(team.name, tAny),
     [team.name, tAny]
@@ -220,6 +231,7 @@ const TeamRenameForm = ({ team, canUpdateTeams }: TeamRenameFormProps) => {
 
   const submit: SubmitHandler<UpdateWorkspaceTeamInput> = (data) => {
     startTransition(async () => {
+      setFormError(null);
       const result = await updateWorkspaceTeam(data);
 
       if (result.success) {
@@ -228,10 +240,9 @@ const TeamRenameForm = ({ team, canUpdateTeams }: TeamRenameFormProps) => {
         return;
       }
 
-      toast.error(t("renameErrorTitle"), {
-        description:
-          translateWorkspaceErrorMessage(result.error?.message, tAny) ?? t("unknownError"),
-      });
+      setFormError(
+        translateWorkspaceErrorMessage(result.error?.message, tAny) ?? t("unknownError")
+      );
     });
   };
 
@@ -255,6 +266,7 @@ const TeamRenameForm = ({ team, canUpdateTeams }: TeamRenameFormProps) => {
                   {...field}
                   id={`workspace-team-${team.id}-name`}
                   aria-invalid={fieldState.invalid}
+                  aria-describedby={`workspace-team-${team.id}-name-message`}
                   disabled={isPending}
                   autoComplete="off"
                 />
@@ -267,10 +279,16 @@ const TeamRenameForm = ({ team, canUpdateTeams }: TeamRenameFormProps) => {
                   {tCommon("words.verbs.save")}
                 </LoadingButton>
               </div>
-              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+              <FieldMessage
+                id={`workspace-team-${team.id}-name-message`}
+                errors={[fieldState.error]}
+              />
             </Field>
           )}
         />
+        {formError ? (
+          <FormErrorNotice title={t("renameErrorTitle")}>{formError}</FormErrorNotice>
+        ) : null}
       </FieldGroup>
     </form>
   );
@@ -423,6 +441,7 @@ const TeamMemberAddForm = ({
   const tAny = useAnyTranslations("workspaces");
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+  const [formError, setFormError] = useState<string | null>(null);
   const hasAvailableMembers = availableMembers.length > 0;
   const {
     control,
@@ -441,6 +460,7 @@ const TeamMemberAddForm = ({
 
   const submit: SubmitHandler<AddWorkspaceTeamMemberInput> = (data) => {
     startTransition(async () => {
+      setFormError(null);
       const result = await addWorkspaceTeamMember(data);
 
       if (result.success) {
@@ -450,10 +470,9 @@ const TeamMemberAddForm = ({
         return;
       }
 
-      toast.error(t("addMemberErrorTitle"), {
-        description:
-          translateWorkspaceErrorMessage(result.error?.message, tAny) ?? t("unknownError"),
-      });
+      setFormError(
+        translateWorkspaceErrorMessage(result.error?.message, tAny) ?? t("unknownError")
+      );
     });
   };
 
@@ -481,6 +500,7 @@ const TeamMemberAddForm = ({
                   <SelectTrigger
                     id={`workspace-team-${teamId}-member`}
                     aria-invalid={fieldState.invalid}
+                    aria-describedby={`workspace-team-${teamId}-member-message`}
                     className="w-full"
                   >
                     <SelectValue placeholder={t("addMemberPlaceholder")} />
@@ -505,13 +525,17 @@ const TeamMemberAddForm = ({
                   {tCommon("words.verbs.add")}
                 </LoadingButton>
               </div>
-              <FieldDescription>
-                {hasAvailableMembers ? t("addMemberHint") : t("addMemberEmptyHint")}
-              </FieldDescription>
-              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+              <FieldMessage
+                id={`workspace-team-${teamId}-member-message`}
+                description={hasAvailableMembers ? t("addMemberHint") : t("addMemberEmptyHint")}
+                errors={[fieldState.error]}
+              />
             </Field>
           )}
         />
+        {formError ? (
+          <FormErrorNotice title={t("addMemberErrorTitle")}>{formError}</FormErrorNotice>
+        ) : null}
       </FieldGroup>
     </form>
   );

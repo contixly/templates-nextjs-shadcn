@@ -18,7 +18,7 @@ jest.mock("next-intl", () => ({
       accounts: {
         validation: {
           errors: {
-            confirmationEmailMismatch: "Email должен совпадать с адресом аккаунта",
+            confirmationEmailMismatch: "Введите email аккаунта точно как показано",
           },
         },
         ui: {
@@ -96,7 +96,7 @@ describe("AccountDeleteDialog", () => {
     (deleteAccount as jest.Mock).mockReset();
   });
 
-  it("localizes action error keys before showing them in toast", async () => {
+  it("localizes action error keys before showing them inline", async () => {
     (deleteAccount as jest.Mock).mockResolvedValue({
       success: false,
       error: {
@@ -116,9 +116,9 @@ describe("AccountDeleteDialog", () => {
     });
 
     await waitFor(() => {
-      expect(toast.error).toHaveBeenCalledWith("Удаление аккаунта", {
-        description: "Email должен совпадать с адресом аккаунта",
-      });
+      expect(screen.getByText("Введите email аккаунта точно как показано")).toBeVisible();
     });
+    expect(screen.getByText("Удаление аккаунта")).toBeVisible();
+    expect(toast.error).not.toHaveBeenCalled();
   });
 });

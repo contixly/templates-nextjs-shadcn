@@ -78,13 +78,13 @@
   },
   "validation": {
     "errors": {
-      "profileNameRequired": "Profile name is required",
-      "profileNameMustBeString": "Name must be a string",
-      "profileNameTooShort": "Name must be at least {min} characters",
-      "profileNameTooLong": "Name must be at most {max} characters",
-      "profileNameUnchanged": "New profile name must be different from current name",
-      "confirmationEmailInvalid": "Invalid email format",
-      "confirmationEmailMismatch": "Email must match account email"
+      "profileNameRequired": "Enter a display name",
+      "profileNameMustBeString": "Enter a display name as text",
+      "profileNameTooShort": "Use at least {min} characters for the display name",
+      "profileNameTooLong": "Use {max} characters or fewer for the display name",
+      "profileNameUnchanged": "Enter a display name that is different from the current one",
+      "confirmationEmailInvalid": "Enter a valid email address",
+      "confirmationEmailMismatch": "Enter your account email address exactly"
     }
   },
   "ui": {

@@ -2,12 +2,12 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import React, { useEffect, useMemo, useRef, useTransition } from "react";
+import React, { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Button } from "@components/ui/button";
-import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@components/ui/field";
+import { Field, FieldGroup, FieldLabel } from "@components/ui/field";
 import { Input } from "@components/ui/input";
 import { Textarea } from "@components/ui/textarea";
 import { updateWorkspace } from "@features/workspaces/actions/update-workspace";
@@ -20,6 +20,8 @@ import {
 import type { WorkspaceWithCounts } from "@features/workspaces/workspaces-types";
 import { useAnyTranslations } from "@/src/i18n/use-any-translations";
 import { LoadingButton } from "@components/ui/custom/button-loading";
+import { FieldMessage } from "@components/ui/custom/field-message";
+import { FormErrorNotice } from "@components/ui/custom/form-error-notice";
 
 interface WorkspaceSettingsFormProps {
   workspace: WorkspaceWithCounts;
@@ -57,6 +59,7 @@ export const WorkspaceSettingsForm = ({
   const tAny = useAnyTranslations("workspaces");
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+  const [formError, setFormError] = useState<string | null>(null);
   const didMountRef = useRef(false);
 
   const defaultValues = useMemo(() => getDefaultValues(workspace), [workspace]);
@@ -87,6 +90,7 @@ export const WorkspaceSettingsForm = ({
 
   const submit: SubmitHandler<UpdateWorkspaceInput> = (data) => {
     startTransition(async () => {
+      setFormError(null);
       const result = await updateWorkspace(data);
 
       if (result.success) {
@@ -100,11 +104,9 @@ export const WorkspaceSettingsForm = ({
         return;
       }
 
-      toast.error(tWorkspaces("errorTitle"), {
-        description:
-          translateWorkspaceErrorMessage(result.error?.message, tAny) ??
-          tWorkspaces("unknownError"),
-      });
+      const errorMessage =
+        translateWorkspaceErrorMessage(result.error?.message, tAny) ?? tWorkspaces("unknownError");
+      setFormError(errorMessage);
     });
   };
 
@@ -127,9 +129,13 @@ export const WorkspaceSettingsForm = ({
                   disabled={isPending || !canUpdateWorkspace}
                   autoFocus={autoFocusNameField}
                   autoComplete="off"
+                  aria-describedby="edit-workspace-name-message"
                 />
-                <FieldDescription className="text-xs">{tWorkspaces("nameHint")}</FieldDescription>
-                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                <FieldMessage
+                  id="edit-workspace-name-message"
+                  description={tWorkspaces("nameHint")}
+                  errors={[fieldState.error]}
+                />
               </Field>
             )}
           />
@@ -148,9 +154,13 @@ export const WorkspaceSettingsForm = ({
                   maxLength={50}
                   disabled={isPending || !canUpdateWorkspace}
                   autoComplete="off"
+                  aria-describedby="edit-workspace-slug-message"
                 />
-                <FieldDescription className="text-xs">{tWorkspaces("slugHint")}</FieldDescription>
-                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                <FieldMessage
+                  id="edit-workspace-slug-message"
+                  description={tWorkspaces("slugHint")}
+                  errors={[fieldState.error]}
+                />
               </Field>
             )}
           />
@@ -172,15 +182,21 @@ export const WorkspaceSettingsForm = ({
                   disabled={isPending || !canUpdateWorkspace}
                   autoComplete="off"
                   rows={4}
+                  aria-describedby="edit-workspace-allowed-email-domains-message"
                 />
-                <FieldDescription className="text-xs">
-                  {tWorkspaces("allowedEmailDomainsHint")}
-                </FieldDescription>
-                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                <FieldMessage
+                  id="edit-workspace-allowed-email-domains-message"
+                  description={tWorkspaces("allowedEmailDomainsHint")}
+                  errors={[fieldState.error]}
+                />
               </Field>
             )}
           />
         </FieldGroup>
+
+        {formError ? (
+          <FormErrorNotice title={tWorkspaces("errorTitle")}>{formError}</FormErrorNotice>
+        ) : null}
 
         <Field orientation="horizontal" className="flex justify-end gap-2">
           {showCancelButton && (

@@ -10,7 +10,7 @@ import { IconMailPlus } from "@tabler/icons-react";
 import { Button } from "@components/ui/button";
 import { CopyButton } from "@components/ui/custom/copy-button";
 import { Modal, type ModalProps } from "@components/ui/custom/modal";
-import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@components/ui/field";
+import { Field, FieldGroup, FieldLabel } from "@components/ui/field";
 import { Input } from "@components/ui/input";
 import {
   Select,
@@ -31,6 +31,8 @@ import type { WorkspaceManageableRole } from "@features/workspaces/workspaces-ro
 import { translateWorkspaceErrorMessage } from "@features/workspaces/workspaces-errors";
 import { useAnyTranslations } from "@/src/i18n/use-any-translations";
 import { LoadingButton } from "@components/ui/custom/button-loading";
+import { FieldMessage } from "@components/ui/custom/field-message";
+import { FormErrorNotice } from "@components/ui/custom/form-error-notice";
 
 interface WorkspaceCreateInvitationDialogProps {
   organizationId: string;
@@ -60,6 +62,7 @@ export const WorkspaceCreateInvitationDialog = ({
   const [isPending, startTransition] = useTransition();
   const [open, onOpenChange] = useState(false);
   const [createdInvitation, setCreatedInvitation] = useState<WorkspaceInvitationDto | null>(null);
+  const [formError, setFormError] = useState<string | null>(null);
   const hasAssignableRoles = assignableRoles.length > 0;
   const defaultRole = assignableRoles[0] ?? "member";
   const hasActiveDomainRestrictions = allowedEmailDomains.length > 0;
@@ -87,6 +90,7 @@ export const WorkspaceCreateInvitationDialog = ({
 
   const resetDialogState = () => {
     setCreatedInvitation(null);
+    setFormError(null);
     reset({
       organizationId,
       email: "",
@@ -109,6 +113,7 @@ export const WorkspaceCreateInvitationDialog = ({
     }
 
     startTransition(async () => {
+      setFormError(null);
       const result = await createWorkspaceInvitation(data);
 
       if (result.success && result.data) {
@@ -118,11 +123,9 @@ export const WorkspaceCreateInvitationDialog = ({
         return;
       }
 
-      toast.error(tWorkspaces("errorTitle"), {
-        description:
-          translateWorkspaceErrorMessage(result.error?.message, tAny) ??
-          tWorkspaces("unknownError"),
-      });
+      setFormError(
+        translateWorkspaceErrorMessage(result.error?.message, tAny) ?? tWorkspaces("unknownError")
+      );
     });
   };
 
@@ -206,15 +209,19 @@ export const WorkspaceCreateInvitationDialog = ({
                     autoFocus
                     autoComplete="email"
                     inputMode="email"
+                    aria-describedby="workspace-invitation-email-message"
                   />
-                  <FieldDescription>
-                    {hasActiveDomainRestrictions
-                      ? tWorkspaces("allowedEmailDomainsHint", {
-                          domains: allowedEmailDomains.join(", "),
-                        })
-                      : tWorkspaces("emailHint")}
-                  </FieldDescription>
-                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                  <FieldMessage
+                    id="workspace-invitation-email-message"
+                    description={
+                      hasActiveDomainRestrictions
+                        ? tWorkspaces("allowedEmailDomainsHint", {
+                            domains: allowedEmailDomains.join(", "),
+                          })
+                        : tWorkspaces("emailHint")
+                    }
+                    errors={[fieldState.error]}
+                  />
                 </Field>
               )}
             />
@@ -235,6 +242,7 @@ export const WorkspaceCreateInvitationDialog = ({
                     <SelectTrigger
                       id="workspace-invitation-role"
                       aria-invalid={fieldState.invalid}
+                      aria-describedby="workspace-invitation-role-message"
                       className="w-full"
                     >
                       <SelectValue />
@@ -247,8 +255,11 @@ export const WorkspaceCreateInvitationDialog = ({
                       ))}
                     </SelectContent>
                   </Select>
-                  <FieldDescription>{tWorkspaces("roleHint")}</FieldDescription>
-                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                  <FieldMessage
+                    id="workspace-invitation-role-message"
+                    description={tWorkspaces("roleHint")}
+                    errors={[fieldState.error]}
+                  />
                 </Field>
               )}
             />
@@ -271,6 +282,7 @@ export const WorkspaceCreateInvitationDialog = ({
                     <SelectTrigger
                       id="workspace-invitation-team"
                       aria-invalid={fieldState.invalid}
+                      aria-describedby="workspace-invitation-team-message"
                       className="w-full"
                     >
                       <SelectValue />
@@ -286,13 +298,18 @@ export const WorkspaceCreateInvitationDialog = ({
                       </SelectGroup>
                     </SelectContent>
                   </Select>
-                  <FieldDescription>
-                    {hasTeams ? tWorkspaces("teamHint") : tWorkspaces("teamEmptyHint")}
-                  </FieldDescription>
-                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                  <FieldMessage
+                    id="workspace-invitation-team-message"
+                    description={hasTeams ? tWorkspaces("teamHint") : tWorkspaces("teamEmptyHint")}
+                    errors={[fieldState.error]}
+                  />
                 </Field>
               )}
             />
+
+            {formError ? (
+              <FormErrorNotice title={tWorkspaces("errorTitle")}>{formError}</FormErrorNotice>
+            ) : null}
 
             <Field orientation="horizontal" className="flex justify-end gap-2">
               <Button
