@@ -9,6 +9,8 @@ import {
 } from "@features/workspaces/workspaces-settings";
 import { loadWorkspaceSettingsInvitationsPageContext as loadWorkspaceInvitationsContext } from "@features/workspaces/workspaces-invitations";
 
+const mockWorkspaceSettingsTeamsPage = jest.fn();
+
 jest.mock("@features/workspaces/workspaces-settings", () => ({
   loadWorkspaceSettingsPageContext: jest.fn(),
   loadWorkspaceSettingsTeamsPageContext: jest.fn(),
@@ -74,17 +76,11 @@ jest.mock("@features/workspaces/components/pages/workspace-settings-users-page",
 }));
 
 jest.mock("@features/workspaces/components/pages/workspace-settings-teams-page", () => ({
-  WorkspaceSettingsTeamsPage: ({
-    teams,
-    currentUserId,
-  }: {
-    teams: Array<{ id: string }>;
-    currentUserId: string;
-  }) => (
-    <div data-testid="workspace-settings-teams-page">
-      {currentUserId}:{teams.length}
-    </div>
-  ),
+  WorkspaceSettingsTeamsPage: (props: { teams: Array<{ id: string }> }) => {
+    mockWorkspaceSettingsTeamsPage(props);
+
+    return <div data-testid="workspace-settings-teams-page">teams:{props.teams.length}</div>;
+  },
 }));
 
 jest.mock("@lib/metadata", () => ({
@@ -103,6 +99,7 @@ describe("workspace settings root route", () => {
     (loadWorkspaceSettingsTeamsPageContext as jest.Mock).mockReset();
     (loadWorkspaceSettingsUsersPageContext as jest.Mock).mockReset();
     (loadWorkspaceInvitationsContext as jest.Mock).mockReset();
+    mockWorkspaceSettingsTeamsPage.mockReset();
   });
 
   it("redirects the settings root to the canonical workspace settings section", async () => {
@@ -274,11 +271,9 @@ describe("workspace settings section routes", () => {
       canDeleteWorkspace: false,
       canCreateInvitations: true,
       canonicalOrganizationKey: "client-workspace",
-      currentUserId: "user-123",
       teams: [{ id: "team-1" }],
       teamMembersByTeamId: {},
       assignableMembers: [],
-      activeTeamId: null,
       canCreateTeams: true,
       canUpdateTeams: true,
       canDeleteTeams: true,
@@ -295,6 +290,9 @@ describe("workspace settings section routes", () => {
     render(element);
 
     expect(screen.getByTestId("settings-page-section")).toHaveAttribute("data-mode", "wide");
-    expect(screen.getByTestId("workspace-settings-teams-page")).toHaveTextContent("user-123:1");
+    expect(screen.getByTestId("workspace-settings-teams-page")).toHaveTextContent("teams:1");
+    const teamsPageProps = mockWorkspaceSettingsTeamsPage.mock.calls[0]?.[0];
+    expect(teamsPageProps).not.toHaveProperty("activeTeamId");
+    expect(teamsPageProps).not.toHaveProperty("currentUserId");
   });
 });

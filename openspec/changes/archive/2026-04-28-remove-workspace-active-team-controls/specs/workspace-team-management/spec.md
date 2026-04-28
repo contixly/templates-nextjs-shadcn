@@ -1,8 +1,21 @@
-# workspace-team-management Specification
+## ADDED Requirements
 
-## Purpose
-TBD - created by archiving change add-better-auth-teams. Update Purpose after archive.
-## Requirements
+### Requirement: Workspace Teams Do Not Expose Active Team Controls
+The system MUST NOT expose workspace application controls whose purpose is to set, clear, or switch a user's active team.
+
+#### Scenario: Teams settings renders without active team controls
+- **WHEN** an authenticated user opens the teams settings page for an accessible workspace
+- **THEN** the system renders team management and membership controls according to permissions
+- **AND** does not render active team badges
+- **AND** does not render set-active-team or clear-active-team controls
+
+#### Scenario: Workspace actions do not expose active team mutation
+- **WHEN** an authenticated user interacts with workspace team management surfaces
+- **THEN** the system provides actions for team creation, rename, deletion, member addition, and member removal
+- **AND** does not provide a workspace action to set, clear, or switch active team session state
+
+## MODIFIED Requirements
+
 ### Requirement: Workspace Teams Use Better Auth Teams
 The system MUST back workspace team management with Better Auth Teams within the current workspace organization and
 MUST preserve "workspace" as the user-facing organization term.
@@ -33,25 +46,6 @@ MUST preserve "workspace" as the user-facing organization term.
 - **WHEN** an authorized workspace member creates or renames a team
 - **THEN** the system requires the normalized team name to be unique within that workspace organization
 - **AND** allows the same normalized team name to exist in a different workspace organization
-
-### Requirement: Workspace Teams Settings Page Lists Teams
-The system MUST replace the Teams settings placeholder with a real teams settings page for each accessible workspace.
-
-#### Scenario: Accessible member opens teams settings
-- **WHEN** an authenticated user opens the teams settings page for a workspace they can access
-- **THEN** the system loads teams for the underlying organization
-- **AND** renders each team with its name and member count
-- **AND** renders the page inside the shared workspace settings shell
-
-#### Scenario: Workspace has no teams
-- **WHEN** an authenticated user opens the teams settings page for an accessible workspace with no teams
-- **THEN** the system renders an explicit empty state for teams
-- **AND** does not render the generic placeholder content used before team management existed
-
-#### Scenario: Inaccessible workspace teams page is rejected
-- **WHEN** an authenticated user opens the teams settings page for a workspace they cannot access
-- **THEN** the system rejects access
-- **AND** does not load or render team data for that workspace
 
 ### Requirement: Authorized Members Can Manage Workspace Teams
 The system MUST allow only authorized workspace members to create, rename, and delete teams.
@@ -109,47 +103,9 @@ The system MUST allow only authorized workspace members to create, rename, and d
 - **THEN** the system rejects the mutation
 - **AND** leaves the team records unchanged
 
-### Requirement: Workspace Teams Manage Existing Workspace Members
-The system MUST allow authorized workspace members to add existing workspace members to teams and remove users from
-teams without changing workspace organization membership or organization roles.
+## REMOVED Requirements
 
-#### Scenario: Team member list renders workspace member identities
-- **WHEN** an authenticated user opens a team membership view for a team in an accessible workspace
-- **THEN** the system renders the team's members with their workspace member identity information
-- **AND** does not render users who belong to another workspace organization as team members
+### Requirement: Workspace Teams Support Active Team Session Context
+**Reason**: Active team session selection is Better Auth default behavior, but it is not a workspace product feature for this template. Keeping application controls for it creates unnecessary session state and delete-flow edge cases.
 
-#### Scenario: Adding an existing workspace member to a team succeeds
-- **WHEN** an authorized workspace member submits a user who already belongs to the current workspace organization
-- **AND** the selected team belongs to that same workspace organization
-- **THEN** the system adds the user to the selected team
-- **AND** refreshes the team member list so the user appears
-- **AND** leaves the user's organization role unchanged
-
-#### Scenario: Removing a team member succeeds
-- **WHEN** an authorized workspace member removes a user from a team in the current workspace
-- **THEN** the system removes only that team membership
-- **AND** leaves the user's workspace organization membership and role unchanged
-
-#### Scenario: Cross-workspace team membership is rejected
-- **WHEN** an authorized workspace member attempts to add a user who is not a member of the team parent organization
-- **OR** attempts to add a workspace member to a team from another organization
-- **THEN** the system rejects the request
-- **AND** does not create a team membership
-
-#### Scenario: Duplicate team membership is rejected
-- **WHEN** an authorized workspace member attempts to add a user who is already a member of the selected team
-- **THEN** the system rejects the duplicate request or returns the existing membership without creating another row
-
-### Requirement: Workspace Teams Do Not Expose Active Team Controls
-The system MUST NOT expose workspace application controls whose purpose is to set, clear, or switch a user's active team.
-
-#### Scenario: Teams settings renders without active team controls
-- **WHEN** an authenticated user opens the teams settings page for an accessible workspace
-- **THEN** the system renders team management and membership controls according to permissions
-- **AND** does not render active team badges
-- **AND** does not render set-active-team or clear-active-team controls
-
-#### Scenario: Workspace actions do not expose active team mutation
-- **WHEN** an authenticated user interacts with workspace team management surfaces
-- **THEN** the system provides actions for team creation, rename, deletion, member addition, and member removal
-- **AND** does not provide a workspace action to set, clear, or switch active team session state
+**Migration**: Remove workspace UI, server actions, schemas, messages, and tests dedicated to setting or clearing active teams. Keep Better Auth Teams enabled and keep nullable `session.activeTeamId` in the database schema for compatibility.

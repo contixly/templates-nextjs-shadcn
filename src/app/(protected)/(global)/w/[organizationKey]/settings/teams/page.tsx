@@ -25,8 +25,6 @@ export default async function WorkspaceSettingsTeamsPage({
     teams,
     teamMembersByTeamId,
     assignableMembers,
-    currentUserId,
-    activeTeamId,
     canCreateTeams,
     canUpdateTeams,
     canDeleteTeams,
@@ -49,8 +47,6 @@ export default async function WorkspaceSettingsTeamsPage({
         teams={teams}
         teamMembersByTeamId={teamMembersByTeamId}
         assignableMembers={assignableMembers}
-        currentUserId={currentUserId}
-        activeTeamId={activeTeamId}
         canCreateTeams={canCreateTeams}
         canUpdateTeams={canUpdateTeams}
         canDeleteTeams={canDeleteTeams}

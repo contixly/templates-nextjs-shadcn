@@ -104,14 +104,8 @@ export const removeWorkspaceTeamMemberSchema = z.object({
   userId: id,
 });
 
-export const setActiveWorkspaceTeamSchema = z.object({
-  organizationId: organizationIdSchema,
-  teamId: id.nullable().optional(),
-});
-
 export type CreateWorkspaceTeamInput = z.input<typeof createWorkspaceTeamSchema>;
 export type UpdateWorkspaceTeamInput = z.input<typeof updateWorkspaceTeamSchema>;
 export type DeleteWorkspaceTeamInput = z.input<typeof deleteWorkspaceTeamSchema>;
 export type AddWorkspaceTeamMemberInput = z.input<typeof addWorkspaceTeamMemberSchema>;
 export type RemoveWorkspaceTeamMemberInput = z.input<typeof removeWorkspaceTeamMemberSchema>;
-export type SetActiveWorkspaceTeamInput = z.input<typeof setActiveWorkspaceTeamSchema>;

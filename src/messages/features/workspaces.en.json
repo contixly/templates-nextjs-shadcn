@@ -50,10 +50,10 @@
     },
     "settings_teams": {
       "title": "Teams",
-      "description": "Create teams, manage team members, and set your active team.",
+      "description": "Create teams and manage team members.",
       "openGraph": {
         "title": "Teams",
-        "description": "Create teams, manage team members, and set your active team."
+        "description": "Create teams and manage team members."
       }
     },
     "settings_roles": {
@@ -111,9 +111,7 @@
       "teamMemberPermissionDenied": "You do not have permission to manage team members in this workspace",
       "teamMemberNotFound": "Team member not found",
       "teamMemberAlreadyExists": "That user already belongs to this team",
-      "teamMemberCrossWorkspace": "Team members must belong to the same workspace",
-      "activeTeamInvalid": "Choose a team from the current workspace",
-      "activeTeamPermissionDenied": "You must belong to a team before setting it active"
+      "teamMemberCrossWorkspace": "Team members must belong to the same workspace"
     }
   },
   "ui": {
@@ -220,11 +218,6 @@
       "deleteErrorTitle": "Delete Team",
       "deleteDialogTitle": "Delete {name}?",
       "deleteDialogDescription": "This removes the explicit team and its team memberships. Workspace membership and roles are unchanged.",
-      "setActiveAction": "Set active",
-      "setActiveSuccess": "Active team updated",
-      "clearActiveSuccess": "Active team cleared",
-      "activeBadge": "Active",
-      "activeTeamErrorTitle": "Set Active Team",
       "emptyTitle": "No teams yet",
       "emptyDescription": "Create a team when this workspace needs a focused subgroup. Zero teams is a valid workspace state.",
       "teamDescription": "Explicit Better Auth team inside this workspace.",

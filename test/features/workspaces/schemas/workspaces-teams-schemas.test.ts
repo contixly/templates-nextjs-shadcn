@@ -1,8 +1,8 @@
+import * as workspaceTeamSchemas from "@features/workspaces/workspaces-teams-schemas";
 import {
   addWorkspaceTeamMemberSchema,
   createUpdateWorkspaceTeamFormSchema,
   createWorkspaceTeamFormSchema,
-  setActiveWorkspaceTeamSchema,
 } from "@features/workspaces/workspaces-teams-schemas";
 
 const tAny = (key: string, options?: object) =>
@@ -48,18 +48,7 @@ describe("workspace team schemas", () => {
     );
   });
 
-  it("allows setting or clearing the active team", () => {
-    expect(
-      setActiveWorkspaceTeamSchema.safeParse({
-        organizationId: "RkFBy8l5f36JR4Mwl1dExZxvzCjD8X7H",
-        teamId: "d6qzollaqro6y66v7j52bhqo",
-      }).success
-    ).toBe(true);
-    expect(
-      setActiveWorkspaceTeamSchema.safeParse({
-        organizationId: "RkFBy8l5f36JR4Mwl1dExZxvzCjD8X7H",
-        teamId: null,
-      }).success
-    ).toBe(true);
+  it("does not expose a set-active-team workspace schema", () => {
+    expect(workspaceTeamSchemas).not.toHaveProperty("setActiveWorkspaceTeamSchema");
   });
 });

@@ -44,8 +44,6 @@ export const WORKSPACE_ERROR_KEYS = {
   teamMemberNotFound: "validation.errors.teamMemberNotFound",
   teamMemberAlreadyExists: "validation.errors.teamMemberAlreadyExists",
   teamMemberCrossWorkspace: "validation.errors.teamMemberCrossWorkspace",
-  activeTeamInvalid: "validation.errors.activeTeamInvalid",
-  activeTeamPermissionDenied: "validation.errors.activeTeamPermissionDenied",
 } as const;
 
 const WORKSPACE_ERROR_KEY_SET = new Set<string>(Object.values(WORKSPACE_ERROR_KEYS));

@@ -5,13 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import {
-  IconCheck,
-  IconTrash,
-  IconUserMinus,
-  IconUserPlus,
-  IconUsersGroup,
-} from "@tabler/icons-react";
+import { IconTrash, IconUserMinus, IconUserPlus, IconUsersGroup } from "@tabler/icons-react";
 import { toast } from "sonner";
 import { Alert, AlertDescription, AlertTitle } from "@components/ui/alert";
 import {
@@ -68,7 +62,6 @@ import { addWorkspaceTeamMember } from "@features/workspaces/actions/add-workspa
 import { createWorkspaceTeam } from "@features/workspaces/actions/create-workspace-team";
 import { deleteWorkspaceTeam } from "@features/workspaces/actions/delete-workspace-team";
 import { removeWorkspaceTeamMember } from "@features/workspaces/actions/remove-workspace-team-member";
-import { setActiveWorkspaceTeam } from "@features/workspaces/actions/set-active-workspace-team";
 import { updateWorkspaceTeam } from "@features/workspaces/actions/update-workspace-team";
 import { translateWorkspaceErrorMessage } from "@features/workspaces/workspaces-errors";
 import {
@@ -91,8 +84,6 @@ interface WorkspaceSettingsTeamsPageProps {
   teams: WorkspaceTeamListItemDto[];
   teamMembersByTeamId: Record<string, WorkspaceTeamMemberDto[]>;
   assignableMembers: WorkspaceTeamAssignableMemberDto[];
-  currentUserId: string;
-  activeTeamId: string | null;
   canCreateTeams: boolean;
   canUpdateTeams: boolean;
   canDeleteTeams: boolean;
@@ -291,78 +282,6 @@ const TeamRenameForm = ({ team, canUpdateTeams }: TeamRenameFormProps) => {
         ) : null}
       </FieldGroup>
     </form>
-  );
-};
-
-interface TeamActiveControlProps {
-  organizationId: string;
-  teamId: string;
-  isActive: boolean;
-  canSetActive: boolean;
-}
-
-const TeamActiveControl = ({
-  organizationId,
-  teamId,
-  isActive,
-  canSetActive,
-}: TeamActiveControlProps) => {
-  const t = useTranslations("workspaces.ui.settingsTeamsPage");
-  const tAny = useAnyTranslations("workspaces");
-  const router = useRouter();
-  const [isPending, startTransition] = useTransition();
-
-  const updateActiveTeam = () => {
-    startTransition(async () => {
-      const result = await setActiveWorkspaceTeam({
-        organizationId,
-        teamId: isActive ? null : teamId,
-      });
-
-      if (result.success) {
-        toast.success(isActive ? t("clearActiveSuccess") : t("setActiveSuccess"));
-        router.refresh();
-        return;
-      }
-
-      toast.error(t("activeTeamErrorTitle"), {
-        description:
-          translateWorkspaceErrorMessage(result.error?.message, tAny) ?? t("unknownError"),
-      });
-    });
-  };
-
-  if (isActive) {
-    return (
-      <LoadingButton
-        type="button"
-        size="sm"
-        variant="secondary"
-        loading={isPending}
-        disabled={isPending}
-        onClick={updateActiveTeam}
-      >
-        <IconCheck data-icon="inline-start" />
-        {t("activeBadge")}
-      </LoadingButton>
-    );
-  }
-
-  if (!canSetActive) {
-    return null;
-  }
-
-  return (
-    <LoadingButton
-      type="button"
-      size="sm"
-      variant="outline"
-      loading={isPending}
-      disabled={isPending}
-      onClick={updateActiveTeam}
-    >
-      {t("setActiveAction")}
-    </LoadingButton>
   );
 };
 
@@ -599,8 +518,6 @@ export const WorkspaceSettingsTeamsPage = ({
   teams,
   teamMembersByTeamId,
   assignableMembers,
-  currentUserId,
-  activeTeamId,
   canCreateTeams,
   canUpdateTeams,
   canDeleteTeams,
@@ -643,8 +560,6 @@ export const WorkspaceSettingsTeamsPage = ({
               {teams.map((team) => {
                 const teamMembers = teamMembersByTeamId[team.id] ?? [];
                 const availableMembers = getAvailableMembers(assignableMembers, teamMembers);
-                const isActive = activeTeamId === team.id;
-                const canSetActive = teamMembers.some((member) => member.userId === currentUserId);
 
                 return (
                   <Card key={team.id}>
@@ -657,12 +572,6 @@ export const WorkspaceSettingsTeamsPage = ({
                       </CardTitle>
                       <CardDescription>{t("teamDescription")}</CardDescription>
                       <CardAction className="flex flex-wrap justify-end gap-2">
-                        <TeamActiveControl
-                          organizationId={organizationId}
-                          teamId={team.id}
-                          isActive={isActive}
-                          canSetActive={canSetActive}
-                        />
                         {canDeleteTeams ? <TeamDeleteControl team={team} /> : null}
                       </CardAction>
                     </CardHeader>

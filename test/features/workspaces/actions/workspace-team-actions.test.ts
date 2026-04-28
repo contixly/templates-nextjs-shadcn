@@ -7,9 +7,6 @@ const mockHasWorkspacePermission = jest.fn();
 const mockCreateTeam = jest.fn();
 const mockUpdateTeam = jest.fn();
 const mockRemoveTeam = jest.fn();
-const mockSetActiveTeam = jest.fn();
-const mockGetSession = jest.fn();
-const mockSetActiveOrganization = jest.fn();
 const mockAddTeamMember = jest.fn();
 const mockRemoveTeamMember = jest.fn();
 const mockFindWorkspaceTeamByIdAndOrganizationIdAndUserId = jest.fn();
@@ -85,9 +82,6 @@ jest.mock("@server/auth", () => ({
       createTeam: (...args: unknown[]) => mockCreateTeam(...args),
       updateTeam: (...args: unknown[]) => mockUpdateTeam(...args),
       removeTeam: (...args: unknown[]) => mockRemoveTeam(...args),
-      setActiveTeam: (...args: unknown[]) => mockSetActiveTeam(...args),
-      getSession: (...args: unknown[]) => mockGetSession(...args),
-      setActiveOrganization: (...args: unknown[]) => mockSetActiveOrganization(...args),
       addTeamMember: (...args: unknown[]) => mockAddTeamMember(...args),
       removeTeamMember: (...args: unknown[]) => mockRemoveTeamMember(...args),
     },
@@ -115,7 +109,6 @@ jest.mock("next/navigation", () => ({
 import { addWorkspaceTeamMember } from "@features/workspaces/actions/add-workspace-team-member";
 import { createWorkspaceTeam } from "@features/workspaces/actions/create-workspace-team";
 import { deleteWorkspaceTeam } from "@features/workspaces/actions/delete-workspace-team";
-import { setActiveWorkspaceTeam } from "@features/workspaces/actions/set-active-workspace-team";
 import { updateWorkspaceTeam } from "@features/workspaces/actions/update-workspace-team";
 
 describe("workspace team actions", () => {
@@ -127,9 +120,6 @@ describe("workspace team actions", () => {
     mockCreateTeam.mockReset();
     mockUpdateTeam.mockReset();
     mockRemoveTeam.mockReset();
-    mockSetActiveTeam.mockReset();
-    mockGetSession.mockReset();
-    mockSetActiveOrganization.mockReset();
     mockAddTeamMember.mockReset();
     mockRemoveTeamMember.mockReset();
     mockFindWorkspaceTeamByIdAndOrganizationIdAndUserId.mockReset();
@@ -266,79 +256,6 @@ describe("workspace team actions", () => {
     });
   });
 
-  it("syncs the active organization before setting a workspace team active", async () => {
-    mockFindWorkspaceTeamOwnership.mockResolvedValue({
-      id: TEAM_ID,
-      organizationId: ORGANIZATION_ID,
-      name: "Design",
-    });
-    mockFindWorkspaceTeamMembership.mockResolvedValue({ id: "membership-1" });
-    mockSetActiveOrganization.mockResolvedValue({ id: ORGANIZATION_ID });
-    mockSetActiveTeam.mockResolvedValue({ id: TEAM_ID });
-
-    await expect(
-      setActiveWorkspaceTeam({
-        organizationId: ORGANIZATION_ID,
-        teamId: TEAM_ID,
-      })
-    ).resolves.toEqual({
-      success: true,
-      data: {
-        organizationId: ORGANIZATION_ID,
-        teamId: TEAM_ID,
-      },
-    });
-
-    expect(mockSetActiveOrganization).toHaveBeenCalledWith({
-      body: {
-        organizationId: ORGANIZATION_ID,
-      },
-      headers: expect.any(Headers),
-    });
-    expect(mockSetActiveTeam).toHaveBeenCalledWith({
-      body: {
-        teamId: TEAM_ID,
-      },
-      headers: expect.any(Headers),
-      query: {
-        disableCookieCache: true,
-      },
-    });
-    expect(mockSetActiveOrganization.mock.invocationCallOrder[0]).toBeLessThan(
-      mockSetActiveTeam.mock.invocationCallOrder[0]
-    );
-  });
-
-  it("clears the active team from a fresh Better Auth session without switching organizations", async () => {
-    mockSetActiveTeam.mockResolvedValue(null);
-
-    await expect(
-      setActiveWorkspaceTeam({
-        organizationId: ORGANIZATION_ID,
-        teamId: null,
-      })
-    ).resolves.toEqual({
-      success: true,
-      data: {
-        organizationId: ORGANIZATION_ID,
-        teamId: null,
-      },
-    });
-
-    expect(mockFindWorkspaceTeamOwnership).not.toHaveBeenCalled();
-    expect(mockFindWorkspaceTeamMembership).not.toHaveBeenCalled();
-    expect(mockSetActiveOrganization).not.toHaveBeenCalled();
-    expect(mockSetActiveTeam).toHaveBeenCalledWith({
-      body: {
-        teamId: null,
-      },
-      headers: expect.any(Headers),
-      query: {
-        disableCookieCache: true,
-      },
-    });
-  });
-
   it("rejects cross-workspace team-member assignment", async () => {
     mockFindWorkspaceTeamOwnership.mockResolvedValue({
       id: TEAM_ID,
@@ -389,18 +306,12 @@ describe("workspace team actions", () => {
     expect(mockAddTeamMember).not.toHaveBeenCalled();
   });
 
-  it("deletes the only explicit team without requiring another team", async () => {
+  it("deletes an explicit team without reading or clearing active team session state", async () => {
     mockFindWorkspaceTeamOwnership.mockResolvedValue({
       id: TEAM_ID,
       organizationId: ORGANIZATION_ID,
       name: "Design",
     });
-    mockGetSession.mockResolvedValue({
-      session: {
-        activeTeamId: TEAM_ID,
-      },
-    });
-    mockSetActiveTeam.mockResolvedValue(null);
     mockRemoveTeam.mockResolvedValue({ message: "Team removed successfully." });
 
     await expect(
@@ -416,42 +327,20 @@ describe("workspace team actions", () => {
       },
     });
 
-    expect(mockGetSession).toHaveBeenCalledWith({
-      headers: expect.any(Headers),
-      query: {
-        disableCookieCache: true,
-      },
-    });
     expect(mockRemoveTeam).toHaveBeenCalledWith({
       body: {
         organizationId: ORGANIZATION_ID,
         teamId: TEAM_ID,
       },
-    });
-    expect(mockSetActiveTeam).toHaveBeenCalledWith({
-      body: {
-        teamId: null,
-      },
       headers: expect.any(Headers),
-      query: {
-        disableCookieCache: true,
-      },
     });
-    expect(mockRemoveTeam.mock.invocationCallOrder[0]).toBeLessThan(
-      mockSetActiveTeam.mock.invocationCallOrder[0]
-    );
   });
 
-  it("does not clear the active team when deleting the team fails", async () => {
+  it("returns a team-not-found error when Better Auth cannot delete the team", async () => {
     mockFindWorkspaceTeamOwnership.mockResolvedValue({
       id: TEAM_ID,
       organizationId: ORGANIZATION_ID,
       name: "Design",
-    });
-    mockGetSession.mockResolvedValue({
-      session: {
-        activeTeamId: TEAM_ID,
-      },
     });
     mockRemoveTeam.mockRejectedValue(new Error("Team not found"));
 
@@ -468,48 +357,6 @@ describe("workspace team actions", () => {
       },
     });
 
-    expect(mockRemoveTeam).toHaveBeenCalledWith({
-      body: {
-        organizationId: ORGANIZATION_ID,
-        teamId: TEAM_ID,
-      },
-    });
-    expect(mockSetActiveTeam).not.toHaveBeenCalled();
-  });
-
-  it("keeps the current active team when deleting a different team", async () => {
-    mockFindWorkspaceTeamOwnership.mockResolvedValue({
-      id: TEAM_ID,
-      organizationId: ORGANIZATION_ID,
-      name: "Design",
-    });
-    mockGetSession.mockResolvedValue({
-      session: {
-        activeTeamId: "other-team-id",
-      },
-    });
-    mockRemoveTeam.mockResolvedValue({ message: "Team removed successfully." });
-
-    await expect(
-      deleteWorkspaceTeam({
-        organizationId: ORGANIZATION_ID,
-        teamId: TEAM_ID,
-      })
-    ).resolves.toEqual({
-      success: true,
-      data: {
-        organizationId: ORGANIZATION_ID,
-        teamId: TEAM_ID,
-      },
-    });
-
-    expect(mockSetActiveTeam).not.toHaveBeenCalled();
-    expect(mockGetSession).toHaveBeenCalledWith({
-      headers: expect.any(Headers),
-      query: {
-        disableCookieCache: true,
-      },
-    });
     expect(mockRemoveTeam).toHaveBeenCalledWith({
       body: {
         organizationId: ORGANIZATION_ID,

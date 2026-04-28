@@ -56,39 +56,13 @@ export const deleteWorkspaceTeam = createProtectedActionWithInput<
     }
 
     try {
-      const currentSession = await auth.api.getSession({
-        headers,
-        query: {
-          disableCookieCache: true,
-        },
-      });
-      const activeTeamId =
-        (currentSession?.session as { activeTeamId?: string | null } | undefined)?.activeTeamId ??
-        null;
-      const isDeletingActiveTeam = activeTeamId === teamId;
-
-      // Better Auth rejects deleting the current session's active team. This action
-      // already enforced ownership and team:delete above, so omit session headers
-      // for that delete and refresh the session only after the delete succeeds.
       await auth.api.removeTeam({
         body: {
           organizationId,
           teamId,
         },
-        ...(isDeletingActiveTeam ? {} : { headers }),
+        headers,
       });
-
-      if (isDeletingActiveTeam) {
-        await auth.api.setActiveTeam({
-          body: {
-            teamId: null,
-          },
-          headers,
-          query: {
-            disableCookieCache: true,
-          },
-        });
-      }
     } catch (error) {
       const resolvedError = resolveWorkspaceTeamMutationError(error);
 

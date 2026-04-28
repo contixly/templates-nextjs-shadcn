@@ -37,8 +37,6 @@ jest.mock("next-intl", () => ({
       "workspaces.ui.settingsTeamsPage.addMemberEmptyHint": "Everyone is already in this team.",
       "workspaces.ui.settingsTeamsPage.membersEmptyTitle": "No team members",
       "workspaces.ui.settingsTeamsPage.membersEmptyDescription": "Add existing members.",
-      "workspaces.ui.settingsTeamsPage.activeBadge": "Active",
-      "workspaces.ui.settingsTeamsPage.setActiveAction": "Set active",
       "workspaces.ui.settingsTeamsPage.removeMemberAction": "Remove",
       "workspaces.ui.settingsTeamsPage.removeMemberAriaLabel": `Remove ${values?.name ?? ""}`,
       "workspaces.ui.settingsTeamsPage.deleteDialogTitle": `Delete ${values?.name ?? ""}?`,
@@ -70,9 +68,6 @@ jest.mock("@features/workspaces/actions/delete-workspace-team", () => ({
 }));
 jest.mock("@features/workspaces/actions/remove-workspace-team-member", () => ({
   removeWorkspaceTeamMember: jest.fn(),
-}));
-jest.mock("@features/workspaces/actions/set-active-workspace-team", () => ({
-  setActiveWorkspaceTeam: jest.fn(),
 }));
 jest.mock("@features/workspaces/actions/update-workspace-team", () => ({
   updateWorkspaceTeam: jest.fn(),
@@ -119,8 +114,6 @@ describe("WorkspaceSettingsTeamsPage", () => {
         teams={[]}
         teamMembersByTeamId={{}}
         assignableMembers={[]}
-        currentUserId="user-1"
-        activeTeamId={null}
         canCreateTeams
         canUpdateTeams={false}
         canDeleteTeams={false}
@@ -142,8 +135,6 @@ describe("WorkspaceSettingsTeamsPage", () => {
         teams={[team]}
         teamMembersByTeamId={{ "team-1": [teamMember] }}
         assignableMembers={[assignableMember]}
-        currentUserId="user-1"
-        activeTeamId={null}
         canCreateTeams={false}
         canUpdateTeams={false}
         canDeleteTeams={false}
@@ -157,17 +148,17 @@ describe("WorkspaceSettingsTeamsPage", () => {
     expect(screen.getByText("1 member(s)")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Delete" })).not.toBeInTheDocument();
     expect(screen.queryByText("Add team member")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Active" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Set active" })).not.toBeInTheDocument();
   });
 
-  it("renders permission-gated team and membership controls", () => {
+  it("renders permission-gated team and membership controls without active team controls", () => {
     render(
       <WorkspaceSettingsTeamsPage
         organizationId="org-1"
         teams={[team]}
         teamMembersByTeamId={{ "team-1": [teamMember] }}
         assignableMembers={[teamMember, assignableMember]}
-        currentUserId="user-1"
-        activeTeamId="team-1"
         canCreateTeams
         canUpdateTeams
         canDeleteTeams
@@ -180,7 +171,8 @@ describe("WorkspaceSettingsTeamsPage", () => {
     expect(screen.getByRole("button", { name: "Save" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Delete" })).toBeInTheDocument();
     expect(screen.getByText("Add team member")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Active" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Active" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Set active" })).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Remove Alice Admin" })).toBeInTheDocument();
   });
 });
