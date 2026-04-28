@@ -56,12 +56,25 @@ export const deleteWorkspaceTeam = createProtectedActionWithInput<
     }
 
     try {
-      await auth.api.setActiveTeam({
-        body: {
-          teamId: null,
-        },
+      const currentSession = await auth.api.getSession({
         headers,
+        query: {
+          disableCookieCache: true,
+        },
       });
+      const activeTeamId =
+        (currentSession?.session as { activeTeamId?: string | null } | undefined)?.activeTeamId ??
+        null;
+      const isDeletingActiveTeam = activeTeamId === teamId;
+
+      if (isDeletingActiveTeam) {
+        await auth.api.setActiveTeam({
+          body: {
+            teamId: null,
+          },
+          headers,
+        });
+      }
 
       await auth.api.removeTeam({
         body: {
@@ -69,6 +82,13 @@ export const deleteWorkspaceTeam = createProtectedActionWithInput<
           teamId,
         },
         headers,
+        ...(isDeletingActiveTeam
+          ? {
+              query: {
+                disableCookieCache: true,
+              },
+            }
+          : {}),
       });
     } catch (error) {
       const resolvedError = resolveWorkspaceTeamMutationError(error);

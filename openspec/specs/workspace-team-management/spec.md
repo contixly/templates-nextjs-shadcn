@@ -91,6 +91,8 @@ The system MUST allow only authorized workspace members to create, rename, and d
 #### Scenario: Deleting a team succeeds
 - **WHEN** a workspace member with `team:delete` permission deletes an existing team in the current workspace
 - **THEN** the system removes that team and its team memberships
+- **AND** clears `session.activeTeamId` only when the deleted team was the current session's active team
+- **AND** leaves `session.activeTeamId` unchanged when the deleted team is not the current session's active team
 - **AND** refreshes the teams settings page so the removed team no longer appears
 
 #### Scenario: Deleting the last explicit team succeeds
@@ -160,4 +162,3 @@ organization without changing organization-scoped route context.
 - **WHEN** an authenticated user changes active team while viewing `/w/:organizationKey/...`
 - **THEN** the system does not rewrite `organizationKey`
 - **AND** continues rendering the page from the URL workspace context
-
