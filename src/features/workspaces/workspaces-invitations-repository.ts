@@ -24,6 +24,7 @@ const logger = workspacesLogger.child({ type: "repository", module: "workspace-i
 const invitationSelect = {
   id: true,
   organizationId: true,
+  teamId: true,
   email: true,
   role: true,
   status: true,
@@ -35,6 +36,12 @@ const invitationSelect = {
       id: true,
       name: true,
       slug: true,
+    },
+  },
+  team: {
+    select: {
+      id: true,
+      name: true,
     },
   },
   inviter: {
@@ -55,6 +62,8 @@ const toWorkspaceInvitationDto = (invitation: InvitationRecord): WorkspaceInvita
   organizationId: invitation.organizationId,
   organizationName: invitation.organization.name,
   organizationSlug: invitation.organization.slug,
+  teamId: invitation.teamId,
+  teamName: invitation.team?.name ?? null,
   email: invitation.email,
   role: invitation.role,
   roleLabels: splitWorkspaceInvitationRoleLabels(invitation.role),

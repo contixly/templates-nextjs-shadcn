@@ -22,6 +22,8 @@ export interface WorkspaceInvitationDto {
   organizationId: string;
   organizationName: string;
   organizationSlug?: string | null;
+  teamId?: string | null;
+  teamName?: string | null;
   email: string;
   role: string;
   roleLabels: string[];

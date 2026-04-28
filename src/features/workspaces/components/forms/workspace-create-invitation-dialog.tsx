@@ -15,6 +15,7 @@ import { Input } from "@components/ui/input";
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
   SelectTrigger,
   SelectValue,
@@ -25,6 +26,7 @@ import {
   type CreateWorkspaceInvitationInput,
 } from "@features/workspaces/workspaces-invitations-schemas";
 import type { WorkspaceInvitationDto } from "@features/workspaces/workspaces-invitations-types";
+import type { WorkspaceTeamListItemDto } from "@features/workspaces/workspaces-teams-types";
 import type { WorkspaceManageableRole } from "@features/workspaces/workspaces-roles";
 import { translateWorkspaceErrorMessage } from "@features/workspaces/workspaces-errors";
 import { useAnyTranslations } from "@/src/i18n/use-any-translations";
@@ -32,14 +34,19 @@ import { ButtonLoading } from "@components/ui/custom/button-loading";
 
 interface WorkspaceCreateInvitationDialogProps {
   organizationId: string;
+  teams?: WorkspaceTeamListItemDto[];
   assignableRoles: WorkspaceManageableRole[];
   allowedEmailDomains?: string[];
 }
 
+const NO_TEAM_VALUE = "none";
+
 const EMPTY_ALLOWED_EMAIL_DOMAINS: string[] = [];
+const EMPTY_TEAMS: WorkspaceTeamListItemDto[] = [];
 
 export const WorkspaceCreateInvitationDialog = ({
   organizationId,
+  teams = EMPTY_TEAMS,
   assignableRoles,
   allowedEmailDomains = EMPTY_ALLOWED_EMAIL_DOMAINS,
   trigger,
@@ -56,6 +63,7 @@ export const WorkspaceCreateInvitationDialog = ({
   const hasAssignableRoles = assignableRoles.length > 0;
   const defaultRole = assignableRoles[0] ?? "member";
   const hasActiveDomainRestrictions = allowedEmailDomains.length > 0;
+  const hasTeams = teams.length > 0;
   const formSchema = useMemo(
     () => createWorkspaceInvitationFormSchema(tAny, allowedEmailDomains),
     [allowedEmailDomains, tAny]
@@ -73,6 +81,7 @@ export const WorkspaceCreateInvitationDialog = ({
       organizationId,
       email: "",
       role: defaultRole,
+      teamId: null,
     },
   });
 
@@ -82,6 +91,7 @@ export const WorkspaceCreateInvitationDialog = ({
       organizationId,
       email: "",
       role: defaultRole,
+      teamId: null,
     });
   };
 
@@ -238,6 +248,47 @@ export const WorkspaceCreateInvitationDialog = ({
                     </SelectContent>
                   </Select>
                   <FieldDescription>{tWorkspaces("roleHint")}</FieldDescription>
+                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                </Field>
+              )}
+            />
+
+            <Controller
+              name="teamId"
+              control={control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor="workspace-invitation-team">
+                    {tWorkspaces("teamLabel")}
+                  </FieldLabel>
+                  <Select
+                    value={field.value ?? NO_TEAM_VALUE}
+                    onValueChange={(value) => {
+                      field.onChange(value === NO_TEAM_VALUE ? null : value);
+                    }}
+                    disabled={isPending || !hasTeams}
+                  >
+                    <SelectTrigger
+                      id="workspace-invitation-team"
+                      aria-invalid={fieldState.invalid}
+                      className="w-full"
+                    >
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        <SelectItem value={NO_TEAM_VALUE}>{tWorkspaces("teamNone")}</SelectItem>
+                        {teams.map((team) => (
+                          <SelectItem key={team.id} value={team.id}>
+                            {team.name}
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                  <FieldDescription>
+                    {hasTeams ? tWorkspaces("teamHint") : tWorkspaces("teamEmptyHint")}
+                  </FieldDescription>
                   {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                 </Field>
               )}

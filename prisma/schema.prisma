@@ -27,6 +27,7 @@ model User {
   accounts        Account[]
   members         Member[]
   invitationsSent Invitation[] @relation("InvitationInviter")
+  teamMemberships TeamMember[]
 
   @@unique([email])
   @@map("users")
@@ -41,11 +42,14 @@ model Session {
   ipAddress            String?
   userAgent            String?
   activeOrganizationId String?
+  activeTeamId         String?
   userId               String
   user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  activeTeam           Team?    @relation(fields: [activeTeamId], references: [id], onDelete: SetNull)
 
   @@unique([token])
   @@index([userId])
+  @@index([activeTeamId])
   @@map("sessions")
 }
 
@@ -93,43 +97,81 @@ model Organization {
   // Relations
   members     Member[]
   invitations Invitation[]
+  teams       Team[]
 
   @@index([slug])
   @@map("organizations")
 }
 
 model Member {
-  id             String       @id @default(cuid(2))
+  id             String   @id @default(cuid(2))
   organizationId String
   userId         String
-  role           String       @default("member")
-  createdAt      DateTime     @default(now())
+  role           String   @default("member")
+  createdAt      DateTime @default(now())
 
   // Relations
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@unique([organizationId, userId])
   @@index([organizationId])
   @@index([userId])
-  @@unique([organizationId, userId])
   @@map("members")
 }
 
-model Invitation {
-  id             String       @id @default(cuid(2))
+model Team {
+  id             String   @id @default(cuid(2))
+  name           String
   organizationId String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Relations
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  members        TeamMember[]
+  invitations    Invitation[]
+  activeSessions Session[]
+
+  @@index([organizationId])
+  @@index([organizationId, name])
+  @@map("teams")
+}
+
+model TeamMember {
+  id        String   @id @default(cuid(2))
+  teamId    String
+  userId    String
+  createdAt DateTime @default(now())
+
+  // Relations
+  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([teamId, userId])
+  @@index([teamId])
+  @@index([userId])
+  @@map("team_members")
+}
+
+model Invitation {
+  id             String   @id @default(cuid(2))
+  organizationId String
+  teamId         String?
   email          String
   role           String
-  status         String       @default("pending")
+  status         String   @default("pending")
   expiresAt      DateTime
-  createdAt      DateTime     @default(now())
+  createdAt      DateTime @default(now())
   inviterId      String
 
   // Relations
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  team         Team?        @relation(fields: [teamId], references: [id], onDelete: SetNull)
   inviter      User         @relation("InvitationInviter", fields: [inviterId], references: [id], onDelete: Cascade)
 
   @@index([organizationId])
+  @@index([teamId])
   @@index([email])
   @@index([inviterId])
   // A partial unique index for pending invitations is defined in

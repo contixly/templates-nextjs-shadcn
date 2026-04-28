@@ -27,6 +27,8 @@ import { WORKSPACE_ERROR_KEYS } from "@features/workspaces/workspaces-errors";
 import { canAssignWorkspaceRole } from "@features/workspaces/workspaces-roles";
 import { workspacesLogger } from "@features/workspaces/workspaces-logger";
 import { evaluateWorkspaceEmailDomainEligibility } from "@features/workspaces/workspaces-domain-restrictions";
+import { findWorkspaceTeamOwnership } from "@features/workspaces/workspaces-teams-repository";
+import { updateWorkspaceTeamCache } from "@features/workspaces/workspaces-teams-types";
 
 interface BetterAuthCreatedInvitation {
   id: string;
@@ -37,7 +39,7 @@ export const createWorkspaceInvitation = createProtectedActionWithInput<
   WorkspaceInvitationDto
 >(
   createWorkspaceInvitationSchema,
-  async ({ organizationId, email, role }, { userId }) => {
+  async ({ organizationId, email, role, teamId }, { userId }) => {
     const normalizedEmail = normalizeWorkspaceInvitationEmail(email);
     const workspace = await findWorkspaceDtoByIdAndUserId(organizationId, userId);
 
@@ -75,6 +77,20 @@ export const createWorkspaceInvitation = createProtectedActionWithInput<
           code: HttpCodes.FORBIDDEN,
         },
       };
+    }
+
+    if (teamId) {
+      const team = await findWorkspaceTeamOwnership(teamId, organizationId);
+
+      if (!team) {
+        return {
+          success: false,
+          error: {
+            message: WORKSPACE_ERROR_KEYS.invitationTeamInvalid,
+            code: HttpCodes.BAD_REQUEST,
+          },
+        };
+      }
     }
 
     const domainEligibility = evaluateWorkspaceEmailDomainEligibility(
@@ -170,6 +186,7 @@ export const createWorkspaceInvitation = createProtectedActionWithInput<
           organizationId,
           email: normalizedEmail,
           role,
+          ...(teamId ? { teamId } : {}),
         },
         headers: await headers(),
       })) as BetterAuthCreatedInvitation;
@@ -178,6 +195,11 @@ export const createWorkspaceInvitation = createProtectedActionWithInput<
         invitationId: createdInvitation.id,
         organizationId,
         email: normalizedEmail,
+      });
+      updateWorkspaceTeamCache({
+        organizationId,
+        teamId,
+        userIds: [userId],
       });
 
       const invitation = await findWorkspaceInvitationById(createdInvitation.id);

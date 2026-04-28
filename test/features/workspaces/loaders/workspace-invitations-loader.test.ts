@@ -8,6 +8,7 @@ const mockFindManyPendingWorkspaceInvitationsByEmail = jest.fn();
 const mockFindWorkspaceInvitationById = jest.fn();
 const mockFindWorkspaceInvitationDomainRestrictionContext = jest.fn();
 const mockFindManyWorkspaceInvitationsByOrganizationIdAndUserId = jest.fn();
+const mockFindManyWorkspaceTeamsByOrganizationIdAndUserId = jest.fn();
 const mockHasWorkspacePermission = jest.fn();
 const mockLoadWorkspaceSettingsPageContext = jest.fn();
 
@@ -35,6 +36,11 @@ jest.mock("@features/workspaces/workspaces-invitations-repository", () => ({
 
 jest.mock("@features/workspaces/workspaces-permissions", () => ({
   hasWorkspacePermission: (...args: unknown[]) => mockHasWorkspacePermission(...args),
+}));
+
+jest.mock("@features/workspaces/workspaces-teams-repository", () => ({
+  findManyWorkspaceTeamsByOrganizationIdAndUserId: (...args: unknown[]) =>
+    mockFindManyWorkspaceTeamsByOrganizationIdAndUserId(...args),
 }));
 
 jest.mock("@features/workspaces/workspaces-settings", () => ({
@@ -79,6 +85,7 @@ describe("workspace invitation loaders", () => {
     mockFindWorkspaceInvitationById.mockReset();
     mockFindWorkspaceInvitationDomainRestrictionContext.mockReset();
     mockFindManyWorkspaceInvitationsByOrganizationIdAndUserId.mockReset();
+    mockFindManyWorkspaceTeamsByOrganizationIdAndUserId.mockReset();
     mockHasWorkspacePermission.mockReset();
     mockLoadWorkspaceSettingsPageContext.mockReset();
   });
@@ -287,6 +294,16 @@ describe("workspace invitation loaders", () => {
         invitationUrl: "https://example.com/invite/invite-1",
       },
     ]);
+    mockFindManyWorkspaceTeamsByOrganizationIdAndUserId.mockResolvedValue([
+      {
+        id: "team-1",
+        organizationId: "org-1",
+        name: "Design",
+        memberCount: 1,
+        createdAt: new Date("2026-04-20T10:00:00.000Z"),
+        updatedAt: new Date("2026-04-20T10:00:00.000Z"),
+      },
+    ]);
     mockHasWorkspacePermission.mockResolvedValue(true);
 
     await expect(loadWorkspaceSettingsInvitationsPageContext("acme")).resolves.toMatchObject({
@@ -294,7 +311,12 @@ describe("workspace invitation loaders", () => {
       currentMemberRole: "admin",
       assignableWorkspaceRoles: ["member", "admin"],
       invitations: [expect.objectContaining({ id: "invite-1" })],
+      teams: [expect.objectContaining({ id: "team-1" })],
     });
+    expect(mockFindManyWorkspaceTeamsByOrganizationIdAndUserId).toHaveBeenCalledWith(
+      "org-1",
+      "user-1"
+    );
   });
 
   it("rejects the workspace invitations route for members without invitation permissions", async () => {

@@ -139,7 +139,7 @@ jest.mock("@components/ui/select", () => ({
     disabled?: boolean;
   }) => (
     <select
-      aria-label="Role"
+      aria-label={disabled ? "Team" : "Role"}
       value={value}
       onChange={(event) => onValueChange?.(event.target.value)}
       disabled={disabled}
@@ -148,6 +148,7 @@ jest.mock("@components/ui/select", () => ({
     </select>
   ),
   SelectContent: ({ children }: { children?: React.ReactNode }) => <>{children}</>,
+  SelectGroup: ({ children }: { children?: React.ReactNode }) => <>{children}</>,
   SelectItem: ({ value, children }: { value: string; children?: React.ReactNode }) => (
     <option value={value}>{children}</option>
   ),
@@ -308,6 +309,7 @@ describe("workspace role dialogs", () => {
         organizationId: ORGANIZATION_ID,
         email: "admin@example.com",
         role: "admin",
+        teamId: null,
       });
     });
   });

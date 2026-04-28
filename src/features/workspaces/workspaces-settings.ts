@@ -1,7 +1,7 @@
 import "server-only";
 
 import { forbidden, unauthorized } from "next/navigation";
-import { loadCurrentUserId } from "@features/accounts/accounts-actions";
+import { loadCurrentSession, loadCurrentUserId } from "@features/accounts/accounts-actions";
 import {
   countAccessibleOrganizationsByUserId,
   findManyAccessibleOrganizationMembersByIdAndUserId,
@@ -20,6 +20,16 @@ import type {
   WorkspaceWithCounts,
 } from "@features/workspaces/workspaces-types";
 import { evaluateWorkspaceEmailDomainEligibility } from "@features/workspaces/workspaces-domain-restrictions";
+import {
+  findManyWorkspaceAssignableTeamMembersByOrganizationIdAndUserId,
+  findManyWorkspaceTeamMembersByTeamIdAndUserId,
+  findManyWorkspaceTeamsByOrganizationIdAndUserId,
+} from "@features/workspaces/workspaces-teams-repository";
+import type {
+  WorkspaceTeamAssignableMemberDto,
+  WorkspaceTeamListItemDto,
+  WorkspaceTeamMemberDto,
+} from "@features/workspaces/workspaces-teams-types";
 
 export interface WorkspaceSettingsPageContext {
   workspace: WorkspaceWithCounts;
@@ -36,6 +46,19 @@ export interface WorkspaceSettingsUsersPageContext extends WorkspaceSettingsPage
   members: WorkspaceMemberListItemDto[];
   canAddMembers: boolean;
   canUpdateMemberRoles: boolean;
+}
+
+export interface WorkspaceSettingsTeamsPageContext extends WorkspaceSettingsPageContext {
+  currentUserId: string;
+  teams: WorkspaceTeamListItemDto[];
+  teamMembersByTeamId: Record<string, WorkspaceTeamMemberDto[]>;
+  assignableMembers: WorkspaceTeamAssignableMemberDto[];
+  activeTeamId: string | null;
+  canCreateTeams: boolean;
+  canUpdateTeams: boolean;
+  canDeleteTeams: boolean;
+  canAddTeamMembers: boolean;
+  canRemoveTeamMembers: boolean;
 }
 
 const loadRequiredCurrentUserId = async () => {
@@ -122,5 +145,57 @@ export const loadWorkspaceSettingsUsersPageContext = async (
     members: withWorkspaceMemberDomainPolicyStatus(members, workspaceContext.workspace),
     canAddMembers,
     canUpdateMemberRoles,
+  };
+};
+
+export const loadWorkspaceSettingsTeamsPageContext = async (
+  organizationKey: string
+): Promise<WorkspaceSettingsTeamsPageContext> => {
+  const userId = await loadRequiredCurrentUserId();
+  const workspaceContext = await loadWorkspaceSettingsPageContextForUser(organizationKey, userId);
+
+  const [
+    teams,
+    assignableMembers,
+    canCreateTeams,
+    canUpdateTeams,
+    canDeleteTeams,
+    canAddTeamMembers,
+    canRemoveTeamMembers,
+    currentSession,
+  ] = await Promise.all([
+    findManyWorkspaceTeamsByOrganizationIdAndUserId(workspaceContext.workspace.id, userId),
+    findManyWorkspaceAssignableTeamMembersByOrganizationIdAndUserId(
+      workspaceContext.workspace.id,
+      userId
+    ),
+    hasWorkspacePermission(workspaceContext.workspace.id, { team: ["create"] }),
+    hasWorkspacePermission(workspaceContext.workspace.id, { team: ["update"] }),
+    hasWorkspacePermission(workspaceContext.workspace.id, { team: ["delete"] }),
+    hasWorkspacePermission(workspaceContext.workspace.id, { member: ["update"] }),
+    hasWorkspacePermission(workspaceContext.workspace.id, { member: ["delete"] }),
+    loadCurrentSession(),
+  ]);
+
+  const teamMembersEntries = await Promise.all(
+    teams.map(async (team) => [
+      team.id,
+      await findManyWorkspaceTeamMembersByTeamIdAndUserId(team.id, team.organizationId, userId),
+    ])
+  );
+  const sessionWithActiveTeam = currentSession as { activeTeamId?: string | null } | null;
+
+  return {
+    ...workspaceContext,
+    currentUserId: userId,
+    teams,
+    teamMembersByTeamId: Object.fromEntries(teamMembersEntries),
+    assignableMembers,
+    activeTeamId: sessionWithActiveTeam?.activeTeamId ?? null,
+    canCreateTeams,
+    canUpdateTeams,
+    canDeleteTeams,
+    canAddTeamMembers,
+    canRemoveTeamMembers,
   };
 };

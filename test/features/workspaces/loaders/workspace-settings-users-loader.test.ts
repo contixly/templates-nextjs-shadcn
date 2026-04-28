@@ -6,6 +6,9 @@ const mockFindWorkspaceDtoByKeyAndUserId = jest.fn();
 const mockFindManyAccessibleOrganizationMembersByIdAndUserId = jest.fn();
 const mockFindOrganizationMemberByOrganizationIdAndUserId = jest.fn();
 const mockHasWorkspacePermission = jest.fn();
+const mockFindManyWorkspaceAssignableTeamMembersByOrganizationIdAndUserId = jest.fn();
+const mockFindManyWorkspaceTeamMembersByTeamIdAndUserId = jest.fn();
+const mockFindManyWorkspaceTeamsByOrganizationIdAndUserId = jest.fn();
 
 jest.mock("@features/accounts/accounts-actions", () => ({
   loadCurrentUserId: (...args: unknown[]) => mockLoadCurrentUserId(...args),
@@ -24,6 +27,15 @@ jest.mock("@features/organizations/organizations-repository", () => ({
 
 jest.mock("@features/workspaces/workspaces-permissions", () => ({
   hasWorkspacePermission: (...args: unknown[]) => mockHasWorkspacePermission(...args),
+}));
+
+jest.mock("@features/workspaces/workspaces-teams-repository", () => ({
+  findManyWorkspaceAssignableTeamMembersByOrganizationIdAndUserId: (...args: unknown[]) =>
+    mockFindManyWorkspaceAssignableTeamMembersByOrganizationIdAndUserId(...args),
+  findManyWorkspaceTeamMembersByTeamIdAndUserId: (...args: unknown[]) =>
+    mockFindManyWorkspaceTeamMembersByTeamIdAndUserId(...args),
+  findManyWorkspaceTeamsByOrganizationIdAndUserId: (...args: unknown[]) =>
+    mockFindManyWorkspaceTeamsByOrganizationIdAndUserId(...args),
 }));
 
 jest.mock("next/navigation", () => ({
@@ -45,6 +57,9 @@ describe("loadWorkspaceSettingsUsersPageContext", () => {
     mockFindManyAccessibleOrganizationMembersByIdAndUserId.mockReset();
     mockFindOrganizationMemberByOrganizationIdAndUserId.mockReset();
     mockHasWorkspacePermission.mockReset();
+    mockFindManyWorkspaceAssignableTeamMembersByOrganizationIdAndUserId.mockReset();
+    mockFindManyWorkspaceTeamMembersByTeamIdAndUserId.mockReset();
+    mockFindManyWorkspaceTeamsByOrganizationIdAndUserId.mockReset();
   });
 
   it("loads the canonical workspace context together with visible organization members", async () => {

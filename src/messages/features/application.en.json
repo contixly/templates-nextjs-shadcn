@@ -16,7 +16,7 @@
       "featuresDescription": "The branch now ships the core collaboration surface most SaaS products need before domain-specific features begin.",
       "extensionsBadge": "Management surfaces",
       "extensionsTitle": "Workspace administration is ready to extend",
-      "extensionsDescription": "Dedicated settings pages, invitation handling, and role-aware controls give product teams concrete places to add billing, teams, custom roles, or audit trails.",
+      "extensionsDescription": "Dedicated settings pages, invitation handling, team management, and role-aware controls give product teams concrete places to add billing, custom roles, or audit trails.",
       "stackTitle": "Built with",
       "ctaTitle": "Start from here",
       "ctaDescription": "Create a workspace, invite collaborators, assign roles, and shape the app around your domain.",
@@ -51,13 +51,13 @@
         "ui": {
           "badge": "Included",
           "title": "Settings and member management",
-          "description": "Workspace settings include general settings, allowed email domains, user lists, direct member adds, role edits, invitations, and placeholder sections for teams and roles."
+          "description": "Workspace settings include general settings, allowed email domains, user lists, direct member adds, role edits, invitations, Better Auth Teams, and a placeholder section for roles."
         }
       },
       "extensionBlocks": {
         "clients": {
           "title": "Workspace settings sections",
-          "description": "Extend the settings shell with billing, domain policies, audit logs, or other organization-level controls."
+          "description": "Extend the settings shell with billing, domain policies, audit logs, team-scoped resources, or other organization-level controls."
         },
         "webhooks": {
           "title": "Invitation lifecycle",

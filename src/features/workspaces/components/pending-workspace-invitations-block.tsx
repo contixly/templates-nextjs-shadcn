@@ -45,11 +45,11 @@ export const PendingWorkspaceInvitationsBlock = ({
             </EmptyHeader>
           </Empty>
         ) : (
-          <div className="space-y-4">
+          <div className="flex flex-col gap-4">
             {invitations.map((invitation) => (
               <article key={invitation.id} className="rounded-lg border p-4">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                  <div className="space-y-2">
+                  <div className="flex flex-col gap-2">
                     <div className="flex flex-wrap items-center gap-2">
                       <h2 className="text-sm font-medium">{invitation.organizationName}</h2>
                       <Badge variant="outline">{t("pendingBadge")}</Badge>
@@ -60,6 +60,11 @@ export const PendingWorkspaceInvitationsBlock = ({
                     <p className="text-muted-foreground text-sm">
                       {t("invitedBy", { inviter: invitation.inviterName })}
                     </p>
+                    {invitation.teamName ? (
+                      <p className="text-muted-foreground text-sm">
+                        {t("targetTeam", { team: invitation.teamName })}
+                      </p>
+                    ) : null}
                     <div className="flex flex-wrap gap-2">
                       {invitation.roleLabels.map((roleLabel) => (
                         <Badge key={`${invitation.id}-${roleLabel}`} variant="secondary">

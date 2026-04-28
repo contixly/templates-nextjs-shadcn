@@ -50,10 +50,10 @@
     },
     "settings_teams": {
       "title": "Teams",
-      "description": "Review the upcoming workspace team management area.",
+      "description": "Create teams, manage team members, and set your active team.",
       "openGraph": {
         "title": "Teams",
-        "description": "Review the upcoming workspace team management area."
+        "description": "Create teams, manage team members, and set your active team."
       }
     },
     "settings_roles": {
@@ -91,6 +91,7 @@
       "invitationRecipientMismatch": "This invitation was sent to a different email address",
       "invitationEmailVerificationRequired": "Verify your primary email before responding to this invitation",
       "invitationAlreadyMember": "You already belong to this workspace",
+      "invitationTeamInvalid": "Choose a team from the invited workspace",
       "memberIdRequired": "User ID is required",
       "memberNotFound": "No user was found for that ID",
       "memberAlreadyExists": "That user already belongs to this workspace",
@@ -99,7 +100,20 @@
       "memberRoleUpdateDenied": "This member role cannot be changed from this table",
       "memberRoleUnchanged": "Choose a different role before saving",
       "workspaceRoleInvalid": "Choose a supported workspace role",
-      "workspaceRolePermissionDenied": "You do not have permission to assign that workspace role"
+      "workspaceRolePermissionDenied": "You do not have permission to assign that workspace role",
+      "teamNameRequired": "Team name is required",
+      "teamNameTooLong": "Team name must be {max} characters or less",
+      "teamNameInvalidCharacters": "Team name can only contain letters, numbers, spaces, hyphens, and underscores",
+      "teamNameUnchanged": "Choose a different team name before saving",
+      "teamDuplicateName": "A team with this name already exists in this workspace",
+      "teamNotFound": "Team not found",
+      "teamPermissionDenied": "You do not have permission to manage teams in this workspace",
+      "teamMemberPermissionDenied": "You do not have permission to manage team members in this workspace",
+      "teamMemberNotFound": "Team member not found",
+      "teamMemberAlreadyExists": "That user already belongs to this team",
+      "teamMemberCrossWorkspace": "Team members must belong to the same workspace",
+      "activeTeamInvalid": "Choose a team from the current workspace",
+      "activeTeamPermissionDenied": "You must belong to a team before setting it active"
     }
   },
   "ui": {
@@ -189,6 +203,55 @@
         "noRoles": "No roles"
       }
     },
+    "settingsTeamsPage": {
+      "sectionTitle": "Workspace teams",
+      "sectionDescription": "Use explicit teams for smaller groups inside this workspace. The workspace itself remains the all-members context.",
+      "readOnlyTitle": "Read-only team access",
+      "readOnlyDescription": "You can review teams and membership here, but only admins and owners can change team setup.",
+      "createNameLabel": "Team name",
+      "createNamePlaceholder": "e.g., Design, Support, Launch",
+      "createNameHint": "Maximum 50 characters. Names must be unique inside this workspace.",
+      "createSuccess": "Team created successfully",
+      "createErrorTitle": "Create Team",
+      "renameNameLabel": "Team name",
+      "renameSuccess": "Team renamed successfully",
+      "renameErrorTitle": "Rename Team",
+      "deleteSuccess": "Team deleted successfully",
+      "deleteErrorTitle": "Delete Team",
+      "deleteDialogTitle": "Delete {name}?",
+      "deleteDialogDescription": "This removes the explicit team and its team memberships. Workspace membership and roles are unchanged.",
+      "setActiveAction": "Set active",
+      "setActiveSuccess": "Active team updated",
+      "clearActiveSuccess": "Active team cleared",
+      "activeBadge": "Active",
+      "activeTeamErrorTitle": "Set Active Team",
+      "emptyTitle": "No teams yet",
+      "emptyDescription": "Create a team when this workspace needs a focused subgroup. Zero teams is a valid workspace state.",
+      "teamDescription": "Explicit Better Auth team inside this workspace.",
+      "memberCount": "{count} member(s)",
+      "membersEmptyTitle": "No team members",
+      "membersEmptyDescription": "Add existing workspace members to include them in this team.",
+      "addMemberLabel": "Add team member",
+      "addMemberPlaceholder": "Select a workspace member",
+      "addMemberHint": "Only existing workspace members can be added to teams.",
+      "addMemberEmptyHint": "Every visible workspace member already belongs to this team.",
+      "addMemberSuccess": "Team member added successfully",
+      "addMemberErrorTitle": "Add Team Member",
+      "removeMemberAction": "Remove",
+      "removeMemberAriaLabel": "Remove {name} from team",
+      "removeMemberSuccess": "Team member removed successfully",
+      "removeMemberErrorTitle": "Remove Team Member",
+      "unknownError": "Unknown error",
+      "membersTable": {
+        "columns": {
+          "user": "User",
+          "email": "Email",
+          "role": "Workspace role",
+          "actions": "Actions"
+        },
+        "noRole": "No role"
+      }
+    },
     "settingsInvitationsPage": {
       "title": "Workspace Invitations",
       "description": "Create shareable invitation links and review invitation activity for this workspace.",
@@ -208,12 +271,14 @@
         "columns": {
           "email": "Email",
           "role": "Role",
+          "team": "Team",
           "inviter": "Inviter",
           "created": "Created",
           "expires": "Expires",
           "status": "Status",
           "actions": "Actions"
-        }
+        },
+        "noTeam": "Workspace only"
       }
     },
     "createInvitationDialog": {
@@ -226,6 +291,10 @@
       "allowedEmailDomainsHint": "Active restriction: invitations can be accepted only from {domains}.",
       "roleLabel": "Role",
       "roleHint": "Choose the role this invitation will grant.",
+      "teamLabel": "Team",
+      "teamNone": "No team",
+      "teamHint": "Optionally add the invited user to a team when they accept.",
+      "teamEmptyHint": "Create a team first to target invitations to a team.",
       "createdTitle": "Invitation created",
       "createdDescription": "Copy this link and share it with the invited person.",
       "linkLabel": "Invitation link",
@@ -266,6 +335,7 @@
       "pendingBadge": "Pending",
       "invitedEmail": "Invited email: {email}",
       "invitedBy": "Invited by: {inviter}",
+      "targetTeam": "Target team: {team}",
       "expiresLabel": "Expires: {date}",
       "reviewAction": "Review Invitation"
     },
@@ -285,6 +355,8 @@
         "workspace": "Workspace",
         "email": "Invited email",
         "role": "Role",
+        "team": "Team",
+        "noTeam": "Workspace only",
         "inviter": "Invited by",
         "created": "Created",
         "expires": "Expires"
@@ -346,9 +418,9 @@
         },
         "teams": {
           "pageTitle": "Teams",
-          "pageDescription": "Review the upcoming workspace team management area.",
+          "pageDescription": "Manage explicit Better Auth Teams inside this workspace.",
           "title": "Team management",
-          "description": "Workspace team management will be added here in a follow-up change."
+          "description": "Use the Teams settings page to manage explicit workspace teams."
         },
         "roles": {
           "pageTitle": "Roles",

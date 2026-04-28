@@ -23,6 +23,7 @@ export const WORKSPACE_ERROR_KEYS = {
   invitationRecipientMismatch: "validation.errors.invitationRecipientMismatch",
   invitationEmailVerificationRequired: "validation.errors.invitationEmailVerificationRequired",
   invitationAlreadyMember: "validation.errors.invitationAlreadyMember",
+  invitationTeamInvalid: "validation.errors.invitationTeamInvalid",
   memberIdRequired: "validation.errors.memberIdRequired",
   memberNotFound: "validation.errors.memberNotFound",
   memberAlreadyExists: "validation.errors.memberAlreadyExists",
@@ -32,6 +33,19 @@ export const WORKSPACE_ERROR_KEYS = {
   memberRoleUnchanged: "validation.errors.memberRoleUnchanged",
   workspaceRoleInvalid: "validation.errors.workspaceRoleInvalid",
   workspaceRolePermissionDenied: "validation.errors.workspaceRolePermissionDenied",
+  teamNameRequired: "validation.errors.teamNameRequired",
+  teamNameTooLong: "validation.errors.teamNameTooLong",
+  teamNameInvalidCharacters: "validation.errors.teamNameInvalidCharacters",
+  teamNameUnchanged: "validation.errors.teamNameUnchanged",
+  teamDuplicateName: "validation.errors.teamDuplicateName",
+  teamNotFound: "validation.errors.teamNotFound",
+  teamPermissionDenied: "validation.errors.teamPermissionDenied",
+  teamMemberPermissionDenied: "validation.errors.teamMemberPermissionDenied",
+  teamMemberNotFound: "validation.errors.teamMemberNotFound",
+  teamMemberAlreadyExists: "validation.errors.teamMemberAlreadyExists",
+  teamMemberCrossWorkspace: "validation.errors.teamMemberCrossWorkspace",
+  activeTeamInvalid: "validation.errors.activeTeamInvalid",
+  activeTeamPermissionDenied: "validation.errors.activeTeamPermissionDenied",
 } as const;
 
 const WORKSPACE_ERROR_KEY_SET = new Set<string>(Object.values(WORKSPACE_ERROR_KEYS));
