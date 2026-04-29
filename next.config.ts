@@ -1,5 +1,6 @@
 import type { NextConfig } from "next";
 import createNextIntlPlugin from "next-intl/plugin";
+import { fileURLToPath } from "node:url";
 
 const withNextIntl = createNextIntlPlugin({
   experimental: {
@@ -48,13 +49,20 @@ const securityHeaders = [
     : []),
 ];
 
+const dataCacheHandlerPath = fileURLToPath(
+  new URL("./src/server/cache/cache.mjs", import.meta.url)
+);
+const isrCacheHandlerPath = fileURLToPath(
+  new URL("./src/server/cache/isr-cache.mjs", import.meta.url)
+);
+
 const nextConfig: NextConfig = {
   cacheComponents: true,
 
-  cacheHandler: "src/server/cache.ts",
+  cacheHandler: isrCacheHandlerPath,
   cacheHandlers: {
-    default: "src/server/cache.ts",
-    remote: "src/server/cache.ts",
+    default: dataCacheHandlerPath,
+    remote: dataCacheHandlerPath,
   },
   cacheMaxMemorySize: 0, // Disable Next's built-in in-memory handler
 
