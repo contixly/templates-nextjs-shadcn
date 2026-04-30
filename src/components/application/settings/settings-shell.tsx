@@ -67,7 +67,7 @@ export const SettingsPageIntro = ({
   <header
     data-slot="settings-page-intro"
     className={cn(
-      "flex flex-col gap-3 border-b pb-5 sm:flex-row sm:items-start sm:justify-between",
+      "hidden flex-col gap-3 border-b pb-5 sm:flex-row sm:items-start sm:justify-between md:flex",
       className
     )}
   >

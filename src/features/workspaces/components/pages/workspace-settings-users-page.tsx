@@ -50,6 +50,7 @@ interface WorkspaceSettingsUsersPageProps {
   canAddMembers: boolean;
   canUpdateMemberRoles: boolean;
   assignableWorkspaceRoles: WorkspaceManageableRole[];
+  showIntro?: boolean;
 }
 
 const getDisplayName = (member: WorkspaceMemberListItemDto) => member.name.trim() || member.email;
@@ -185,6 +186,7 @@ export const WorkspaceSettingsUsersPage = ({
   canAddMembers,
   canUpdateMemberRoles,
   assignableWorkspaceRoles,
+  showIntro = true,
 }: WorkspaceSettingsUsersPageProps) => {
   const tPage = useTranslations("workspaces.pages.settings_users");
   const t = useTranslations("workspaces.ui.settingsUsersPage");
@@ -208,7 +210,9 @@ export const WorkspaceSettingsUsersPage = ({
 
   return (
     <>
-      <SettingsPageIntro title={tPage("title")} description={tPage("description")} />
+      {showIntro ? (
+        <SettingsPageIntro title={tPage("title")} description={tPage("description")} />
+      ) : null}
 
       {outOfPolicyMembers.length > 0 ? (
         <Alert className="ring-foreground/10 border-0 ring-1">

@@ -2,12 +2,7 @@
 
 import { Suspense, use, useState, useTransition } from "react";
 import { useParams, usePathname, useRouter } from "next/navigation";
-import {
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  useSidebar,
-} from "@components/ui/sidebar";
+import { SidebarMenu, SidebarMenuButton, SidebarMenuItem } from "@components/ui/sidebar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -28,6 +23,7 @@ import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { findOrganizationByRouteKey } from "@features/organizations/organizations-context";
 import { resolveWorkspaceSwitchHref } from "@features/workspaces/workspace-switch-navigation";
+import { useMobileSidebarClose } from "@hooks/use-mobile-sidebar-close";
 
 interface WorkspaceSidebarSwitcherProps {
   loadUserWorkspacesPromise: Promise<ActionResult<WorkspaceWithCounts[]>>;
@@ -46,7 +42,7 @@ const WorkspaceSidebarSwitcherComponent = ({
 }: WorkspaceSidebarSwitcherProps) => {
   const t = useTranslations("workspaces.ui.switcher");
   const tCreateDialog = useTranslations("workspaces.ui.createDialog");
-  const { isMobile, toggleSidebar } = useSidebar();
+  const { isMobile, closeMobileSidebar } = useMobileSidebarClose();
   const router = useRouter();
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
@@ -59,12 +55,9 @@ const WorkspaceSidebarSwitcherComponent = ({
 
   const navigateTo = (href: string) => {
     setOpen(false);
+    closeMobileSidebar();
     router.push(href);
     router.refresh();
-
-    if (isMobile) {
-      toggleSidebar();
-    }
   };
 
   const handleSelectWorkspace = (workspaceId: string) => {

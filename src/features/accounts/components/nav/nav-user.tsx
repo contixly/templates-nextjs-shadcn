@@ -10,12 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@components/ui/dropdown-menu";
-import {
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  useSidebar,
-} from "@components/ui/sidebar";
+import { SidebarMenu, SidebarMenuButton, SidebarMenuItem } from "@components/ui/sidebar";
 import {
   IconCreditCard,
   IconDotsVertical,
@@ -31,6 +26,7 @@ import { useLogout } from "@features/accounts/components/ui/logout-button";
 import { UserContent } from "@features/accounts/components/ui/user-content";
 import { usePageTranslations } from "@hooks/use-page-translations";
 import { useTranslations } from "next-intl";
+import { useMobileSidebarClose } from "@hooks/use-mobile-sidebar-close";
 
 interface NavUserProps extends React.ComponentPropsWithoutRef<typeof SidebarMenu> {
   loadCurrentUserPromise: Promise<User | undefined>;
@@ -38,19 +34,20 @@ interface NavUserProps extends React.ComponentPropsWithoutRef<typeof SidebarMenu
 
 const NavUserComponent = ({ loadCurrentUserPromise, ...props }: NavUserProps) => {
   const tAccounts = useTranslations("accounts.ui.navUser");
-  const { isMobile, toggleSidebar } = useSidebar();
+  const { isMobile, closeMobileSidebar } = useMobileSidebarClose();
   const router = useRouter();
   const user = use(loadCurrentUserPromise);
   const { logout } = useLogout();
   const profileTranslations = usePageTranslations(routes.accounts.pages.profile);
 
   const menuClick = useCallback(
-    (path: string) =>
+    (path: string) => {
+      closeMobileSidebar();
       startTransition(() => {
         router.push(path);
-        if (isMobile) toggleSidebar();
-      }),
-    [isMobile, router, toggleSidebar]
+      });
+    },
+    [closeMobileSidebar, router]
   );
 
   return (

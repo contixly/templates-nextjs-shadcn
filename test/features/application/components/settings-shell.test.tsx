@@ -80,6 +80,7 @@ describe("settings shell primitives", () => {
     const intro = container.querySelector('[data-slot="settings-page-intro"]');
 
     expect(pageSection?.firstElementChild).toBe(intro);
+    expect(intro).toHaveClass("hidden", "md:flex");
     expect(screen.getByRole("heading", { level: 1, name: "Profile settings" })).toBeInTheDocument();
     expect(screen.getByText("Review your account details.")).toBeInTheDocument();
   });

@@ -144,6 +144,23 @@ describe("page translation consumers", () => {
     expect(screen.getByText("Локализованное описание")).toBeInTheDocument();
   });
 
+  it("keeps the mobile document header description when the desktop page header is hidden", () => {
+    mockUseCurrentPage.mockReturnValue({
+      featureName: "accounts",
+      pageKey: "profile",
+      pathTemplate: "/user/profile",
+      path: () => "/user/profile",
+      hidePageHeader: true,
+      i18n: { namespace: "accounts.pages.profile" },
+    });
+    mockUseIsMobile.mockReturnValue(true);
+
+    render(<DocumentHeader />);
+
+    expect(screen.getByText("Профиль")).toBeInTheDocument();
+    expect(screen.getByText("Настройки учетной записи")).toBeInTheDocument();
+  });
+
   it("renders translated route title in breadcrumbs home", () => {
     render(<AppBreadcrumbsHome />);
 
