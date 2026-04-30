@@ -1,13 +1,11 @@
-import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import workspaceRoutes from "@features/workspaces/workspaces-routes";
 import { buildPageMetadata } from "@lib/metadata";
-import { loadWorkspaceSettingsPageContext } from "@features/workspaces/workspaces-settings";
-
-interface WorkspaceSettingsRootPageProps {
-  params: Promise<{ organizationKey: string }>;
-}
+import {
+  WorkspaceSettingsRootRedirectContent,
+  type WorkspaceSettingsRootPageProps,
+} from "./workspace-settings-root-redirect-content";
 
 export const generateMetadata = async ({
   params,
@@ -20,19 +18,4 @@ export default function WorkspaceSettingsRootPage({ params }: WorkspaceSettingsR
       <WorkspaceSettingsRootRedirectContent params={params} />
     </Suspense>
   );
-}
-
-export async function WorkspaceSettingsRootRedirectContent({
-  params,
-}: WorkspaceSettingsRootPageProps) {
-  const { organizationKey } = await params;
-  const { canonicalOrganizationKey } = await loadWorkspaceSettingsPageContext(organizationKey);
-
-  redirect(
-    workspaceRoutes.pages.settings_workspace.path({
-      organizationKey: canonicalOrganizationKey,
-    })
-  );
-
-  return null;
 }

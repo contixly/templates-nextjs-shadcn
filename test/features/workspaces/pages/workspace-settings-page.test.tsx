@@ -119,7 +119,7 @@ describe("workspace settings root route", () => {
     });
 
     const pageModule =
-      await import("../../../../src/app/(protected)/(global)/w/[organizationKey]/settings/page");
+      await import("../../../../src/app/(protected)/(global)/w/[organizationKey]/settings/workspace-settings-root-redirect-content");
 
     await expect(
       pageModule.WorkspaceSettingsRootRedirectContent({
@@ -154,7 +154,7 @@ describe("workspace settings section routes", () => {
     });
 
     const pageModule =
-      await import("../../../../src/app/(protected)/(global)/w/[organizationKey]/settings/users/page");
+      await import("../../../../src/app/(protected)/(global)/w/[organizationKey]/settings/users/workspace-settings-users-content");
 
     await expect(
       pageModule.WorkspaceSettingsUsersContent({
@@ -190,7 +190,7 @@ describe("workspace settings section routes", () => {
     });
 
     const pageModule =
-      await import("../../../../src/app/(protected)/(global)/w/[organizationKey]/settings/users/page");
+      await import("../../../../src/app/(protected)/(global)/w/[organizationKey]/settings/users/workspace-settings-users-content");
 
     const element = await pageModule.WorkspaceSettingsUsersContent({
       params: Promise.resolve({ organizationKey: "client-workspace" }),
@@ -218,7 +218,7 @@ describe("workspace settings section routes", () => {
     });
 
     const pageModule =
-      await import("../../../../src/app/(protected)/(global)/w/[organizationKey]/settings/invitations/page");
+      await import("../../../../src/app/(protected)/(global)/w/[organizationKey]/settings/invitations/workspace-settings-invitations-content");
 
     const element = await pageModule.WorkspaceSettingsInvitationsContent({
       params: Promise.resolve({ organizationKey: "client-workspace" }),
@@ -240,7 +240,7 @@ describe("workspace settings section routes", () => {
     });
 
     const pageModule =
-      await import("../../../../src/app/(protected)/(global)/w/[organizationKey]/settings/workspace/page");
+      await import("../../../../src/app/(protected)/(global)/w/[organizationKey]/settings/workspace/workspace-settings-section-content");
     const element = await pageModule.WorkspaceSettingsSectionContent({
       params: Promise.resolve({ organizationKey: "client-workspace" }),
     });
@@ -260,7 +260,7 @@ describe("workspace settings section routes", () => {
     });
 
     const pageModule =
-      await import("../../../../src/app/(protected)/(global)/w/[organizationKey]/settings/roles/page");
+      await import("../../../../src/app/(protected)/(global)/w/[organizationKey]/settings/roles/workspace-settings-roles-content");
     const element = await pageModule.WorkspaceSettingsRolesContent({
       params: Promise.resolve({ organizationKey: "client-workspace" }),
     });
@@ -289,7 +289,7 @@ describe("workspace settings section routes", () => {
     });
 
     const pageModule =
-      await import("../../../../src/app/(protected)/(global)/w/[organizationKey]/settings/teams/page");
+      await import("../../../../src/app/(protected)/(global)/w/[organizationKey]/settings/teams/workspace-settings-teams-content");
     const element = await pageModule.WorkspaceSettingsTeamsContent({
       params: Promise.resolve({ organizationKey: "client-workspace" }),
     });

@@ -102,7 +102,9 @@ describe("settings layouts", () => {
       expect(screen.getByTestId("settings-shell-children")).toHaveTextContent("workspace-page");
     });
 
-    const navElement = await layoutModule.WorkspaceSettingsNav({
+    const navModule =
+      await import("../../../../src/app/(protected)/(global)/w/[organizationKey]/settings/workspace-settings-nav");
+    const navElement = await navModule.WorkspaceSettingsNav({
       organizationId: "org-1",
       organizationKey: "acme",
     });

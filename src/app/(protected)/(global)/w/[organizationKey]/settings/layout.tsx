@@ -2,10 +2,9 @@ import React, { Suspense, use } from "react";
 import { SettingsPageShell } from "@components/application/settings/settings-shell";
 import { loadAccessibleOrganization } from "@features/organizations/components/organization-route-guard";
 import { getOrganizationRouteKey } from "@features/organizations/organizations-context";
-import { NavWorkspaceSettings } from "@features/workspaces/components/nav/nav-workspace-settings";
 import { NavWorkspaceSettingsSkeleton } from "@features/workspaces/components/nav/nav-workspace-settings-skeleton";
 import { WorkspaceOnboardingGuard } from "@features/workspaces/components/ui/workspace-onboarding-guard";
-import { hasWorkspacePermission } from "@features/workspaces/workspaces-permissions";
+import { WorkspaceSettingsNav } from "./workspace-settings-nav";
 
 type WorkspaceSettingsParams = Promise<{ organizationKey: string }>;
 type AccessibleOrganization = Awaited<ReturnType<typeof loadAccessibleOrganization>>;
@@ -69,24 +68,5 @@ function WorkspaceSettingsLayoutContent({
     >
       {children}
     </SettingsPageShell>
-  );
-}
-
-export async function WorkspaceSettingsNav({
-  organizationId,
-  organizationKey,
-}: Readonly<{
-  organizationId: string;
-  organizationKey: string;
-}>) {
-  const canCreateInvitations = await hasWorkspacePermission(organizationId, {
-    invitation: ["create"],
-  });
-
-  return (
-    <NavWorkspaceSettings
-      organizationKey={organizationKey}
-      canCreateInvitations={canCreateInvitations}
-    />
   );
 }
