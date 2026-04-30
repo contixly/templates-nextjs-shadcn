@@ -30,6 +30,7 @@ auth, and domain setup.
 - Internationalization with `next-intl` and typed message catalogs
 - Feature Slice Design structure for isolating business logic
 - Server actions, validation, and cache invalidation patterns
+- Optional Redis/Valkey-backed Next.js cache handlers for Cache Components and ISR
 - Shared UI primitives and layout scaffolding
 - Localized metadata, sitemap, robots, manifest, and OG image setup
 - Example modules for accounts, organizations, workspaces, invitations, settings, and dashboard flows
@@ -39,6 +40,7 @@ auth, and domain setup.
 - **Frontend**: Next.js 16, React 19, TypeScript, Tailwind CSS v4, shadcn/ui
 - **Backend**: Next.js Server Actions, Prisma ORM, PostgreSQL
 - **Auth**: Better Auth with OAuth providers and the organization plugin with Teams enabled
+- **Caching**: Next.js Cache Components with optional Redis/Valkey via `@mrjasonroy/cache-components-cache-handler`
 - **Localization**: `next-intl`
 
 ## Workspace and Organization Model
@@ -66,8 +68,9 @@ existing members outside the active policy are surfaced with warnings rather tha
 
 ### Prerequisites
 
-- Node.js 18+ and npm
+- Node.js 22+ and npm
 - PostgreSQL database
+- Optional Redis or Valkey instance for distributed cache storage
 
 ### Installation
 
@@ -104,14 +107,23 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 Required for local development (see `.env.example` for a minimal set):
 
-| Variable                    | Purpose                                                      |
-|-----------------------------|--------------------------------------------------------------|
-| `DATABASE_URL`              | PostgreSQL connection string (used by Prisma)                |
-| `BETTER_AUTH_SECRET`        | Secret for Better Auth session signing                       |
-| `BETTER_AUTH_URL`           | Server-side app URL (e.g. `http://localhost:3000`)           |
-| `NEXT_PUBLIC_APP_BASE_URL`  | Same origin, exposed to the auth client                      |
-| `PUBLIC_DEFAULT_LOCALE`     | Default locale for the template (`en` by default)            |
-| `NEXT_PUBLIC_YM_COUNTER_ID` | Optional Yandex Metrika counter id for client-side analytics |
+| Variable                    | Purpose                                                            |
+|-----------------------------|--------------------------------------------------------------------|
+| `DATABASE_URL`              | PostgreSQL connection string (used by Prisma)                      |
+| `BETTER_AUTH_SECRET`        | Secret for Better Auth session signing                             |
+| `BETTER_AUTH_URL`           | Server-side app URL (e.g. `http://localhost:3000`)                 |
+| `NEXT_PUBLIC_APP_BASE_URL`  | Same origin, exposed to the auth client                            |
+| `PUBLIC_DEFAULT_LOCALE`     | Default locale for the template (`en` by default)                  |
+| `NEXT_PUBLIC_YM_COUNTER_ID` | Optional Yandex Metrika counter id for client-side analytics       |
+| `REMOTE_CACHING_ENABLED`    | Enables Redis/Valkey-backed cache handlers when set to `true`      |
+| `REDIS_URL` / `VALKEY_URL`  | Redis or Valkey connection URL used when remote caching is enabled |
+| `REDIS_PASSWORD`            | Optional password injected when the cache URL does not include one |
+| `REMOTE_CACHING_PREFIX`     | Key/tag prefix for isolating cache entries per app or environment  |
+
+By default `REMOTE_CACHING_ENABLED=false`, so the template uses the local memory fallback supplied by the custom cache
+handlers. Set `REMOTE_CACHING_ENABLED=true` with either `REDIS_URL` or `VALKEY_URL` to share Cache Components and ISR
+cache entries across multiple Next.js instances. Use a unique `REMOTE_CACHING_PREFIX` for each deployed app or
+environment when sharing one Redis/Valkey service.
 
 OAuth (configure only what you use; see `src/server/auth.ts`):
 
@@ -122,6 +134,9 @@ OAuth (configure only what you use; see `src/server/auth.ts`):
 | `GITLAB_CLIENT_ID` / `GITLAB_CLIENT_SECRET` | GitLab                 |
 | `VK_CLIENT_ID`                              | VK                     |
 | `YANDEX_CLIENT_ID` / `YANDEX_CLIENT_SECRET` | Yandex (generic OAuth) |
+
+Only providers with all required environment variables are registered with Better Auth and shown in the login and
+account connection UI.
 
 ### Localization
 
