@@ -47,7 +47,8 @@ const normalizeSeed = (seed: string) =>
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "")
-    .slice(0, 48);
+    .slice(0, 48)
+    .replace(/^-+|-+$/g, "");
 
 export const buildLocalAutomationEmail = (seed: string) => {
   const normalizedSeed = normalizeSeed(seed) || randomUUID().replace(/-/g, "").slice(0, 16);

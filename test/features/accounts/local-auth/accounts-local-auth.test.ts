@@ -55,6 +55,12 @@ describe("accounts local automation auth helper", () => {
     );
   });
 
+  it("trims trailing hyphens introduced by seed truncation", () => {
+    expect(buildLocalAutomationEmail(`${"a".repeat(47)} b`)).toBe(
+      `local-agent+${"a".repeat(47)}@${LOCAL_AUTOMATION_AUTH_EMAIL_DOMAIN}`
+    );
+  });
+
   it("generates valid credentials for Better Auth email/password sign-up", () => {
     const credentials = generateLocalAutomationCredentials();
 
