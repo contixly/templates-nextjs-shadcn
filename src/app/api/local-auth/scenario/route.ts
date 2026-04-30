@@ -12,7 +12,7 @@ import {
   type LocalAutomationScenarioResponse,
 } from "@features/accounts/accounts-local-auth";
 import {
-  deleteSoleMemberOrganizationsForUser,
+  deleteMemberlessOrganizationsByIds,
   findSoleMemberOrganizationIdsForUser,
 } from "@features/accounts/accounts-local-auth-repository";
 import { auth } from "@server/auth";
@@ -190,12 +190,12 @@ export const DELETE = async (request: Request) => {
   }
 
   const organizationIds = await findSoleMemberOrganizationIdsForUser(session.user.id);
-  await deleteSoleMemberOrganizationsForUser(session.user.id, organizationIds);
-
   const authResponse = await auth.handler(buildDeleteUserRequest(request));
   if (!authResponse.ok) {
     return jsonError("local_automation_cleanup_failed", HttpCodes.SERVER_ERROR);
   }
+
+  const deletedOrganizations = await deleteMemberlessOrganizationsByIds(organizationIds);
 
   revalidatePath("/", "layout");
 
@@ -203,7 +203,7 @@ export const DELETE = async (request: Request) => {
     {
       success: true,
       data: {
-        deletedOrganizations: organizationIds.length,
+        deletedOrganizations: deletedOrganizations.count,
       },
     },
     {

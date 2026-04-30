@@ -50,3 +50,20 @@ export const deleteSoleMemberOrganizationsForUser = async (
     },
   });
 };
+
+export const deleteMemberlessOrganizationsByIds = async (organizationIds: string[]) => {
+  if (organizationIds.length === 0) {
+    return { count: 0 };
+  }
+
+  return prisma.organization.deleteMany({
+    where: {
+      id: {
+        in: organizationIds,
+      },
+      members: {
+        none: {},
+      },
+    },
+  });
+};

@@ -14,6 +14,7 @@ jest.mock("@server/prisma", () => ({
 }));
 
 import {
+  deleteMemberlessOrganizationsByIds,
   deleteSoleMemberOrganizationsForUser,
   findSoleMemberOrganizationIdsForUser,
 } from "@features/accounts/accounts-local-auth-repository";
@@ -76,6 +77,30 @@ describe("accounts local automation auth repository", () => {
 
     organizationDeleteManyMock.mockClear();
     await expect(deleteSoleMemberOrganizationsForUser("user_1", [])).resolves.toEqual({ count: 0 });
+    expect(organizationDeleteManyMock).not.toHaveBeenCalled();
+  });
+
+  it("deletes memberless organizations by id", async () => {
+    organizationDeleteManyMock.mockResolvedValue({ count: 1 });
+
+    await expect(deleteMemberlessOrganizationsByIds(["org_1", "org_2"])).resolves.toEqual({
+      count: 1,
+    });
+    expect(organizationDeleteManyMock).toHaveBeenCalledWith({
+      where: {
+        id: {
+          in: ["org_1", "org_2"],
+        },
+        members: {
+          none: {},
+        },
+      },
+    });
+  });
+
+  it("skips memberless organization deletion for empty batches", async () => {
+    await expect(deleteMemberlessOrganizationsByIds([])).resolves.toEqual({ count: 0 });
+
     expect(organizationDeleteManyMock).not.toHaveBeenCalled();
   });
 });

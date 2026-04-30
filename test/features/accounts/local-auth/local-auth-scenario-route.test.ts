@@ -4,7 +4,7 @@ const isLocalAutomationAuthEnabledMock = jest.fn();
 const isLocalAutomationEmailMock = jest.fn();
 const generateLocalAutomationCredentialsMock = jest.fn();
 const findSoleMemberOrganizationIdsForUserMock = jest.fn();
-const deleteSoleMemberOrganizationsForUserMock = jest.fn();
+const deleteMemberlessOrganizationsByIdsMock = jest.fn();
 const authHandlerMock = jest.fn();
 const getSessionMock = jest.fn();
 const revalidatePathMock = jest.fn();
@@ -20,8 +20,8 @@ jest.mock("@features/accounts/accounts-local-auth", () => ({
 jest.mock("@features/accounts/accounts-local-auth-repository", () => ({
   findSoleMemberOrganizationIdsForUser: (...args: unknown[]) =>
     findSoleMemberOrganizationIdsForUserMock(...args),
-  deleteSoleMemberOrganizationsForUser: (...args: unknown[]) =>
-    deleteSoleMemberOrganizationsForUserMock(...args),
+  deleteMemberlessOrganizationsByIds: (...args: unknown[]) =>
+    deleteMemberlessOrganizationsByIdsMock(...args),
 }));
 
 jest.mock("@server/auth", () => ({
@@ -70,7 +70,7 @@ describe("local automation scenario route", () => {
     isLocalAutomationEmailMock.mockReset();
     generateLocalAutomationCredentialsMock.mockReset();
     findSoleMemberOrganizationIdsForUserMock.mockReset();
-    deleteSoleMemberOrganizationsForUserMock.mockReset();
+    deleteMemberlessOrganizationsByIdsMock.mockReset();
     authHandlerMock.mockReset();
     getSessionMock.mockReset();
     revalidatePathMock.mockReset();
@@ -111,7 +111,7 @@ describe("local automation scenario route", () => {
       },
     });
     findSoleMemberOrganizationIdsForUserMock.mockResolvedValue(["org_1"]);
-    deleteSoleMemberOrganizationsForUserMock.mockResolvedValue({ count: 1 });
+    deleteMemberlessOrganizationsByIdsMock.mockResolvedValue({ count: 1 });
   });
 
   it("returns 404 when the local feature gate is disabled", async () => {
@@ -329,7 +329,7 @@ describe("local automation scenario route", () => {
     });
   });
 
-  it("deletes sole-member organizations and then deletes the Better Auth user", async () => {
+  it("deletes the Better Auth user and then deletes memberless candidate organizations", async () => {
     authHandlerMock.mockResolvedValue(
       new Response(JSON.stringify({ success: true, message: "User deleted" }), {
         status: 200,
@@ -342,8 +342,11 @@ describe("local automation scenario route", () => {
     const response = await DELETE(jsonRequest("DELETE", undefined, "acc.session=token"));
 
     expect(findSoleMemberOrganizationIdsForUserMock).toHaveBeenCalledWith("user_1");
-    expect(deleteSoleMemberOrganizationsForUserMock).toHaveBeenCalledWith("user_1", ["org_1"]);
     expect(authHandlerMock).toHaveBeenCalledTimes(1);
+    expect(deleteMemberlessOrganizationsByIdsMock).toHaveBeenCalledWith(["org_1"]);
+    expect(authHandlerMock.mock.invocationCallOrder[0]).toBeLessThan(
+      deleteMemberlessOrganizationsByIdsMock.mock.invocationCallOrder[0]
+    );
 
     const authRequest = authHandlerMock.mock.calls[0]?.[0] as Request;
     expect(authRequest.url).toBe("http://localhost:3000/api/auth/delete-user");
@@ -359,5 +362,25 @@ describe("local automation scenario route", () => {
         deletedOrganizations: 1,
       },
     });
+  });
+
+  it("does not delete candidate organizations when Better Auth user deletion fails", async () => {
+    authHandlerMock.mockResolvedValue(
+      new Response(JSON.stringify({ message: "Sensitive session required" }), { status: 403 })
+    );
+
+    const response = await DELETE(jsonRequest("DELETE", undefined, "acc.session=token"));
+
+    expect(findSoleMemberOrganizationIdsForUserMock).toHaveBeenCalledWith("user_1");
+    expect(response.status).toBe(500);
+    expect(await readJson(response)).toEqual({
+      success: false,
+      error: {
+        message: "local_automation_cleanup_failed",
+        code: 500,
+      },
+    });
+    expect(deleteMemberlessOrganizationsByIdsMock).not.toHaveBeenCalled();
+    expect(revalidatePathMock).not.toHaveBeenCalled();
   });
 });
