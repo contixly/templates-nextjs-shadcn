@@ -6,6 +6,7 @@ import { OrganizationRouteGuard } from "@features/organizations/components/organ
 import { SectionCards } from "@features/dashboard/ui/template/section-cards";
 import { ChartAreaInteractive } from "@features/dashboard/ui/template/chart-area-interactive";
 import { DataTable } from "@features/dashboard/ui/template/data-table";
+import { OrganizationDashboardPageSkeleton } from "@features/dashboard/ui/template/dashboard-page-skeleton";
 import data from "../../../dashboard/data.json";
 
 interface OrganizationDashboardPageProps {
@@ -17,9 +18,15 @@ export const generateMetadata = async ({
 }: OrganizationDashboardPageProps): Promise<Metadata> =>
   buildPageMetadata(dashboardRoutes.pages.organization_dashboard, await params);
 
-export default async function OrganizationDashboardPage({
-  params,
-}: OrganizationDashboardPageProps) {
+export default function OrganizationDashboardPage({ params }: OrganizationDashboardPageProps) {
+  return (
+    <Suspense fallback={<OrganizationDashboardPageSkeleton />}>
+      <OrganizationDashboardContent params={params} />
+    </Suspense>
+  );
+}
+
+export async function OrganizationDashboardContent({ params }: OrganizationDashboardPageProps) {
   const { organizationKey } = await params;
 
   return (
@@ -29,9 +36,7 @@ export default async function OrganizationDashboardPage({
         <div className="px-4 lg:px-6">
           <ChartAreaInteractive />
         </div>
-        <Suspense>
-          <DataTable data={data} />
-        </Suspense>
+        <DataTable data={data} />
       </div>
     </OrganizationRouteGuard>
   );

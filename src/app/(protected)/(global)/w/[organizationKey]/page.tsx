@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import routes from "@features/routes";
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { buildPageMetadata } from "@lib/metadata";
 import workspaceRoutes from "@features/workspaces/workspaces-routes";
 import { OrganizationRouteGuard } from "@features/organizations/components/organization-route-guard";
@@ -20,12 +21,22 @@ const OrganizationDashboardRedirect = ({
       organizationKey: getOrganizationRouteKey(organization),
     })
   );
+
+  return null;
 };
 
 export const generateMetadata = async ({ params }: WorkspacePageProps): Promise<Metadata> =>
   buildPageMetadata(workspaceRoutes.pages.workspace, await params);
 
-export default async function WorkspacePage({ params }: WorkspacePageProps) {
+export default function WorkspacePage({ params }: WorkspacePageProps) {
+  return (
+    <Suspense fallback={null}>
+      <WorkspacePageRedirectContent params={params} />
+    </Suspense>
+  );
+}
+
+export async function WorkspacePageRedirectContent({ params }: WorkspacePageProps) {
   const { organizationKey } = await params;
 
   return (

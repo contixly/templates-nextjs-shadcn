@@ -1,9 +1,12 @@
 import { redirect } from "next/navigation";
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { SettingsPageSection } from "@components/application/settings/settings-shell";
 import workspaceRoutes from "@features/workspaces/workspaces-routes";
 import { buildPageMetadata } from "@lib/metadata";
 import { WorkspaceSettingsPlaceholderPage } from "@features/workspaces/components/pages/workspace-settings-placeholder-page";
+import { WorkspaceSettingsRouteIntro } from "@features/workspaces/components/pages/workspace-settings-route-intro";
+import { WorkspaceSettingsPlaceholderPageSkeleton } from "@features/workspaces/components/pages/workspace-settings-skeletons";
 import { loadWorkspaceSettingsPageContext } from "@features/workspaces/workspaces-settings";
 
 interface WorkspaceSettingsRolesPageProps {
@@ -15,9 +18,24 @@ export const generateMetadata = async ({
 }: WorkspaceSettingsRolesPageProps): Promise<Metadata> =>
   buildPageMetadata(workspaceRoutes.pages.settings_roles, await params);
 
-export default async function WorkspaceSettingsRolesPage({
-  params,
-}: WorkspaceSettingsRolesPageProps) {
+export default function WorkspaceSettingsRolesPage({ params }: WorkspaceSettingsRolesPageProps) {
+  return (
+    <>
+      <WorkspaceSettingsRouteIntro pageKey="settings_roles" />
+      <Suspense
+        fallback={
+          <SettingsPageSection mode="readable">
+            <WorkspaceSettingsPlaceholderPageSkeleton />
+          </SettingsPageSection>
+        }
+      >
+        <WorkspaceSettingsRolesContent params={params} />
+      </Suspense>
+    </>
+  );
+}
+
+export async function WorkspaceSettingsRolesContent({ params }: WorkspaceSettingsRolesPageProps) {
   const { organizationKey } = await params;
   const { canonicalOrganizationKey } = await loadWorkspaceSettingsPageContext(organizationKey);
 
@@ -31,7 +49,7 @@ export default async function WorkspaceSettingsRolesPage({
 
   return (
     <SettingsPageSection mode="readable">
-      <WorkspaceSettingsPlaceholderPage section="roles" />
+      <WorkspaceSettingsPlaceholderPage section="roles" showIntro={false} />
     </SettingsPageSection>
   );
 }

@@ -9,15 +9,15 @@ import {
   IconUsersGroup,
 } from "@tabler/icons-react";
 
-type WorkspacesPages =
-  | "workspaces"
-  | "workspace"
-  | "settings"
+export type WorkspaceSettingsPages =
   | "settings_workspace"
   | "settings_invitations"
   | "settings_users"
   | "settings_teams"
   | "settings_roles";
+
+type WorkspacesPages = "workspaces" | "workspace" | "settings" | WorkspaceSettingsPages;
+
 export type WorkspaceRoutes = Feature<WorkspacesPages>;
 
 const workspaceRoutes: WorkspaceRoutes = buildFeature<WorkspacesPages>("workspaces", {

@@ -1,9 +1,12 @@
 import { redirect } from "next/navigation";
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { SettingsPageSection } from "@components/application/settings/settings-shell";
 import workspaceRoutes from "@features/workspaces/workspaces-routes";
 import { buildPageMetadata } from "@lib/metadata";
-import { WorkspaceSettingsTeamsPage as WorkspaceSettingsTeamsContent } from "@features/workspaces/components/pages/workspace-settings-teams-page";
+import { WorkspaceSettingsTeamsPage as WorkspaceSettingsTeamsPageComponent } from "@features/workspaces/components/pages/workspace-settings-teams-page";
+import { WorkspaceSettingsRouteIntro } from "@features/workspaces/components/pages/workspace-settings-route-intro";
+import { WorkspaceSettingsTeamsPageSkeleton } from "@features/workspaces/components/pages/workspace-settings-skeletons";
 import { loadWorkspaceSettingsTeamsPageContext } from "@features/workspaces/workspaces-settings";
 
 interface WorkspaceSettingsTeamsPageProps {
@@ -15,9 +18,24 @@ export const generateMetadata = async ({
 }: WorkspaceSettingsTeamsPageProps): Promise<Metadata> =>
   buildPageMetadata(workspaceRoutes.pages.settings_teams, await params);
 
-export default async function WorkspaceSettingsTeamsPage({
-  params,
-}: WorkspaceSettingsTeamsPageProps) {
+export default function WorkspaceSettingsTeamsPage({ params }: WorkspaceSettingsTeamsPageProps) {
+  return (
+    <>
+      <WorkspaceSettingsRouteIntro pageKey="settings_teams" />
+      <Suspense
+        fallback={
+          <SettingsPageSection mode="wide">
+            <WorkspaceSettingsTeamsPageSkeleton />
+          </SettingsPageSection>
+        }
+      >
+        <WorkspaceSettingsTeamsContent params={params} />
+      </Suspense>
+    </>
+  );
+}
+
+export async function WorkspaceSettingsTeamsContent({ params }: WorkspaceSettingsTeamsPageProps) {
   const { organizationKey } = await params;
   const {
     workspace,
@@ -42,7 +60,7 @@ export default async function WorkspaceSettingsTeamsPage({
 
   return (
     <SettingsPageSection mode="wide">
-      <WorkspaceSettingsTeamsContent
+      <WorkspaceSettingsTeamsPageComponent
         organizationId={workspace.id}
         teams={teams}
         teamMembersByTeamId={teamMembersByTeamId}
@@ -52,6 +70,7 @@ export default async function WorkspaceSettingsTeamsPage({
         canDeleteTeams={canDeleteTeams}
         canAddTeamMembers={canAddTeamMembers}
         canRemoveTeamMembers={canRemoveTeamMembers}
+        showIntro={false}
       />
     </SettingsPageSection>
   );

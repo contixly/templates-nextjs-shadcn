@@ -1,9 +1,12 @@
 import { redirect } from "next/navigation";
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { SettingsPageSection } from "@components/application/settings/settings-shell";
 import workspaceRoutes from "@features/workspaces/workspaces-routes";
 import { buildPageMetadata } from "@lib/metadata";
-import { WorkspaceSettingsInvitationsPage as WorkspaceSettingsInvitationsContent } from "@features/workspaces/components/pages/workspace-settings-invitations-page";
+import { WorkspaceSettingsInvitationsPage as WorkspaceSettingsInvitationsPageComponent } from "@features/workspaces/components/pages/workspace-settings-invitations-page";
+import { WorkspaceSettingsRouteIntro } from "@features/workspaces/components/pages/workspace-settings-route-intro";
+import { WorkspaceSettingsInvitationsPageSkeleton } from "@features/workspaces/components/pages/workspace-settings-skeletons";
 import { loadWorkspaceSettingsInvitationsPageContext } from "@features/workspaces/workspaces-invitations";
 import { getWorkspaceAllowedEmailDomains } from "@features/workspaces/workspaces-domain-restrictions";
 
@@ -16,7 +19,26 @@ export const generateMetadata = async ({
 }: WorkspaceSettingsInvitationsPageProps): Promise<Metadata> =>
   buildPageMetadata(workspaceRoutes.pages.settings_invitations, await params);
 
-export default async function WorkspaceSettingsInvitationsPage({
+export default function WorkspaceSettingsInvitationsPage({
+  params,
+}: WorkspaceSettingsInvitationsPageProps) {
+  return (
+    <>
+      <WorkspaceSettingsRouteIntro pageKey="settings_invitations" />
+      <Suspense
+        fallback={
+          <SettingsPageSection mode="wide">
+            <WorkspaceSettingsInvitationsPageSkeleton />
+          </SettingsPageSection>
+        }
+      >
+        <WorkspaceSettingsInvitationsContent params={params} />
+      </Suspense>
+    </>
+  );
+}
+
+export async function WorkspaceSettingsInvitationsContent({
   params,
 }: WorkspaceSettingsInvitationsPageProps) {
   const { organizationKey } = await params;
@@ -39,13 +61,14 @@ export default async function WorkspaceSettingsInvitationsPage({
 
   return (
     <SettingsPageSection mode="wide">
-      <WorkspaceSettingsInvitationsContent
+      <WorkspaceSettingsInvitationsPageComponent
         organizationId={workspace.id}
         invitations={invitations}
         teams={teams}
         canCreateInvitations={canCreateInvitations}
         assignableWorkspaceRoles={assignableWorkspaceRoles}
         allowedEmailDomains={getWorkspaceAllowedEmailDomains(workspace.metadata)}
+        showIntro={false}
       />
     </SettingsPageSection>
   );

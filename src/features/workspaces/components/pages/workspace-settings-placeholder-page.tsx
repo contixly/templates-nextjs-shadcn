@@ -11,19 +11,23 @@ export type WorkspaceSettingsPlaceholderSection = "invitations" | "users" | "tea
 
 interface WorkspaceSettingsPlaceholderPageProps {
   section: WorkspaceSettingsPlaceholderSection;
+  showIntro?: boolean;
 }
 
 export const WorkspaceSettingsPlaceholderPage = ({
   section,
+  showIntro = true,
 }: WorkspaceSettingsPlaceholderPageProps) => {
   const t = useTranslations("workspaces.ui.settingsPlaceholder");
 
   return (
     <>
-      <SettingsPageIntro
-        title={t(`sections.${section}.pageTitle`)}
-        description={t(`sections.${section}.pageDescription`)}
-      />
+      {showIntro ? (
+        <SettingsPageIntro
+          title={t(`sections.${section}.pageTitle`)}
+          description={t(`sections.${section}.pageDescription`)}
+        />
+      ) : null}
       <SettingsSection
         title={t(`sections.${section}.title`)}
         description={t(`sections.${section}.description`)}

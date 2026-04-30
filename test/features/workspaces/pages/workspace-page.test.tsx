@@ -1,5 +1,5 @@
 import "@testing-library/jest-dom";
-import { render, screen } from "@testing-library/react";
+import { render } from "@testing-library/react";
 import React from "react";
 import fs from "node:fs";
 import path from "node:path";
@@ -51,7 +51,7 @@ describe("workspace page route", () => {
   it("redirects slug-based links to the dashboard when the workspace belongs to the current user", async () => {
     const pageModule =
       await import("../../../../src/app/(protected)/(global)/w/[organizationKey]/page");
-    const element = await pageModule.default({
+    const element = await pageModule.WorkspacePageRedirectContent({
       params: Promise.resolve({ organizationKey: "client-workspace" }),
     });
 
@@ -67,7 +67,7 @@ describe("workspace page route", () => {
   it("redirects existing id-based links to the slug-preferred dashboard url", async () => {
     const pageModule =
       await import("../../../../src/app/(protected)/(global)/w/[organizationKey]/page");
-    const element = await pageModule.default({
+    const element = await pageModule.WorkspacePageRedirectContent({
       params: Promise.resolve({ organizationKey: "workspace-123" }),
     });
 
@@ -81,31 +81,43 @@ describe("workspace page route", () => {
   it("renders the forbidden route state when the workspace is not accessible", async () => {
     const pageModule =
       await import("../../../../src/app/(protected)/(global)/w/[organizationKey]/page");
-    const element = await pageModule.default({
+    const element = await pageModule.WorkspacePageRedirectContent({
       params: Promise.resolve({ organizationKey: "workspace-404" }),
     });
 
     expect(() => render(element)).toThrow("forbidden");
   });
+
+  it("returns a local Suspense shell immediately for redirect handling", async () => {
+    const pageModule =
+      await import("../../../../src/app/(protected)/(global)/w/[organizationKey]/page");
+
+    const element = pageModule.default({
+      params: Promise.resolve({ organizationKey: "client-workspace" }),
+    });
+
+    expect(React.isValidElement(element)).toBe(true);
+  });
 });
 
 describe("workspace page loading route", () => {
-  it("renders a loading spinner from loading.tsx", async () => {
-    const pageModule =
-      await import("../../../../src/app/(protected)/(global)/w/[organizationKey]/loading");
+  it("does not define a full-route loading fallback for workspace pages", () => {
+    const loadingPath = path.join(
+      process.cwd(),
+      "src/app/(protected)/(global)/w/[organizationKey]/loading.tsx"
+    );
 
-    render(<pageModule.default />);
-
-    expect(screen.getByRole("status", { name: "Loading" })).toBeInTheDocument();
+    expect(fs.existsSync(loadingPath)).toBe(false);
   });
 
-  it("keeps the full-route fallback in loading.tsx instead of defining page-level Suspense in page.tsx", () => {
+  it("keeps the redirect-only route behind a local empty Suspense fallback", () => {
     const pageSource = fs.readFileSync(
       path.join(process.cwd(), "src/app/(protected)/(global)/w/[organizationKey]/page.tsx"),
       "utf8"
     );
 
-    expect(pageSource).not.toContain("Suspense");
-    expect(pageSource).not.toContain("fallback=");
+    expect(pageSource).toContain("Suspense");
+    expect(pageSource).toContain("fallback={null}");
+    expect(pageSource).not.toContain("Spinner");
   });
 });
