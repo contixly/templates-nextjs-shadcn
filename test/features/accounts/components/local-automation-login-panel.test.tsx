@@ -85,4 +85,16 @@ describe("LocalAutomationLoginPanel", () => {
     expect(routerPushMock).not.toHaveBeenCalled();
     expect(routerRefreshMock).not.toHaveBeenCalled();
   });
+
+  it("shows a network error without navigating when the request fails", async () => {
+    fetchMock.mockRejectedValue(new Error("network"));
+
+    render(<LocalAutomationLoginPanel />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Create local automation user" }));
+
+    expect(await screen.findByText("local_automation_network_error")).toBeVisible();
+    expect(routerPushMock).not.toHaveBeenCalled();
+    expect(routerRefreshMock).not.toHaveBeenCalled();
+  });
 });

@@ -24,6 +24,7 @@ type LocalAutomationScenarioResult =
 const LOCAL_AUTOMATION_SCENARIO_PATH = "/api/local-auth/scenario";
 const DEFAULT_REDIRECT_PATH = "/dashboard";
 const FALLBACK_ERROR_MESSAGE = "local_automation_sign_up_failed";
+const NETWORK_ERROR_MESSAGE = "local_automation_network_error";
 
 export const LocalAutomationLoginPanel = () => {
   const router = useRouter();
@@ -59,7 +60,7 @@ export const LocalAutomationLoginPanel = () => {
       router.refresh();
       router.push(redirect);
     } catch {
-      setError(FALLBACK_ERROR_MESSAGE);
+      setError(NETWORK_ERROR_MESSAGE);
     } finally {
       setIsPending(false);
     }
