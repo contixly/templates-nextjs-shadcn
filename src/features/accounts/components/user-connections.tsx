@@ -44,7 +44,13 @@ const UserConnectionsComponent = ({
   const accounts = use(loadCurrentUserAccountsPromise);
   const lastMethod = use(getLastLoginPromise);
   const socialProviders = getSocialProvidersByIds(socialProviderIds);
-  const canUnlink = accounts && accounts.length > 1;
+  const accountsByProviderId = new Map(accounts?.map((account) => [account.providerId, account]));
+  const linkedConfiguredProviderIds = new Set(
+    socialProviders
+      .filter((provider) => accountsByProviderId.has(provider.id))
+      .map((provider) => provider.id)
+  );
+  const canUnlink = linkedConfiguredProviderIds.size > 1;
   const [isPending, setIsPending] = useState(false);
   const router = useRouter();
 
@@ -101,7 +107,7 @@ const UserConnectionsComponent = ({
     <ItemGroup>
       {socialProviders.map((provider) => {
         const isLastUsed = lastMethod === provider.id;
-        const account = accounts?.find((a) => a.providerId === provider.id);
+        const account = accountsByProviderId.get(provider.id);
 
         return (
           <Item key={provider.id} variant="outline" className="rounded-lg px-4 py-4 text-sm">
