@@ -24,6 +24,7 @@ import { LocalAutomationLoginPanel } from "@features/accounts/components/forms/l
 
 describe("LocalAutomationLoginPanel", () => {
   const fetchMock = jest.fn();
+  const originalFetch = global.fetch;
 
   beforeEach(() => {
     fetchMock.mockReset();
@@ -32,6 +33,10 @@ describe("LocalAutomationLoginPanel", () => {
     searchParamsGetMock.mockReset();
     searchParamsGetMock.mockReturnValue(null);
     global.fetch = fetchMock;
+  });
+
+  afterEach(() => {
+    global.fetch = originalFetch;
   });
 
   it("creates a local automation user and navigates to the default dashboard", async () => {
