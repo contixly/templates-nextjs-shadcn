@@ -7,18 +7,29 @@ import { NavWorkspaceSettingsSkeleton } from "@features/workspaces/components/na
 import { WorkspaceOnboardingGuard } from "@features/workspaces/components/ui/workspace-onboarding-guard";
 import { hasWorkspacePermission } from "@features/workspaces/workspaces-permissions";
 
-export default function WorkspaceSettingsLayout({
+export default async function WorkspaceSettingsLayout({
   children,
   params,
 }: Readonly<{
   children: React.ReactNode;
   params: Promise<{ organizationKey: string }>;
 }>) {
+  const { organizationKey } = await params;
+  const organization = await loadAccessibleOrganization(organizationKey);
+
+  if (!organization) {
+    return <WorkspaceOnboardingGuard />;
+  }
+  const canonicalOrganizationKey = getOrganizationRouteKey(organization);
+
   return (
     <SettingsPageShell
       nav={
         <Suspense fallback={<NavWorkspaceSettingsSkeleton className="w-full shrink-0 md:w-64" />}>
-          <WorkspaceSettingsNav params={params} />
+          <WorkspaceSettingsNav
+            organizationId={organization.id}
+            organizationKey={canonicalOrganizationKey}
+          />
         </Suspense>
       }
     >
@@ -28,24 +39,19 @@ export default function WorkspaceSettingsLayout({
 }
 
 export async function WorkspaceSettingsNav({
-  params,
+  organizationId,
+  organizationKey,
 }: Readonly<{
-  params: Promise<{ organizationKey: string }>;
+  organizationId: string;
+  organizationKey: string;
 }>) {
-  const { organizationKey } = await params;
-  const organization = await loadAccessibleOrganization(organizationKey);
-
-  if (!organization) {
-    return <WorkspaceOnboardingGuard />;
-  }
-
-  const canCreateInvitations = await hasWorkspacePermission(organization.id, {
+  const canCreateInvitations = await hasWorkspacePermission(organizationId, {
     invitation: ["create"],
   });
 
   return (
     <NavWorkspaceSettings
-      organizationKey={getOrganizationRouteKey(organization)}
+      organizationKey={organizationKey}
       canCreateInvitations={canCreateInvitations}
     />
   );
