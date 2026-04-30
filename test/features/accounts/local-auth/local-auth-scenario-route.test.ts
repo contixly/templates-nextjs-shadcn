@@ -212,6 +212,87 @@ describe("local automation scenario route", () => {
     });
   });
 
+  it("retries generated credentials when Better Auth reports a duplicate email", async () => {
+    generateLocalAutomationCredentialsMock
+      .mockReturnValueOnce({
+        name: "Local Automation first",
+        email: "local-agent+first@local-agent.test",
+        password: "local-first-abcdefghijklmnopqrstuvwxyz123456",
+      })
+      .mockReturnValueOnce({
+        name: "Local Automation second",
+        email: "local-agent+second@local-agent.test",
+        password: "local-second-abcdefghijklmnopqrstuvwxyz123456",
+      });
+    authHandlerMock
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ message: "User already exists" }), { status: 422 })
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            user: {
+              id: "user_2",
+              email: "local-agent+second@local-agent.test",
+              name: "Local Automation second",
+            },
+          }),
+          {
+            status: 200,
+            headers: {
+              "content-type": "application/json",
+              "set-cookie": "acc.session=second-token; Path=/; HttpOnly",
+            },
+          }
+        )
+      );
+
+    const response = await POST(jsonRequest("POST"));
+
+    expect(response.status).toBe(201);
+    expect(authHandlerMock).toHaveBeenCalledTimes(2);
+    expect(generateLocalAutomationCredentialsMock).toHaveBeenCalledTimes(2);
+
+    const secondAuthRequest = authHandlerMock.mock.calls[1]?.[0] as Request;
+    await expect(secondAuthRequest.json()).resolves.toEqual({
+      name: "Local Automation second",
+      email: "local-agent+second@local-agent.test",
+      password: "local-second-abcdefghijklmnopqrstuvwxyz123456",
+      rememberMe: true,
+    });
+
+    expect(await readJson(response)).toEqual({
+      success: true,
+      data: {
+        user: {
+          id: "user_2",
+          email: "local-agent+second@local-agent.test",
+          name: "Local Automation second",
+        },
+        email: "local-agent+second@local-agent.test",
+        password: "local-second-abcdefghijklmnopqrstuvwxyz123456",
+        cleanupUrl: "/api/local-auth/scenario",
+      },
+    });
+  });
+
+  it("returns 404 from cleanup when the local feature gate is disabled", async () => {
+    isLocalAutomationAuthEnabledMock.mockReturnValue(false);
+
+    const response = await DELETE(jsonRequest("DELETE", undefined, "acc.session=token"));
+
+    expect(response.status).toBe(404);
+    expect(await readJson(response)).toEqual({
+      success: false,
+      error: {
+        message: "local_automation_auth_disabled",
+        code: 404,
+      },
+    });
+    expect(getSessionMock).not.toHaveBeenCalled();
+    expect(authHandlerMock).not.toHaveBeenCalled();
+  });
+
   it("requires a Better Auth session for cleanup", async () => {
     getSessionMock.mockResolvedValue(null);
 
