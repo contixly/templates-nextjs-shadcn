@@ -38,8 +38,7 @@ export type LocalAutomationErrorResponse = {
 };
 
 export const isLocalAutomationAuthEnabled = () =>
-  process.env.NODE_ENV !== "production" &&
-  process.env[LOCAL_AUTOMATION_AUTH_ENV_KEY] === "true";
+  process.env.NODE_ENV !== "production" && process.env[LOCAL_AUTOMATION_AUTH_ENV_KEY] === "true";
 
 const normalizeSeed = (seed: string) =>
   seed
