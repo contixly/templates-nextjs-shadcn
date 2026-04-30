@@ -9,6 +9,7 @@ import {
   APP_COOKIE_PREFIX,
   LAST_LOGIN_METHOD_KEY,
 } from "@lib/environment";
+import { isLocalAutomationAuthEnabled } from "@features/accounts/accounts-local-auth";
 import { nextCookies } from "better-auth/next-js";
 import { BetterAuthOptions } from "@better-auth/core";
 import { prismaAdapter } from "@better-auth/prisma-adapter";
@@ -47,7 +48,9 @@ export const auth = betterAuth({
     provider: "postgresql",
   }),
   emailAndPassword: {
-    enabled: false,
+    enabled: isLocalAutomationAuthEnabled(),
+    autoSignIn: true,
+    requireEmailVerification: false,
   },
   user: {
     deleteUser: {
