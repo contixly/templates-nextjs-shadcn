@@ -47,7 +47,7 @@ The feature is enabled only when all of these are true:
 
 When enabled, Better Auth email/password is available for local automation users. A local route handler creates a unique credential user through Better Auth, sets the Better Auth session cookie, and returns the generated credentials for the test runner. A local-only login page panel calls the same route so browser-driven agents can create a new authenticated user without leaving the app.
 
-Cleanup is a protected local route. It validates the current session, confirms the current user is in the automation email namespace, removes local-only organizations owned solely by that user, and then deletes the user through Better Auth.
+Cleanup is a protected local route. It validates the current session, confirms the current user is in the automation email namespace, captures organizations where that user is currently the only member, deletes the user through Better Auth, and then removes only those candidate organizations that are now memberless after the user deletion cascade.
 
 ## Design
 
@@ -123,12 +123,12 @@ Behavior:
 - Return `404` when the local feature gate is disabled.
 - Return `401` when there is no current Better Auth session.
 - Return `403` when the current user is not in the automation namespace.
-- Delete organizations where the automation user is the only member.
 - Delete the current user through Better Auth `deleteUser`.
+- Delete candidate organizations only after Better Auth confirms user deletion, and only when those organizations are now memberless.
 - Sign out and clear the session cookie through Better Auth behavior.
 - Return `{ success: true }` when cleanup completes.
 
-Organizations with other members should not be deleted by this route. The user deletion cascade will remove the automation user's memberships and team memberships.
+Organizations with other members should not be deleted by this route. The user deletion cascade will remove the automation user's memberships and team memberships; the cleanup route deletes only previously captured candidate organizations that have no remaining members.
 
 ### 5. UI Entry Point
 
@@ -190,7 +190,7 @@ Route handlers should return compact JSON errors with stable message strings tha
 - The feature is opt-in and non-production only.
 - The UI does not render when the local gate is disabled.
 - Cleanup validates both an authenticated Better Auth session and the automation email namespace.
-- The cleanup route deletes only organizations where the current automation user is the sole member.
+- The cleanup route deletes the user before deleting organizations, and removes only previously captured candidate organizations that are memberless after the user deletion cascade.
 - No static shared password is introduced.
 - The generated password is returned once to the caller for local testing only.
 
@@ -202,7 +202,7 @@ Route handlers should return compact JSON errors with stable message strings tha
 - Feature gate helper returns false when the local env flag is absent.
 - Feature gate helper returns true only in non-production with `LOCAL_AUTOMATION_AUTH_ENABLED=true`.
 - Automation email namespace validation accepts generated local-agent users and rejects normal emails.
-- Cleanup organization selection targets only sole-member organizations.
+- Cleanup organization selection targets only sole-member organizations, and cleanup deletion targets only memberless candidate organizations after user deletion.
 
 ### Route Tests
 

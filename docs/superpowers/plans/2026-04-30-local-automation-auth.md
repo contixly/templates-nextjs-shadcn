@@ -253,6 +253,8 @@ git commit -m "feat: add local automation auth helper"
 - Create: `src/features/accounts/accounts-local-auth-repository.ts`
 - Create: `test/features/accounts/local-auth/accounts-local-auth-repository.test.ts`
 
+**Safety amendment from implementation review:** keep the sole-member lookup and guarded sole-member delete helper, and also add `deleteMemberlessOrganizationsByIds(organizationIds)`. Route cleanup must delete the Better Auth user first, then delete only previously captured candidate organizations that are now memberless via `members: { none: {} }`.
+
 - [ ] **Step 1: Write the failing cleanup repository tests**
 
 Create `test/features/accounts/local-auth/accounts-local-auth-repository.test.ts`:
@@ -408,6 +410,23 @@ export const deleteSoleMemberOrganizationsForUser = async (
     },
   });
 };
+
+export const deleteMemberlessOrganizationsByIds = async (organizationIds: string[]) => {
+  if (organizationIds.length === 0) {
+    return { count: 0 };
+  }
+
+  return prisma.organization.deleteMany({
+    where: {
+      id: {
+        in: organizationIds,
+      },
+      members: {
+        none: {},
+      },
+    },
+  });
+};
 ```
 
 - [ ] **Step 4: Run the cleanup repository tests and verify they pass**
@@ -514,6 +533,8 @@ git commit -m "feat: gate local automation auth"
 **Files:**
 - Create: `src/app/api/local-auth/scenario/route.ts`
 - Create: `test/features/accounts/local-auth/local-auth-scenario-route.test.ts`
+
+**Safety amendment from implementation review:** cleanup must not delete organizations before Better Auth accepts user deletion. The final route sequence is: validate session and namespace, capture sole-member organization IDs, call Better Auth `/delete-user`, return `local_automation_cleanup_failed` if that fails, then call `deleteMemberlessOrganizationsByIds(organizationIds)`, revalidate, and return the delete count from that helper.
 
 - [ ] **Step 1: Write failing route handler tests**
 
