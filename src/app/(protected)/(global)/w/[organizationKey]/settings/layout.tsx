@@ -1,4 +1,4 @@
-import React, { Suspense } from "react";
+import React, { Suspense, use } from "react";
 import { SettingsPageShell } from "@components/application/settings/settings-shell";
 import { loadAccessibleOrganization } from "@features/organizations/components/organization-route-guard";
 import { getOrganizationRouteKey } from "@features/organizations/organizations-context";
@@ -7,18 +7,63 @@ import { NavWorkspaceSettingsSkeleton } from "@features/workspaces/components/na
 import { WorkspaceOnboardingGuard } from "@features/workspaces/components/ui/workspace-onboarding-guard";
 import { hasWorkspacePermission } from "@features/workspaces/workspaces-permissions";
 
+type WorkspaceSettingsParams = Promise<{ organizationKey: string }>;
+type AccessibleOrganization = Awaited<ReturnType<typeof loadAccessibleOrganization>>;
+
 export default function WorkspaceSettingsLayout({
   children,
   params,
 }: Readonly<{
   children: React.ReactNode;
-  params: Promise<{ organizationKey: string }>;
+  params: WorkspaceSettingsParams;
 }>) {
+  const organizationPromise = loadAccessibleOrganizationFromParams(params);
+
+  return (
+    <Suspense fallback={<WorkspaceSettingsLayoutFallback />}>
+      <WorkspaceSettingsLayoutContent organizationPromise={organizationPromise}>
+        {children}
+      </WorkspaceSettingsLayoutContent>
+    </Suspense>
+  );
+}
+
+const loadAccessibleOrganizationFromParams = async (params: WorkspaceSettingsParams) => {
+  const { organizationKey } = await params;
+
+  return loadAccessibleOrganization(organizationKey);
+};
+
+function WorkspaceSettingsLayoutFallback() {
+  return <SettingsPageShell nav={<WorkspaceSettingsNavFallback />} />;
+}
+
+function WorkspaceSettingsNavFallback() {
+  return <NavWorkspaceSettingsSkeleton className="w-full shrink-0 md:w-64" />;
+}
+
+function WorkspaceSettingsLayoutContent({
+  children,
+  organizationPromise,
+}: Readonly<{
+  children: React.ReactNode;
+  organizationPromise: Promise<AccessibleOrganization>;
+}>) {
+  const organization = use(organizationPromise);
+
+  if (!organization) {
+    return <WorkspaceOnboardingGuard />;
+  }
+  const canonicalOrganizationKey = getOrganizationRouteKey(organization);
+
   return (
     <SettingsPageShell
       nav={
-        <Suspense fallback={<NavWorkspaceSettingsSkeleton className="w-full shrink-0 md:w-64" />}>
-          <WorkspaceSettingsNav params={params} />
+        <Suspense fallback={<WorkspaceSettingsNavFallback />}>
+          <WorkspaceSettingsNav
+            organizationId={organization.id}
+            organizationKey={canonicalOrganizationKey}
+          />
         </Suspense>
       }
     >
@@ -28,24 +73,19 @@ export default function WorkspaceSettingsLayout({
 }
 
 export async function WorkspaceSettingsNav({
-  params,
+  organizationId,
+  organizationKey,
 }: Readonly<{
-  params: Promise<{ organizationKey: string }>;
+  organizationId: string;
+  organizationKey: string;
 }>) {
-  const { organizationKey } = await params;
-  const organization = await loadAccessibleOrganization(organizationKey);
-
-  if (!organization) {
-    return <WorkspaceOnboardingGuard />;
-  }
-
-  const canCreateInvitations = await hasWorkspacePermission(organization.id, {
+  const canCreateInvitations = await hasWorkspacePermission(organizationId, {
     invitation: ["create"],
   });
 
   return (
     <NavWorkspaceSettings
-      organizationKey={getOrganizationRouteKey(organization)}
+      organizationKey={organizationKey}
       canCreateInvitations={canCreateInvitations}
     />
   );
