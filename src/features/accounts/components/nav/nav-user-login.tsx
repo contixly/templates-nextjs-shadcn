@@ -7,7 +7,7 @@ import { Button, buttonVariants } from "@components/ui/button";
 import { IconArrowRight } from "@tabler/icons-react";
 import routes from "@features/routes";
 import { VariantProps } from "class-variance-authority";
-import { socialsProviders } from "@typings/auth";
+import { getSocialProvidersByIds, SocialProvider } from "@typings/auth";
 import { ProviderButton } from "@features/accounts/components/ui/provider-button";
 import Link from "@components/ui/custom/animated-link";
 import { useTranslations } from "next-intl";
@@ -15,6 +15,7 @@ import { useTranslations } from "next-intl";
 type NavUserLoginProps = {
   loadCurrentUserIdPromise: Promise<string | null>;
   getLastLoginPromise: Promise<string | undefined>;
+  socialProviderIds: SocialProvider["id"][];
   dotShowLogout?: boolean;
   showHomepageCTA?: boolean;
 } & VariantProps<typeof buttonVariants> & {
@@ -31,11 +32,13 @@ const NavUserLoginComponent = ({
   getLastLoginPromise,
   dotShowLogout,
   showHomepageCTA,
+  socialProviderIds,
   ...props
 }: NavUserLoginProps) => {
   const t = useTranslations("application.ui.navigation");
   const userId = use(loadCurrentUserIdPromise);
   const lastMethod = use(getLastLoginPromise);
+  const socialProviders = getSocialProvidersByIds(socialProviderIds);
   const [isPending, setIsPending] = useState(false);
 
   if (!userId && !showHomepageCTA) {
@@ -56,7 +59,7 @@ const NavUserLoginComponent = ({
           </Link>
         </Button>
         {lastMethod &&
-          socialsProviders
+          socialProviders
             .filter((provider) => provider.id === lastMethod)
             .map((provider) => (
               <ProviderButton

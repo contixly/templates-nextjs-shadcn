@@ -7,7 +7,7 @@ import {
   IconBrandVk,
   IconBrandYandex,
 } from "@tabler/icons-react";
-import { YandexSocialProvider } from "@server/auth/yandex-oauth2-client";
+import type { YandexSocialProvider } from "@server/auth/yandex-oauth2-client";
 
 type CustomSocialProvider = YandexSocialProvider;
 export type SocialProviderType = "default" | "oauth2";
@@ -26,3 +26,9 @@ export const socialsProviders: SocialProvider[] = [
   { id: "vk", name: "VK", icon: IconBrandVk, type: "default" },
   { id: "yandex", name: "Yandex", icon: IconBrandYandex, type: "oauth2" },
 ] as const;
+
+export const getSocialProvidersByIds = (ids: readonly string[]): SocialProvider[] => {
+  const enabledProviderIds = new Set(ids);
+
+  return socialsProviders.filter((provider) => enabledProviderIds.has(provider.id));
+};

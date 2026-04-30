@@ -12,16 +12,18 @@ import {
 import { Field, FieldDescription } from "@components/ui/field";
 import React, { Suspense, use, useState } from "react";
 import { Spinner } from "@components/ui/spinner";
-import { socialsProviders } from "@typings/auth";
+import { getSocialProvidersByIds, SocialProvider } from "@typings/auth";
 import { ProviderButton } from "@features/accounts/components/ui/provider-button";
 import { useTranslations } from "next-intl";
 
 interface LoginFormProps extends React.ComponentProps<"div"> {
   getLastLoginPromise: Promise<string | undefined | null>;
+  socialProviderIds: SocialProvider["id"][];
 }
 
-const LoginFormComponent = ({ getLastLoginPromise }: LoginFormProps) => {
+const LoginFormComponent = ({ getLastLoginPromise, socialProviderIds }: LoginFormProps) => {
   const lastMethod = use(getLastLoginPromise);
+  const socialProviders = getSocialProvidersByIds(socialProviderIds);
   const [isPending, setIsPending] = useState(false);
 
   return (
@@ -33,7 +35,7 @@ const LoginFormComponent = ({ getLastLoginPromise }: LoginFormProps) => {
       )}
       {!isPending && (
         <Field className="flex-1 items-center justify-center gap-4">
-          {socialsProviders.map((provider) => (
+          {socialProviders.map((provider) => (
             <ProviderButton
               key={provider.id}
               provider={provider}

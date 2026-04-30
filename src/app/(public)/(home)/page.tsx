@@ -15,6 +15,7 @@ import {
 import { getFromCookie } from "@lib/cookies";
 import { APP_BASE_DOMAIN, LAST_LOGIN_METHOD_KEY } from "@lib/environment";
 import { getTranslations } from "next-intl/server";
+import { getConfiguredSocialProviderIds } from "@server/auth/social-providers";
 
 export const generateMetadata = async (): Promise<Metadata> =>
   buildPageMetadata(applicationRoutes.pages.home);
@@ -23,6 +24,7 @@ export default async function HomePage() {
   const t = await getTranslations("application.pages.home");
   const loadCurrentUserIdPromise = loadCurrentUserId();
   const getLastLoginPromise = getFromCookie(LAST_LOGIN_METHOD_KEY);
+  const socialProviderIds = getConfiguredSocialProviderIds();
 
   return (
     <div className="flex flex-col">
@@ -48,6 +50,7 @@ export default async function HomePage() {
           <NavUserLogin
             loadCurrentUserIdPromise={loadCurrentUserIdPromise}
             getLastLoginPromise={getLastLoginPromise}
+            socialProviderIds={socialProviderIds}
             dotShowLogout
             showHomepageCTA
           />
@@ -165,6 +168,7 @@ export default async function HomePage() {
         <NavUserLogin
           loadCurrentUserIdPromise={loadCurrentUserIdPromise}
           getLastLoginPromise={getLastLoginPromise}
+          socialProviderIds={socialProviderIds}
           dotShowLogout
           showHomepageCTA
         />

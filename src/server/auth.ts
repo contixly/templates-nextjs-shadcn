@@ -13,7 +13,8 @@ import { nextCookies } from "better-auth/next-js";
 import { BetterAuthOptions } from "@better-auth/core";
 import { prismaAdapter } from "@better-auth/prisma-adapter";
 import { BetterAuthAdvancedOptions, isProduction } from "better-auth";
-import { socialsProviders } from "@typings/auth";
+import { SocialProvider } from "@typings/auth";
+import { getConfiguredSocialProviderIds } from "@server/auth/social-providers";
 import { YandexOAuth2ClientConfig } from "@server/auth/yandex-oauth2-client";
 
 type BetterAuthApiMethod = (...args: unknown[]) => Promise<unknown>;
@@ -42,6 +43,11 @@ const betterAuthTrustedOrigins = Array.from(
   new Set([APP_BASE_URL, process.env.BETTER_AUTH_URL].filter(Boolean) as string[])
 );
 
+const configuredSocialProviderIds = getConfiguredSocialProviderIds();
+const configuredSocialProviderIdSet = new Set(configuredSocialProviderIds);
+const isConfiguredSocialProvider = (provider: SocialProvider["id"]) =>
+  configuredSocialProviderIdSet.has(provider);
+
 export const auth = betterAuth({
   database: prismaAdapter(prisma, {
     provider: "postgresql",
@@ -64,28 +70,44 @@ export const auth = betterAuth({
       allowDifferentEmails: true,
       updateUserInfoOnLink: true,
       allowUnlinkingAll: false,
-      trustedProviders: socialsProviders.map((provider) => provider.id),
+      trustedProviders: configuredSocialProviderIds,
     },
   },
   socialProviders: {
-    google: {
-      prompt: isProduction ? "select_account" : undefined,
-      clientId: process.env.GOOGLE_CLIENT_ID as string,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
-    },
-    github: {
-      prompt: isProduction ? "select_account" : undefined,
-      clientId: process.env.GITHUB_CLIENT_ID as string,
-      clientSecret: process.env.GITHUB_CLIENT_SECRET as string,
-    },
-    gitlab: {
-      prompt: isProduction ? "select_account" : undefined,
-      clientId: process.env.GITLAB_CLIENT_ID as string,
-      clientSecret: process.env.GITLAB_CLIENT_SECRET as string,
-    },
-    vk: {
-      clientId: process.env.VK_CLIENT_ID as string,
-    },
+    ...(isConfiguredSocialProvider("google")
+      ? {
+          google: {
+            prompt: isProduction ? "select_account" : undefined,
+            clientId: process.env.GOOGLE_CLIENT_ID as string,
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
+          },
+        }
+      : {}),
+    ...(isConfiguredSocialProvider("github")
+      ? {
+          github: {
+            prompt: isProduction ? "select_account" : undefined,
+            clientId: process.env.GITHUB_CLIENT_ID as string,
+            clientSecret: process.env.GITHUB_CLIENT_SECRET as string,
+          },
+        }
+      : {}),
+    ...(isConfiguredSocialProvider("gitlab")
+      ? {
+          gitlab: {
+            prompt: isProduction ? "select_account" : undefined,
+            clientId: process.env.GITLAB_CLIENT_ID as string,
+            clientSecret: process.env.GITLAB_CLIENT_SECRET as string,
+          },
+        }
+      : {}),
+    ...(isConfiguredSocialProvider("vk")
+      ? {
+          vk: {
+            clientId: process.env.VK_CLIENT_ID as string,
+          },
+        }
+      : {}),
   },
   plugins: [
     nextCookies(),
@@ -110,9 +132,13 @@ export const auth = betterAuth({
         },
       },
     }),
-    genericOAuth({
-      config: [YandexOAuth2ClientConfig],
-    }),
+    ...(isConfiguredSocialProvider("yandex")
+      ? [
+          genericOAuth({
+            config: [YandexOAuth2ClientConfig],
+          }),
+        ]
+      : []),
   ],
   session: {
     cookieCache: {
