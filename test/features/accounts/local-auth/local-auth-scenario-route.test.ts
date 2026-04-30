@@ -53,6 +53,15 @@ const jsonRequest = (method: "POST" | "DELETE", body?: unknown, cookie?: string)
     body: body === undefined ? undefined : JSON.stringify(body),
   });
 
+const rawJsonRequest = (method: "POST" | "DELETE", body: string) =>
+  new Request("http://localhost:3000/api/local-auth/scenario", {
+    method,
+    headers: {
+      "content-type": "application/json",
+    },
+    body,
+  });
+
 const readJson = async (response: Response) => response.json() as Promise<Record<string, unknown>>;
 
 describe("local automation scenario route", () => {
@@ -129,6 +138,20 @@ describe("local automation scenario route", () => {
       success: false,
       error: {
         message: "local_automation_email_required",
+        code: 400,
+      },
+    });
+    expect(authHandlerMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects malformed JSON without creating a local automation user", async () => {
+    const response = await POST(rawJsonRequest("POST", "{"));
+
+    expect(response.status).toBe(400);
+    expect(await readJson(response)).toEqual({
+      success: false,
+      error: {
+        message: "local_automation_invalid_request",
         code: 400,
       },
     });

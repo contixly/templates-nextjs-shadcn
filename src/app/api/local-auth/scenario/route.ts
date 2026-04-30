@@ -44,20 +44,23 @@ const jsonError = (message: string, code: HttpCodes) =>
   );
 
 const readBody = async (request: Request): Promise<ScenarioBody | Response> => {
-  let body: unknown = {};
+  const rawBody = await request.text();
+  if (!rawBody.trim()) {
+    return {};
+  }
 
   try {
-    body = await request.json();
-  } catch {
-    body = {};
-  }
+    const body: unknown = JSON.parse(rawBody);
 
-  const result = scenarioBodySchema.safeParse(body);
-  if (!result.success) {
+    const result = scenarioBodySchema.safeParse(body);
+    if (!result.success) {
+      return jsonError("local_automation_invalid_request", HttpCodes.BAD_REQUEST);
+    }
+
+    return result.data;
+  } catch {
     return jsonError("local_automation_invalid_request", HttpCodes.BAD_REQUEST);
   }
-
-  return result.data;
 };
 
 const buildAuthHeaders = (request: Request) => {
