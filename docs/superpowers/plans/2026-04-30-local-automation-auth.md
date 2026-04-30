@@ -274,7 +274,7 @@ jest.mock("@server/prisma", () => ({
 }));
 
 import {
-  deleteOrganizationsByIds,
+  deleteSoleMemberOrganizationsForUser,
   findSoleMemberOrganizationIdsForUser,
 } from "@features/accounts/accounts-local-auth-repository";
 
@@ -310,20 +310,32 @@ describe("accounts local automation auth repository", () => {
     });
   });
 
-  it("deletes organizations by id and skips empty delete batches", async () => {
+  it("deletes sole-member organizations for the user and skips empty delete batches", async () => {
     organizationDeleteManyMock.mockResolvedValue({ count: 2 });
 
-    await expect(deleteOrganizationsByIds(["org_1", "org_2"])).resolves.toEqual({ count: 2 });
+    await expect(
+      deleteSoleMemberOrganizationsForUser("user_1", ["org_1", "org_2"])
+    ).resolves.toEqual({
+      count: 2,
+    });
     expect(organizationDeleteManyMock).toHaveBeenCalledWith({
       where: {
         id: {
           in: ["org_1", "org_2"],
         },
+        members: {
+          some: {
+            userId: "user_1",
+          },
+          every: {
+            userId: "user_1",
+          },
+        },
       },
     });
 
     organizationDeleteManyMock.mockClear();
-    await expect(deleteOrganizationsByIds([])).resolves.toEqual({ count: 0 });
+    await expect(deleteSoleMemberOrganizationsForUser("user_1", [])).resolves.toEqual({ count: 0 });
     expect(organizationDeleteManyMock).not.toHaveBeenCalled();
   });
 });
@@ -372,7 +384,10 @@ export const findSoleMemberOrganizationIdsForUser = async (userId: string) => {
     .map((organization) => organization.id);
 };
 
-export const deleteOrganizationsByIds = async (organizationIds: string[]) => {
+export const deleteSoleMemberOrganizationsForUser = async (
+  userId: string,
+  organizationIds: string[]
+) => {
   if (organizationIds.length === 0) {
     return { count: 0 };
   }
@@ -381,6 +396,14 @@ export const deleteOrganizationsByIds = async (organizationIds: string[]) => {
     where: {
       id: {
         in: organizationIds,
+      },
+      members: {
+        some: {
+          userId,
+        },
+        every: {
+          userId,
+        },
       },
     },
   });
@@ -503,7 +526,7 @@ const isLocalAutomationAuthEnabledMock = jest.fn();
 const isLocalAutomationEmailMock = jest.fn();
 const generateLocalAutomationCredentialsMock = jest.fn();
 const findSoleMemberOrganizationIdsForUserMock = jest.fn();
-const deleteOrganizationsByIdsMock = jest.fn();
+const deleteSoleMemberOrganizationsForUserMock = jest.fn();
 const authHandlerMock = jest.fn();
 const getSessionMock = jest.fn();
 const revalidatePathMock = jest.fn();
@@ -520,7 +543,8 @@ jest.mock("@features/accounts/accounts-local-auth", () => ({
 jest.mock("@features/accounts/accounts-local-auth-repository", () => ({
   findSoleMemberOrganizationIdsForUser: (...args: unknown[]) =>
     findSoleMemberOrganizationIdsForUserMock(...args),
-  deleteOrganizationsByIds: (...args: unknown[]) => deleteOrganizationsByIdsMock(...args),
+  deleteSoleMemberOrganizationsForUser: (...args: unknown[]) =>
+    deleteSoleMemberOrganizationsForUserMock(...args),
 }));
 
 jest.mock("@server/auth", () => ({
@@ -560,7 +584,7 @@ describe("local automation scenario route", () => {
     isLocalAutomationEmailMock.mockReset();
     generateLocalAutomationCredentialsMock.mockReset();
     findSoleMemberOrganizationIdsForUserMock.mockReset();
-    deleteOrganizationsByIdsMock.mockReset();
+    deleteSoleMemberOrganizationsForUserMock.mockReset();
     authHandlerMock.mockReset();
     getSessionMock.mockReset();
     revalidatePathMock.mockReset();
@@ -600,7 +624,7 @@ describe("local automation scenario route", () => {
       },
     });
     findSoleMemberOrganizationIdsForUserMock.mockResolvedValue(["org_1"]);
-    deleteOrganizationsByIdsMock.mockResolvedValue({ count: 1 });
+    deleteSoleMemberOrganizationsForUserMock.mockResolvedValue({ count: 1 });
   });
 
   it("returns 404 when the local feature gate is disabled", async () => {
@@ -736,7 +760,7 @@ describe("local automation scenario route", () => {
     const response = await DELETE(jsonRequest("DELETE", undefined, "acc.session=token"));
 
     expect(findSoleMemberOrganizationIdsForUserMock).toHaveBeenCalledWith("user_1");
-    expect(deleteOrganizationsByIdsMock).toHaveBeenCalledWith(["org_1"]);
+    expect(deleteSoleMemberOrganizationsForUserMock).toHaveBeenCalledWith("user_1", ["org_1"]);
     expect(authHandlerMock).toHaveBeenCalledTimes(1);
 
     const authRequest = authHandlerMock.mock.calls[0]?.[0] as Request;
@@ -782,7 +806,7 @@ import {
   type LocalAutomationScenarioResponse,
 } from "@features/accounts/accounts-local-auth";
 import {
-  deleteOrganizationsByIds,
+  deleteSoleMemberOrganizationsForUser,
   findSoleMemberOrganizationIdsForUser,
 } from "@features/accounts/accounts-local-auth-repository";
 import { APP_BASE_URL } from "@lib/environment";
@@ -962,7 +986,7 @@ export async function DELETE(request: Request) {
   }
 
   const organizationIds = await findSoleMemberOrganizationIdsForUser(session.user.id);
-  await deleteOrganizationsByIds(organizationIds);
+  await deleteSoleMemberOrganizationsForUser(session.user.id, organizationIds);
 
   const authResponse = await deleteCurrentUserWithBetterAuth(request);
   if (!authResponse.ok) {
