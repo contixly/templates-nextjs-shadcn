@@ -7,7 +7,17 @@ import { NavWorkspaceSettingsSkeleton } from "@features/workspaces/components/na
 import { WorkspaceOnboardingGuard } from "@features/workspaces/components/ui/workspace-onboarding-guard";
 import { hasWorkspacePermission } from "@features/workspaces/workspaces-permissions";
 
-export default async function WorkspaceSettingsLayout({
+export default function WorkspaceSettingsLayout({
+  children,
+  params,
+}: Readonly<{
+  children: React.ReactNode;
+  params: Promise<{ organizationKey: string }>;
+}>) {
+  return <WorkspaceSettingsLayoutContent params={params}>{children}</WorkspaceSettingsLayoutContent>;
+}
+
+async function WorkspaceSettingsLayoutContent({
   children,
   params,
 }: Readonly<{
