@@ -1,9 +1,11 @@
 import { LoginForm } from "@features/accounts/components/forms/login-form";
+import { LocalAutomationLoginPanel } from "@features/accounts/components/forms/local-automation-login-panel";
 import Image from "next/image";
 import { getFromCookie } from "@lib/cookies";
 import { LAST_LOGIN_METHOD_KEY } from "@lib/environment";
 import { buildPageMetadata, SITE_NAME } from "@lib/metadata";
 import accountsRoutes from "@features/accounts/accounts-routes";
+import { isLocalAutomationAuthEnabled } from "@features/accounts/accounts-local-auth";
 import routes from "@features/routes";
 import Link from "@components/ui/custom/animated-link";
 import { Metadata } from "next";
@@ -30,6 +32,7 @@ export default function LoginPage() {
           {SITE_NAME}
         </Link>
         <LoginForm getLastLoginPromise={getLastLoginPromise} />
+        {isLocalAutomationAuthEnabled() && <LocalAutomationLoginPanel />}
       </div>
     </div>
   );
