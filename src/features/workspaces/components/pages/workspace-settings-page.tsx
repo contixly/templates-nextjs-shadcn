@@ -13,19 +13,23 @@ interface WorkspaceSettingsPageProps {
   workspace: WorkspaceWithCounts;
   canUpdateWorkspace?: boolean;
   canDeleteWorkspace?: boolean;
+  showIntro?: boolean;
 }
 
 export const WorkspaceSettingsPage = ({
   workspace,
   canUpdateWorkspace = true,
   canDeleteWorkspace = false,
+  showIntro = true,
 }: WorkspaceSettingsPageProps) => {
   const tPage = useTranslations("workspaces.pages.settings_workspace");
   const t = useTranslations("workspaces.ui.settingsPage");
 
   return (
     <>
-      <SettingsPageIntro title={tPage("title")} description={tPage("description")} />
+      {showIntro ? (
+        <SettingsPageIntro title={tPage("title")} description={tPage("description")} />
+      ) : null}
 
       <SettingsSection title={t("identityTitle")} description={t("identityDescription")}>
         <div className="flex flex-col gap-4">

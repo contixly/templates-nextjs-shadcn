@@ -89,6 +89,7 @@ interface WorkspaceSettingsTeamsPageProps {
   canDeleteTeams: boolean;
   canAddTeamMembers: boolean;
   canRemoveTeamMembers: boolean;
+  showIntro?: boolean;
 }
 
 const getDisplayName = (member: Pick<WorkspaceTeamMemberDto, "name" | "email">) =>
@@ -523,6 +524,7 @@ export const WorkspaceSettingsTeamsPage = ({
   canDeleteTeams,
   canAddTeamMembers,
   canRemoveTeamMembers,
+  showIntro = true,
 }: WorkspaceSettingsTeamsPageProps) => {
   const tPage = useTranslations("workspaces.pages.settings_teams");
   const t = useTranslations("workspaces.ui.settingsTeamsPage");
@@ -531,7 +533,9 @@ export const WorkspaceSettingsTeamsPage = ({
 
   return (
     <>
-      <SettingsPageIntro title={tPage("title")} description={tPage("description")} />
+      {showIntro ? (
+        <SettingsPageIntro title={tPage("title")} description={tPage("description")} />
+      ) : null}
 
       <SettingsSection title={t("sectionTitle")} description={t("sectionDescription")}>
         <div className="flex flex-col gap-4">

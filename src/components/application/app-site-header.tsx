@@ -7,6 +7,7 @@ import { getFromCookie } from "@lib/cookies";
 import { LAST_LOGIN_METHOD_KEY } from "@lib/environment";
 import { loadUserWorkspaces } from "@features/workspaces/actions/load-user-workspaces";
 import { AppSiteHeaderTrigger } from "@components/application/app-site-header-trigger";
+import { getConfiguredSocialProviderIds } from "@server/auth/social-providers";
 
 interface AppSiteHeaderProps {
   hideSidebarTrigger?: boolean;
@@ -17,6 +18,7 @@ export const AppSiteHeader = ({ hideSidebarTrigger, style }: AppSiteHeaderProps)
   const loadCurrentUserIdPromise = loadCurrentUserId();
   const getLastLoginPromise = getFromCookie(LAST_LOGIN_METHOD_KEY);
   const loadUserWorkspacesPromise = loadUserWorkspaces();
+  const socialProviderIds = getConfiguredSocialProviderIds();
 
   return (
     <header
@@ -30,6 +32,7 @@ export const AppSiteHeader = ({ hideSidebarTrigger, style }: AppSiteHeaderProps)
           <NavUserLogin
             loadCurrentUserIdPromise={loadCurrentUserIdPromise}
             getLastLoginPromise={getLastLoginPromise}
+            socialProviderIds={socialProviderIds}
             dotShowLogout
             variant="outline"
           />

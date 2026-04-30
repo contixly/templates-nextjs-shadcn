@@ -3,7 +3,7 @@
 import React, { startTransition, Suspense, use, useCallback, useState } from "react";
 import { Account } from "better-auth";
 import { ErrorBoundary } from "react-error-boundary";
-import { SocialProvider, socialsProviders } from "@typings/auth";
+import { getSocialProvidersByIds, SocialProvider } from "@typings/auth";
 import { Badge } from "@components/ui/badge";
 import { timeTools } from "@lib/time";
 import { Button } from "@components/ui/button";
@@ -31,17 +31,26 @@ import { useLocale, useTranslations } from "next-intl";
 interface UserConnectionsProps {
   loadCurrentUserAccountsPromise: Promise<Account[] | undefined>;
   getLastLoginPromise: Promise<string | undefined | null>;
+  socialProviderIds: SocialProvider["id"][];
 }
 
 const UserConnectionsComponent = ({
   loadCurrentUserAccountsPromise,
   getLastLoginPromise,
+  socialProviderIds,
 }: UserConnectionsProps) => {
   const t = useTranslations("accounts.ui.connections");
   const locale = useLocale();
   const accounts = use(loadCurrentUserAccountsPromise);
   const lastMethod = use(getLastLoginPromise);
-  const canUnlink = accounts && accounts.length > 1;
+  const socialProviders = getSocialProvidersByIds(socialProviderIds);
+  const accountsByProviderId = new Map(accounts?.map((account) => [account.providerId, account]));
+  const linkedConfiguredProviderIds = new Set(
+    socialProviders
+      .filter((provider) => accountsByProviderId.has(provider.id))
+      .map((provider) => provider.id)
+  );
+  const canUnlink = linkedConfiguredProviderIds.size > 1;
   const [isPending, setIsPending] = useState(false);
   const router = useRouter();
 
@@ -96,9 +105,9 @@ const UserConnectionsComponent = ({
 
   return (
     <ItemGroup>
-      {socialsProviders?.map((provider) => {
+      {socialProviders.map((provider) => {
         const isLastUsed = lastMethod === provider.id;
-        const account = accounts?.find((a) => a.providerId === provider.id);
+        const account = accountsByProviderId.get(provider.id);
 
         return (
           <Item key={provider.id} variant="outline" className="rounded-lg px-4 py-4 text-sm">
@@ -152,24 +161,30 @@ const UserConnectionsComponent = ({
   );
 };
 
-const UserConnectionsFallback = () => (
-  <ItemGroup>
-    {socialsProviders?.map((provider) => (
-      <Item key={provider.id} variant="outline" className="rounded-lg px-4 py-4">
-        <ItemMedia className="size-10">
-          <Skeleton className="size-10 rounded-full" />
-        </ItemMedia>
-        <ItemContent className="gap-2">
-          <Skeleton className="h-4 w-28" />
-          <Skeleton className="h-4 w-44" />
-        </ItemContent>
-        <ItemActions className="ml-auto">
-          <Skeleton className="h-9 w-32" />
-        </ItemActions>
-      </Item>
-    ))}
-  </ItemGroup>
-);
+const UserConnectionsFallback = ({
+  socialProviderIds,
+}: Pick<UserConnectionsProps, "socialProviderIds">) => {
+  const socialProviders = getSocialProvidersByIds(socialProviderIds);
+
+  return (
+    <ItemGroup>
+      {socialProviders.map((provider) => (
+        <Item key={provider.id} variant="outline" className="rounded-lg px-4 py-4">
+          <ItemMedia className="size-10">
+            <Skeleton className="size-10 rounded-full" />
+          </ItemMedia>
+          <ItemContent className="gap-2">
+            <Skeleton className="h-4 w-28" />
+            <Skeleton className="h-4 w-44" />
+          </ItemContent>
+          <ItemActions className="ml-auto">
+            <Skeleton className="h-9 w-32" />
+          </ItemActions>
+        </Item>
+      ))}
+    </ItemGroup>
+  );
+};
 
 export const UserConnections = (props: UserConnectionsProps) => {
   const tPage = useTranslations("accounts.pages.connections");
@@ -190,7 +205,9 @@ export const UserConnections = (props: UserConnectionsProps) => {
         )}
       >
         <SettingsSection title={t("title")} description={t("description")}>
-          <Suspense fallback={<UserConnectionsFallback />}>
+          <Suspense
+            fallback={<UserConnectionsFallback socialProviderIds={props.socialProviderIds} />}
+          >
             <UserConnectionsComponent {...props} />
           </Suspense>
         </SettingsSection>

@@ -1,3 +1,4 @@
+import "server-only";
 import { revalidatePath, revalidateTag, updateTag } from "next/cache";
 
 /**

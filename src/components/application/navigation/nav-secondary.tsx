@@ -10,22 +10,29 @@ import {
   SidebarMenu,
   SidebarMenuButton as SidebarMenuButtonLibrary,
   SidebarMenuItem,
-  useSidebar,
 } from "@components/ui/sidebar";
 import routes from "@features/routes";
 import { APP_BASE_URL } from "@lib/environment";
 import { getMenuItem } from "@lib/ui";
 import { usePageTranslations } from "@hooks/use-page-translations";
 import { useTranslations } from "next-intl";
+import { useMobileSidebarClose } from "@hooks/use-mobile-sidebar-close";
 
-const SidebarMenuButton = (props: ComponentProps<typeof SidebarMenuButtonLibrary>) => {
-  const { isMobile, toggleSidebar } = useSidebar();
+const SidebarMenuButton = ({
+  onClick,
+  ...props
+}: ComponentProps<typeof SidebarMenuButtonLibrary>) => {
+  const { closeMobileSidebar } = useMobileSidebarClose();
 
-  const menuOnClickCallback = useCallback(() => {
-    if (isMobile) {
-      toggleSidebar();
-    }
-  }, [isMobile, toggleSidebar]);
+  const menuOnClickCallback = useCallback<
+    NonNullable<ComponentProps<typeof SidebarMenuButtonLibrary>["onClick"]>
+  >(
+    (event) => {
+      onClick?.(event);
+      closeMobileSidebar();
+    },
+    [closeMobileSidebar, onClick]
+  );
 
   return <SidebarMenuButtonLibrary onClick={menuOnClickCallback} {...props} />;
 };
