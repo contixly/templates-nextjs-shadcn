@@ -1,4 +1,4 @@
-import React, { Suspense } from "react";
+import React, { Suspense, use } from "react";
 import { SettingsPageShell } from "@components/application/settings/settings-shell";
 import { loadAccessibleOrganization } from "@features/organizations/components/organization-route-guard";
 import { getOrganizationRouteKey } from "@features/organizations/organizations-context";
@@ -7,25 +7,49 @@ import { NavWorkspaceSettingsSkeleton } from "@features/workspaces/components/na
 import { WorkspaceOnboardingGuard } from "@features/workspaces/components/ui/workspace-onboarding-guard";
 import { hasWorkspacePermission } from "@features/workspaces/workspaces-permissions";
 
+type WorkspaceSettingsParams = Promise<{ organizationKey: string }>;
+type AccessibleOrganization = Awaited<ReturnType<typeof loadAccessibleOrganization>>;
+
 export default function WorkspaceSettingsLayout({
   children,
   params,
 }: Readonly<{
   children: React.ReactNode;
-  params: Promise<{ organizationKey: string }>;
+  params: WorkspaceSettingsParams;
 }>) {
-  return <WorkspaceSettingsLayoutContent params={params}>{children}</WorkspaceSettingsLayoutContent>;
+  const organizationPromise = loadAccessibleOrganizationFromParams(params);
+
+  return (
+    <Suspense fallback={<WorkspaceSettingsLayoutFallback />}>
+      <WorkspaceSettingsLayoutContent organizationPromise={organizationPromise}>
+        {children}
+      </WorkspaceSettingsLayoutContent>
+    </Suspense>
+  );
 }
 
-async function WorkspaceSettingsLayoutContent({
+const loadAccessibleOrganizationFromParams = async (params: WorkspaceSettingsParams) => {
+  const { organizationKey } = await params;
+
+  return loadAccessibleOrganization(organizationKey);
+};
+
+function WorkspaceSettingsLayoutFallback() {
+  return <SettingsPageShell nav={<WorkspaceSettingsNavFallback />} />;
+}
+
+function WorkspaceSettingsNavFallback() {
+  return <NavWorkspaceSettingsSkeleton className="w-full shrink-0 md:w-64" />;
+}
+
+function WorkspaceSettingsLayoutContent({
   children,
-  params,
+  organizationPromise,
 }: Readonly<{
   children: React.ReactNode;
-  params: Promise<{ organizationKey: string }>;
+  organizationPromise: Promise<AccessibleOrganization>;
 }>) {
-  const { organizationKey } = await params;
-  const organization = await loadAccessibleOrganization(organizationKey);
+  const organization = use(organizationPromise);
 
   if (!organization) {
     return <WorkspaceOnboardingGuard />;
@@ -35,7 +59,7 @@ async function WorkspaceSettingsLayoutContent({
   return (
     <SettingsPageShell
       nav={
-        <Suspense fallback={<NavWorkspaceSettingsSkeleton className="w-full shrink-0 md:w-64" />}>
+        <Suspense fallback={<WorkspaceSettingsNavFallback />}>
           <WorkspaceSettingsNav
             organizationId={organization.id}
             organizationKey={canonicalOrganizationKey}
