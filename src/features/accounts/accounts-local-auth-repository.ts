@@ -26,7 +26,10 @@ export const findSoleMemberOrganizationIdsForUser = async (userId: string) => {
     .map((organization) => organization.id);
 };
 
-export const deleteOrganizationsByIds = async (organizationIds: string[]) => {
+export const deleteSoleMemberOrganizationsForUser = async (
+  userId: string,
+  organizationIds: string[]
+) => {
   if (organizationIds.length === 0) {
     return { count: 0 };
   }
@@ -35,6 +38,14 @@ export const deleteOrganizationsByIds = async (organizationIds: string[]) => {
     where: {
       id: {
         in: organizationIds,
+      },
+      members: {
+        some: {
+          userId,
+        },
+        every: {
+          userId,
+        },
       },
     },
   });
