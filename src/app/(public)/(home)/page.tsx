@@ -27,23 +27,23 @@ export default async function HomePage() {
   const socialProviderIds = getConfiguredSocialProviderIds();
 
   return (
-    <div className="flex flex-col">
+    <div className="flex min-w-0 flex-col">
       {/* Hero */}
       <section className="relative flex flex-col items-center gap-8 px-4 py-20 text-center md:px-6 md:py-32">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,oklch(0.95_0.02_260)_0%,transparent_70%)] dark:bg-[radial-gradient(ellipse_at_top,oklch(0.2_0.03_260)_0%,transparent_70%)]" />
-        <div className="relative flex max-w-3xl flex-col items-center gap-6">
+        <div className="relative flex w-full max-w-3xl min-w-0 flex-col items-center gap-6">
           <Badge variant="outline" className="gap-1.5">
             <IconTerminal aria-hidden="true" className="size-3" />
             {t("heroBadge")}
           </Badge>
 
-          <h1 className="text-3xl font-bold tracking-tight text-pretty md:text-5xl">
+          <h1 className="w-full text-3xl font-bold tracking-tight text-pretty md:text-5xl">
             {t("heroTitlePrefix")}
             <br />
             <span className="text-muted-foreground">{t("heroTitleEmphasis")}</span>
           </h1>
 
-          <p className="text-muted-foreground max-w-xl text-sm leading-relaxed md:text-base">
+          <p className="text-muted-foreground w-full max-w-xl text-sm leading-relaxed md:text-base">
             {t("heroDescription")}
           </p>
 
@@ -55,10 +55,10 @@ export default async function HomePage() {
             showHomepageCTA
           />
 
-          <div className="text-muted-foreground flex flex-col items-center gap-2 text-xs sm:flex-row sm:gap-4">
-            <span className="flex items-center gap-1.5 whitespace-nowrap">
+          <div className="text-muted-foreground flex w-full max-w-xl flex-col items-center gap-2 text-xs sm:flex-row sm:gap-4">
+            <span className="flex max-w-full items-center justify-center gap-1.5">
               <IconLock aria-hidden="true" className="size-3 shrink-0" />
-              {t("heroSecurity")}
+              <span className="min-w-0 text-balance">{t("heroSecurity")}</span>
             </span>
           </div>
         </div>
@@ -68,11 +68,11 @@ export default async function HomePage() {
 
       {/* Features */}
       <section className="flex flex-col items-center gap-10 px-4 py-16 md:px-6 md:py-24">
-        <div className="flex max-w-2xl flex-col items-center gap-3 text-center">
-          <h2 className="text-xl font-bold tracking-tight text-pretty md:text-2xl">
+        <div className="flex w-full max-w-2xl min-w-0 flex-col items-center gap-3 text-center">
+          <h2 className="w-full text-xl font-bold tracking-tight text-pretty md:text-2xl">
             {t("featuresTitle")}
           </h2>
-          <p className="text-muted-foreground text-sm">{t("featuresDescription")}</p>
+          <p className="text-muted-foreground w-full text-sm">{t("featuresDescription")}</p>
         </div>
 
         <div className="grid w-full max-w-5xl gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -95,12 +95,12 @@ export default async function HomePage() {
 
       {/* Integrations */}
       <section className="flex flex-col items-center gap-10 px-4 py-16 md:px-6 md:py-24">
-        <div className="flex max-w-2xl flex-col items-center gap-3 text-center">
+        <div className="flex w-full max-w-2xl min-w-0 flex-col items-center gap-3 text-center">
           <Badge variant="secondary">{t("extensionsBadge")}</Badge>
-          <h2 className="text-xl font-bold tracking-tight text-pretty md:text-2xl">
+          <h2 className="w-full text-xl font-bold tracking-tight text-pretty md:text-2xl">
             {t("extensionsTitle")}
           </h2>
-          <p className="text-muted-foreground text-sm">{t("extensionsDescription")}</p>
+          <p className="text-muted-foreground w-full text-sm">{t("extensionsDescription")}</p>
         </div>
 
         <div className="grid w-full max-w-4xl gap-4 md:grid-cols-3">
@@ -126,7 +126,7 @@ export default async function HomePage() {
 
       {/* Tech stack */}
       <section className="flex flex-col items-center gap-6 px-4 py-16 md:px-6 md:py-24">
-        <h2 className="text-xl font-bold tracking-tight text-pretty md:text-2xl">
+        <h2 className="w-full text-center text-xl font-bold tracking-tight text-pretty md:text-2xl">
           {t("stackTitle")}
         </h2>
         <div className="flex flex-wrap items-center justify-center gap-3">
@@ -161,10 +161,10 @@ export default async function HomePage() {
           style={{ width: "auto", height: "auto" }}
           className="opacity-80"
         />
-        <h2 className="text-xl font-bold tracking-tight text-pretty md:text-2xl">
+        <h2 className="w-full text-xl font-bold tracking-tight text-pretty md:text-2xl">
           {t("ctaTitle")}
         </h2>
-        <p className="text-muted-foreground max-w-md text-sm">{t("ctaDescription")}</p>
+        <p className="text-muted-foreground w-full max-w-md text-sm">{t("ctaDescription")}</p>
         <NavUserLogin
           loadCurrentUserIdPromise={loadCurrentUserIdPromise}
           getLastLoginPromise={getLastLoginPromise}
