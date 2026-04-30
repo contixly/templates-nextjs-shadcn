@@ -4,7 +4,10 @@ export const remoteCachingEnabled = ["1", "true", "yes"].includes(
 
 export const remoteCachingPrefix = String(process.env.REMOTE_CACHING_PREFIX ?? "myapp");
 
-const redisUrl = process.env.REDIS_URL || process.env.VALKEY_URL;
+const normalizeConnectionUrl = (url) => String(url ?? "").trim();
+
+const redisUrl =
+  normalizeConnectionUrl(process.env.REDIS_URL) || normalizeConnectionUrl(process.env.VALKEY_URL);
 
 export const assertRemoteCacheConfiguration = () => {
   if (remoteCachingEnabled && !redisUrl) {
