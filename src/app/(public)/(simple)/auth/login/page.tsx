@@ -9,6 +9,7 @@ import { isLocalAutomationAuthEnabled } from "@features/accounts/accounts-local-
 import routes from "@features/routes";
 import Link from "@components/ui/custom/animated-link";
 import { Metadata } from "next";
+import { Suspense } from "react";
 
 export const generateMetadata = async (): Promise<Metadata> =>
   buildPageMetadata(accountsRoutes.pages.login);
@@ -32,7 +33,11 @@ export default function LoginPage() {
           {SITE_NAME}
         </Link>
         <LoginForm getLastLoginPromise={getLastLoginPromise} />
-        {isLocalAutomationAuthEnabled() && <LocalAutomationLoginPanel />}
+        {isLocalAutomationAuthEnabled() && (
+          <Suspense fallback={null}>
+            <LocalAutomationLoginPanel />
+          </Suspense>
+        )}
       </div>
     </div>
   );

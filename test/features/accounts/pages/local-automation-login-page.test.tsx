@@ -1,5 +1,7 @@
 import "@testing-library/jest-dom";
 import { render, screen } from "@testing-library/react";
+import fs from "fs";
+import path from "path";
 import React from "react";
 
 const isLocalAutomationAuthEnabledMock = jest.fn();
@@ -74,5 +76,17 @@ describe("local automation login page", () => {
 
     expect(screen.getByTestId("login-form")).toBeInTheDocument();
     expect(screen.queryByTestId("local-automation-login-panel")).not.toBeInTheDocument();
+  });
+
+  it("wraps the local automation panel in Suspense for prerender-safe search params", () => {
+    const pageSource = fs.readFileSync(
+      path.join(process.cwd(), "src/app/(public)/(simple)/auth/login/page.tsx"),
+      "utf8"
+    );
+
+    expect(pageSource).toContain('import { Suspense } from "react";');
+    expect(pageSource).toMatch(
+      /<Suspense fallback=\{null\}>\s*<LocalAutomationLoginPanel \/>\s*<\/Suspense>/s
+    );
   });
 });
