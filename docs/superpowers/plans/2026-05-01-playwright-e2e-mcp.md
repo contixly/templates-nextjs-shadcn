@@ -201,7 +201,11 @@ Expected: a commit is created with only `.agents/mcp/mcp.json`.
 ```ts
 import { defineConfig, devices } from "@playwright/test";
 
-const baseURL = process.env.PLAYWRIGHT_BASE_URL || "http://127.0.0.1:3000";
+const DEFAULT_E2E_ORIGIN = "http://127.0.0.1:3127";
+const baseURL = process.env.PLAYWRIGHT_BASE_URL || DEFAULT_E2E_ORIGIN;
+const baseUrlConfig = new URL(baseURL);
+const webServerHostname = baseUrlConfig.hostname;
+const webServerPort = baseUrlConfig.port || (baseUrlConfig.protocol === "https:" ? "443" : "80");
 const startWebServer = process.env.PLAYWRIGHT_START_SERVER !== "false";
 
 export default defineConfig({
@@ -225,13 +229,17 @@ export default defineConfig({
   },
   webServer: startWebServer
     ? {
-        command: "npm run dev -- --hostname 127.0.0.1",
+        command: `npm run dev -- --hostname ${webServerHostname} --port ${webServerPort}`,
         url: baseURL,
         reuseExistingServer: !process.env.CI,
         timeout: 120_000,
         env: {
+          BETTER_AUTH_URL: process.env.BETTER_AUTH_URL || baseURL,
           LOCAL_AUTOMATION_AUTH_ENABLED:
             process.env.LOCAL_AUTOMATION_AUTH_ENABLED || "true",
+          NEXT_PUBLIC_APP_BASE_URL:
+            process.env.NEXT_PUBLIC_APP_BASE_URL || baseURL,
+          PORT: process.env.PORT || webServerPort,
         },
       }
     : undefined,
@@ -273,8 +281,9 @@ npx playwright test --list --pass-with-no-tests
 ```
 
 Expected: command exits successfully and reports no tests or an empty list because no `e2e/` specs exist yet. The
-`--pass-with-no-tests` flag is required here because Playwright normally exits with `No tests found` before the first
-test file exists.
+default Playwright origin is `http://127.0.0.1:3127`, and the web server command derives its hostname, `--port`,
+`BETTER_AUTH_URL`, `NEXT_PUBLIC_APP_BASE_URL`, and `PORT` from the same `baseURL`. The `--pass-with-no-tests` flag is
+required here because Playwright normally exits with `No tests found` before the first test file exists.
 
 - [ ] **Step 4: Commit config and ignore changes**
 
