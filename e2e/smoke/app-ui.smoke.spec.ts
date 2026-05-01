@@ -14,11 +14,14 @@ test.describe("public UI smoke", () => {
 
     const getStartedLink = page.getByRole("link", { name: /Get Started|Начать/i }).first();
 
-    if ((await getStartedLink.count()) > 0) {
-      await getStartedLink.click();
-    } else {
-      await page.goto(routes.login);
-    }
+    await expect(getStartedLink).toBeVisible();
+    await expect(getStartedLink).toHaveAttribute("href", /\/auth\/login/);
+
+    await expect(async () => {
+      const response = await page.goto(routes.login);
+
+      expect(response?.status()).toBe(200);
+    }).toPass({ timeout: 30_000 });
 
     await expect(page).toHaveURL(/\/auth\/login/);
     await expect(page.getByText(/Welcome back|С возвращением/i)).toBeVisible();

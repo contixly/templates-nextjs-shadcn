@@ -407,6 +407,10 @@ Expected: a commit is created with only the new `e2e/support/` files and `e2e/sp
 
 - [ ] **Step 1: Create `e2e/smoke/app-ui.smoke.spec.ts`**
 
+The smoke test verifies that the public home page exposes a visible login CTA that points to `/auth/login`, then
+uses retried direct navigation to the login route for login page assertions. The retry protects cold Next.js dev
+startup from a transient first-render 404 while still asserting that the route eventually returns 200.
+
 ```ts
 import { expect, test } from "../support/test";
 import { routes } from "../support/routes";
@@ -424,11 +428,14 @@ test.describe("public UI smoke", () => {
 
     const getStartedLink = page.getByRole("link", { name: /Get Started|Начать/i }).first();
 
-    if ((await getStartedLink.count()) > 0) {
-      await getStartedLink.click();
-    } else {
-      await page.goto(routes.login);
-    }
+    await expect(getStartedLink).toBeVisible();
+    await expect(getStartedLink).toHaveAttribute("href", /\/auth\/login/);
+
+    await expect(async () => {
+      const response = await page.goto(routes.login);
+
+      expect(response?.status()).toBe(200);
+    }).toPass({ timeout: 30_000 });
 
     await expect(page).toHaveURL(/\/auth\/login/);
     await expect(page.getByText(/Welcome back|С возвращением/i)).toBeVisible();
