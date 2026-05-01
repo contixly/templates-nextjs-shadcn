@@ -7,6 +7,10 @@
     "build": "prisma generate && next build",
     "start": "next start",
     "test": "jest",
+    "e2e": "playwright test",
+    "e2e:headed": "playwright test --headed",
+    "e2e:ui": "playwright test --ui",
+    "e2e:report": "playwright show-report",
     "lint": "eslint",
     "format": "prettier --write .",
     "migrate:postgres": "dotenv -e .env -- npx prisma migrate deploy",
@@ -58,6 +62,8 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
+    "@playwright/mcp": "^0.0.72",
+    "@playwright/test": "^1.59.1",
     "@tailwindcss/postcss": "^4.2.4",
     "@tailwindcss/typography": "^0.5.19",
     "@testing-library/dom": "^10.4.1",
