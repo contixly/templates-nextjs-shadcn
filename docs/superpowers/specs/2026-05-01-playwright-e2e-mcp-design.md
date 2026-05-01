@@ -73,6 +73,7 @@ will become the test source of truth, so a small amount of structure is justifie
 
 ```text
 e2e/
+  README.md
   smoke/
     app-ui.smoke.spec.ts
   specs/
@@ -92,8 +93,7 @@ The first smoke test will:
 - Open the public home page at `/`.
 - Fail on uncaught page errors and failed first-party network responses.
 - Assert that public UI content is visible.
-- Navigate to `/auth/login` through the UI when a login link is available, or directly when the public shell does not
-  expose one.
+- Navigate to `/auth/login` through the visible login CTA.
 - Assert that the login page renders.
 
 The test intentionally avoids authenticated state. That keeps the first setup independent of local database state while
@@ -109,8 +109,9 @@ e2e/specs/workspace-onboarding-guard/
 e2e/specs/workspace-settings-navigation/
 ```
 
-Each folder should map tests to scenarios from the matching `openspec/specs/<capability>/spec.md`. A README in
-`e2e/specs/` will document this convention and the expected scenario naming pattern.
+Each folder should map tests to scenarios from the matching `openspec/specs/<capability>/spec.md`. The root
+`e2e/README.md` documents setup and folder roles; `e2e/specs/README.md` documents the OpenSpec mapping and expected
+scenario naming pattern.
 
 ### `e2e/support/`
 
@@ -128,7 +129,7 @@ browser/API context and clean up with `DELETE /api/local-auth/scenario`.
 Add `playwright.config.ts` at the repository root with:
 
 - `testDir: "./e2e"`
-- `baseURL` from `PLAYWRIGHT_BASE_URL`, defaulting to `http://127.0.0.1:3000`
+- `baseURL` from `PLAYWRIGHT_BASE_URL`, defaulting to `http://127.0.0.1:3127`
 - `webServer` running `npm run dev` against the local dev server
 - `reuseExistingServer` outside CI
 - traces retained on retry or first failure
@@ -151,6 +152,7 @@ Add scripts:
 ```json
 {
   "e2e": "playwright test",
+  "e2e:install": "playwright install chromium",
   "e2e:headed": "playwright test --headed",
   "e2e:ui": "playwright test --ui",
   "e2e:report": "playwright show-report"
@@ -224,4 +226,3 @@ npm run lint
 
 If the dev server cannot start because local environment variables or PostgreSQL are unavailable, report that clearly
 and run the strongest available static verification instead.
-

@@ -17,12 +17,7 @@ test.describe("public UI smoke", () => {
     await expect(getStartedLink).toBeVisible();
     await expect(getStartedLink).toHaveAttribute("href", /\/auth\/login/);
 
-    await expect(async () => {
-      const response = await page.goto(routes.login);
-
-      expect(response?.status()).toBe(200);
-    }).toPass({ timeout: 30_000 });
-
+    await getStartedLink.click();
     await expect(page).toHaveURL(/\/auth\/login/);
     await expect(page.getByText(/Welcome back|С возвращением/i)).toBeVisible();
     await expect(

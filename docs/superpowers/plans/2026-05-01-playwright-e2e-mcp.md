@@ -84,6 +84,7 @@ Modify the `scripts` object so it includes these keys:
   "start": "next start",
   "test": "jest",
   "e2e": "playwright test",
+  "e2e:install": "playwright install chromium",
   "e2e:headed": "playwright test --headed",
   "e2e:ui": "playwright test --ui",
   "e2e:report": "playwright show-report",
@@ -103,7 +104,7 @@ Keep all existing scripts not shown here unchanged if the file has changed since
 Run:
 
 ```bash
-npx playwright install chromium
+npm run e2e:install
 ```
 
 Expected: command exits successfully and Chromium is available for local Playwright runs.
@@ -370,6 +371,7 @@ Expected: a commit is created with `playwright.config.ts`, `e2e/support/global-s
 **Files:**
 - Create: `e2e/support/routes.ts`
 - Create: `e2e/support/test.ts`
+- Create: `e2e/README.md`
 - Create: `e2e/specs/README.md`
 
 - [ ] **Step 1: Create `e2e/support/routes.ts`**
@@ -448,7 +450,38 @@ Write test titles so they name the requirement or scenario they cover. Keep smok
 `e2e/smoke/`; this folder is for requirement-backed coverage.
 ````
 
-- [ ] **Step 4: Verify TypeScript can parse the support files**
+- [ ] **Step 4: Create `e2e/README.md`**
+
+````md
+# End-to-End Tests
+
+Playwright scenarios live under `e2e/`.
+
+## Setup
+
+Install the Chromium browser before the first local or CI run:
+
+```bash
+npm run e2e:install
+```
+
+Run the suite:
+
+```bash
+npm run e2e
+```
+
+## Layout
+
+- `smoke/` contains small UI smoke checks that prove the app can render and navigate.
+- `specs/` contains durable requirement-backed scenarios mapped from OpenSpec capabilities.
+- `support/` contains shared fixtures, routes, setup, and helpers.
+
+For OpenSpec-backed tests, mirror each capability from `openspec/specs/<capability>/spec.md`
+into `e2e/specs/<capability>/`.
+````
+
+- [ ] **Step 5: Verify TypeScript can parse the support files**
 
 Run:
 
@@ -458,16 +491,16 @@ npx tsc --noEmit --pretty false
 
 Expected: command exits successfully.
 
-- [ ] **Step 5: Commit support helpers and OpenSpec guidance**
+- [ ] **Step 6: Commit support helpers and OpenSpec guidance**
 
 Run:
 
 ```bash
-git add e2e/support/routes.ts e2e/support/test.ts e2e/specs/README.md
+git add e2e/support/routes.ts e2e/support/test.ts e2e/README.md e2e/specs/README.md
 git commit -m "test: add e2e support structure"
 ```
 
-Expected: a commit is created with only the new `e2e/support/` files and `e2e/specs/README.md`.
+Expected: a commit is created with only the new `e2e/support/` files and E2E README files.
 
 ### Task 6: Add the First Public UI Smoke Test
 
@@ -477,8 +510,8 @@ Expected: a commit is created with only the new `e2e/support/` files and `e2e/sp
 - [ ] **Step 1: Create `e2e/smoke/app-ui.smoke.spec.ts`**
 
 The smoke test verifies that the public home page exposes a visible login CTA that points to `/auth/login`, then
-uses retried direct navigation to the login route for login page assertions. Global setup warms `/` and `/auth/login`
-before tests run; the retry remains a narrow guard around the actual navigation assertion.
+uses that CTA to navigate through the UI before login page assertions. Global setup warms `/` and `/auth/login`
+before tests run so the click-driven route transition does not race route compilation.
 
 ```ts
 import { expect, test } from "../support/test";
@@ -500,12 +533,7 @@ test.describe("public UI smoke", () => {
     await expect(getStartedLink).toBeVisible();
     await expect(getStartedLink).toHaveAttribute("href", /\/auth\/login/);
 
-    await expect(async () => {
-      const response = await page.goto(routes.login);
-
-      expect(response?.status()).toBe(200);
-    }).toPass({ timeout: 30_000 });
-
+    await getStartedLink.click();
     await expect(page).toHaveURL(/\/auth\/login/);
     await expect(page.getByText(/Welcome back|С возвращением/i)).toBeVisible();
     await expect(
