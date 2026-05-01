@@ -55,10 +55,10 @@ export default async function HomePage() {
             showHomepageCTA
           />
 
-          <div className="text-muted-foreground flex w-full max-w-xl flex-col items-center gap-2 text-xs sm:flex-row sm:gap-4">
-            <span className="flex max-w-full items-center justify-center gap-1.5">
-              <IconLock aria-hidden="true" className="size-3 shrink-0" />
-              <span className="min-w-0 text-balance">{t("heroSecurity")}</span>
+          <div className="text-muted-foreground w-full max-w-xl text-xs leading-relaxed">
+            <span className="inline-block max-w-full text-balance">
+              <IconLock aria-hidden="true" className="mr-1.5 inline size-3 align-[-0.125em]" />
+              {t("heroSecurity")}
             </span>
           </div>
         </div>

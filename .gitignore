@@ -15,6 +15,8 @@
 /playwright-report
 /test-results
 /blob-report
+.playwright-mcp
+.playwright-cli
 
 # next.js
 /.next/
@@ -47,4 +49,3 @@ next-env.d.ts
 /prisma/generated
 src/messages/**/*.d.json.ts
 /.superpowers/brainstorm/
-.playwright-cli
