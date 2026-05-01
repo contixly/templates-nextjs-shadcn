@@ -9,10 +9,7 @@ export default defineConfig({
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
-  reporter: [
-    ["list"],
-    ["html", { outputFolder: "playwright-report", open: "never" }],
-  ],
+  reporter: [["list"], ["html", { outputFolder: "playwright-report", open: "never" }]],
   outputDir: "test-results/playwright",
   use: {
     baseURL,
@@ -29,8 +26,7 @@ export default defineConfig({
         reuseExistingServer: !process.env.CI,
         timeout: 120_000,
         env: {
-          LOCAL_AUTOMATION_AUTH_ENABLED:
-            process.env.LOCAL_AUTOMATION_AUTH_ENABLED || "true",
+          LOCAL_AUTOMATION_AUTH_ENABLED: process.env.LOCAL_AUTOMATION_AUTH_ENABLED || "true",
         },
       }
     : undefined,
