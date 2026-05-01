@@ -237,14 +237,6 @@ export const findOrganizationMemberByOrganizationIdAndUserId = async (
   userId: string,
   select?: Prisma.MemberSelect
 ) => {
-  "use cache";
-  cacheLife("hours");
-  cacheTag(
-    CACHE_OrganizationByIdTag(organizationId),
-    CACHE_OrganizationMembersTag(organizationId),
-    CACHE_OrganizationsByUserIdTag(userId)
-  );
-
   return prisma.member.findFirst({
     where: {
       organizationId,

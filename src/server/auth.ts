@@ -15,6 +15,7 @@ import { BetterAuthOptions } from "@better-auth/core";
 import { prismaAdapter } from "@better-auth/prisma-adapter";
 import { BetterAuthAdvancedOptions, isProduction } from "better-auth";
 import { SocialProvider } from "@typings/auth";
+import { betterAuthOrganizationHooks } from "@server/auth/organization-hooks";
 import { getConfiguredSocialProviderIds } from "@server/auth/social-providers";
 import { YandexOAuth2ClientConfig } from "@server/auth/yandex-oauth2-client";
 
@@ -118,6 +119,7 @@ export const auth = betterAuth({
       cookieName: LAST_LOGIN_METHOD_KEY,
     }),
     organization({
+      organizationHooks: betterAuthOrganizationHooks,
       requireEmailVerificationOnInvitation: true,
       teams: {
         enabled: true,

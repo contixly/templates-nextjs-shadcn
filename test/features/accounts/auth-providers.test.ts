@@ -84,6 +84,18 @@ describe("configured social auth providers", () => {
     }));
     jest.doMock("@server/prisma", () => ({ __esModule: true, default: {} }));
     jest.doMock("better-auth", () => ({ isProduction: false }));
+    jest.doMock("better-auth/api", () => ({
+      APIError: class MockAPIError extends Error {
+        status: string;
+        body?: { message?: string };
+
+        constructor(status: string, body?: { message?: string }) {
+          super(body?.message ?? status);
+          this.status = status;
+          this.body = body;
+        }
+      },
+    }));
     jest.doMock("better-auth/minimal", () => ({ betterAuth }));
     jest.doMock("better-auth/next-js", () => ({
       nextCookies: jest.fn(() => ({ id: "next-cookies" })),
