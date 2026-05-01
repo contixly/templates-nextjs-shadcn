@@ -207,6 +207,7 @@ const baseURL = process.env.PLAYWRIGHT_BASE_URL || DEFAULT_E2E_ORIGIN;
 const baseUrlConfig = new URL(baseURL);
 const webServerHostname = baseUrlConfig.hostname;
 const webServerPort = baseUrlConfig.port || (baseUrlConfig.protocol === "https:" ? "443" : "80");
+const webServerReadyURL = new URL("/auth/login", baseURL).toString();
 const startWebServer = process.env.PLAYWRIGHT_START_SERVER !== "false";
 
 export default defineConfig({
@@ -232,7 +233,7 @@ export default defineConfig({
   webServer: startWebServer
     ? {
         command: `npm run dev -- --hostname ${webServerHostname} --port ${webServerPort}`,
-        url: baseURL,
+        url: webServerReadyURL,
         reuseExistingServer: !process.env.CI,
         timeout: 120_000,
         env: {
