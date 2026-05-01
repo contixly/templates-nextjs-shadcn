@@ -56,6 +56,30 @@ The project follows FSD principles. Each feature is self-contained in `features/
 - `npx prisma studio` - Open database GUI.
 - `npm run migrate:postgres` - Deploy migrations to production database.
 
+## Local Automation Auth
+
+For local browser automation with Playwright, browser-use, or LLM-driven development agents, enable the local-only Better Auth automation flow:
+
+1. Set `LOCAL_AUTOMATION_AUTH_ENABLED=true` in the local environment. Never enable this flag in production.
+2. Start the app with `npm run dev`.
+3. From the same browser/API context used by the scenario, create and sign in a new user:
+
+   ```ts
+   const response = await page.request.post("/api/local-auth/scenario", {
+     data: {},
+   });
+   const scenario = await response.json();
+   ```
+
+4. Use the same browser context to test protected pages. The create response sets the real Better Auth session cookie.
+5. Clean up the current automation user and its now-memberless local organizations from the same authenticated context:
+
+   ```ts
+   await page.request.delete("/api/local-auth/scenario");
+   ```
+
+The endpoint works only when `NODE_ENV !== "production"` and `LOCAL_AUTOMATION_AUTH_ENABLED=true`. Cleanup refuses non-automation users; automation users use the `local-agent+...@local-agent.test` email namespace.
+
 **Invalidation**:
 After any mutation (Create/Update/Delete), you **MUST**:
 

@@ -44,7 +44,7 @@ export const routesConfig = {
     accounts.pages.login.pathTemplate,
     accounts.pages.error.pathTemplate,
   ],
-  publicApiRoute: ["/api/auth/(.*)", "/api/health(.*)"],
+  publicApiRoute: ["/api/auth/(.*)", "/api/health(.*)", "/api/local-auth/(.*)"],
   // Protected API routes EXCLUDING public API routes
   protectedApiRoute: [
     "/api((?!/auth/)(?!/health).)*", // Match /api/* but exclude /api/auth/* and /api/health*

@@ -5,6 +5,7 @@ const cacheTagMock = jest.fn();
 
 const findManyMock = jest.fn();
 const findFirstMock = jest.fn();
+const memberFindFirstMock = jest.fn();
 
 jest.mock("next/cache", () => ({
   cacheLife: (...args: unknown[]) => cacheLifeMock(...args),
@@ -17,6 +18,9 @@ jest.mock("@server/prisma", () => ({
     organization: {
       findMany: (...args: unknown[]) => findManyMock(...args),
       findFirst: (...args: unknown[]) => findFirstMock(...args),
+    },
+    member: {
+      findFirst: (...args: unknown[]) => memberFindFirstMock(...args),
     },
   },
 }));
@@ -36,6 +40,7 @@ import {
   findFirstAccessibleOrganizationByIdAndUserId,
   findFirstAccessibleOrganizationByKeyAndUserId,
   findManyAccessibleOrganizationsByUserId,
+  findOrganizationMemberByOrganizationIdAndUserId,
 } from "@features/organizations/organizations-repository";
 import {
   CACHE_OrganizationByIdTag,
@@ -48,6 +53,7 @@ describe("organization repository cache tags", () => {
     cacheTagMock.mockReset();
     findManyMock.mockReset();
     findFirstMock.mockReset();
+    memberFindFirstMock.mockReset();
   });
 
   it("tags accessible organization lists by user and returned organization ids", async () => {
@@ -125,5 +131,36 @@ describe("organization repository cache tags", () => {
     );
     expect(findFirstMock.mock.calls[0]?.[0]?.select).not.toHaveProperty("is" + "Default");
     expect(cacheTagMock).toHaveBeenCalledWith(CACHE_OrganizationsByUserIdTag("user_1"));
+  });
+
+  it("loads authorization-sensitive organization member records without cross-request caching", async () => {
+    memberFindFirstMock.mockResolvedValue({
+      id: "member_1",
+      organizationId: "org_1",
+      userId: "user_1",
+      role: "owner",
+    });
+
+    await expect(
+      findOrganizationMemberByOrganizationIdAndUserId("org_1", "user_1", { role: true })
+    ).resolves.toMatchObject({
+      id: "member_1",
+      role: "owner",
+    });
+
+    expect(memberFindFirstMock).toHaveBeenCalledWith({
+      where: {
+        organizationId: "org_1",
+        userId: "user_1",
+      },
+      select: {
+        id: true,
+        organizationId: true,
+        userId: true,
+        role: true,
+      },
+    });
+    expect(cacheLifeMock).not.toHaveBeenCalled();
+    expect(cacheTagMock).not.toHaveBeenCalled();
   });
 });
