@@ -1,0 +1,29 @@
+import { expect, test } from "../support/test";
+import { routes } from "../support/routes";
+
+test.describe("public UI smoke", () => {
+  test("renders the public home page and login page", async ({ page }) => {
+    await page.goto(routes.home);
+
+    await expect(
+      page.getByRole("heading", {
+        name: /Workspace collaboration for|Совместная работа в workspace для/i,
+      })
+    ).toBeVisible();
+    await expect(page.getByText("Next.js 16")).toBeVisible();
+
+    const getStartedLink = page.getByRole("link", { name: /Get Started|Начать/i }).first();
+
+    if ((await getStartedLink.count()) > 0) {
+      await getStartedLink.click();
+    } else {
+      await page.goto(routes.login);
+    }
+
+    await expect(page).toHaveURL(/\/auth\/login/);
+    await expect(page.getByRole("heading", { name: /Welcome back|С возвращением/i })).toBeVisible();
+    await expect(
+      page.getByText(/Login with your social account|Войдите через социальный аккаунт/i)
+    ).toBeVisible();
+  });
+});
