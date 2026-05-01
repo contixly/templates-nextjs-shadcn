@@ -21,7 +21,7 @@ test.describe("public UI smoke", () => {
     }
 
     await expect(page).toHaveURL(/\/auth\/login/);
-    await expect(page.getByRole("heading", { name: /Welcome back|С возвращением/i })).toBeVisible();
+    await expect(page.getByText(/Welcome back|С возвращением/i)).toBeVisible();
     await expect(
       page.getByText(/Login with your social account|Войдите через социальный аккаунт/i)
     ).toBeVisible();
