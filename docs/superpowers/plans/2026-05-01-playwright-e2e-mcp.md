@@ -269,10 +269,12 @@ The `# testing` section should then include:
 Run:
 
 ```bash
-npx playwright test --list
+npx playwright test --list --pass-with-no-tests
 ```
 
-Expected: command exits successfully and reports no tests or an empty list because no `e2e/` specs exist yet.
+Expected: command exits successfully and reports no tests or an empty list because no `e2e/` specs exist yet. The
+`--pass-with-no-tests` flag is required here because Playwright normally exits with `No tests found` before the first
+test file exists.
 
 - [ ] **Step 4: Commit config and ignore changes**
 
