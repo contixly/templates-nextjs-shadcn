@@ -160,6 +160,7 @@ Add scripts:
 ```
 
 The existing `npm run test` remains Jest-only. Playwright is deliberately exposed as a separate E2E command.
+Jest must ignore `e2e/` so Playwright specs and support files are not collected by the unit/integration runner.
 
 ## MCP Configuration
 

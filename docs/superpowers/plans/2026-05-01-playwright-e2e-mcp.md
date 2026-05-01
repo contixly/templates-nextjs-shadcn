@@ -197,6 +197,7 @@ Expected: a commit is created with only `.agents/mcp/mcp.json`.
 - Create: `playwright.config.ts`
 - Create: `e2e/support/global-setup.ts`
 - Modify: `.gitignore`
+- Modify: `jest.config.ts`
 
 - [ ] **Step 1: Create `playwright.config.ts`**
 
@@ -342,7 +343,17 @@ The `# testing` section should then include:
 /blob-report
 ```
 
-- [ ] **Step 4: Validate the config can be loaded**
+- [ ] **Step 4: Keep Jest scoped away from Playwright specs**
+
+Add `e2e/` to Jest's ignored test paths:
+
+```ts
+testPathIgnorePatterns: ["<rootDir>/e2e/", "<rootDir>/.next/"],
+```
+
+Expected: `npm run test` remains Jest-only and does not collect Playwright specs or support files.
+
+- [ ] **Step 5: Validate the config can be loaded**
 
 Run:
 
@@ -355,16 +366,17 @@ default Playwright origin is `http://127.0.0.1:3127`, and the web server command
 `BETTER_AUTH_URL`, `NEXT_PUBLIC_APP_BASE_URL`, and `PORT` from the same `baseURL`. The `--pass-with-no-tests` flag is
 required here because Playwright normally exits with `No tests found` before the first test file exists.
 
-- [ ] **Step 5: Commit config and ignore changes**
+- [ ] **Step 6: Commit config and ignore changes**
 
 Run:
 
 ```bash
-git add playwright.config.ts e2e/support/global-setup.ts .gitignore
+git add playwright.config.ts e2e/support/global-setup.ts .gitignore jest.config.ts
 git commit -m "test: configure playwright"
 ```
 
-Expected: a commit is created with `playwright.config.ts`, `e2e/support/global-setup.ts`, and `.gitignore`.
+Expected: a commit is created with `playwright.config.ts`, `e2e/support/global-setup.ts`, `.gitignore`, and
+`jest.config.ts`.
 
 ### Task 5: Add E2E Support Helpers and OpenSpec Folder Guidance
 
@@ -573,6 +585,7 @@ Expected: a commit is created with only `e2e/smoke/app-ui.smoke.spec.ts`.
 - Read: `package.json`
 - Read: `.agents/mcp/mcp.json`
 - Read: `playwright.config.ts`
+- Read: `jest.config.ts`
 - Read: `e2e/support/global-setup.ts`
 - Read: `e2e/smoke/app-ui.smoke.spec.ts`
 
@@ -599,7 +612,17 @@ npm run lint
 
 Expected: ESLint exits successfully.
 
-- [ ] **Step 3: Confirm generated artifacts are ignored**
+- [ ] **Step 3: Run Jest**
+
+Run:
+
+```bash
+npm test -- --runInBand
+```
+
+Expected: Jest exits successfully without collecting files under `e2e/`.
+
+- [ ] **Step 4: Confirm generated artifacts are ignored**
 
 Run:
 
@@ -610,7 +633,7 @@ git status --short
 Expected: no `playwright-report`, `test-results`, or `blob-report` entries appear. Only intentional source changes
 should be visible.
 
-- [ ] **Step 4: Review final diff**
+- [ ] **Step 5: Review final diff**
 
 Run:
 

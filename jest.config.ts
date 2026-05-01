@@ -21,6 +21,7 @@ const config: Config = {
     "^@typings/(.*)$": "<rootDir>/src/types/$1",
   },
   modulePathIgnorePatterns: ["<rootDir>/.next/"],
+  testPathIgnorePatterns: ["<rootDir>/e2e/", "<rootDir>/.next/"],
   // Add more setup options before each test is run
   // setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
 };
