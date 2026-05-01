@@ -1,4 +1,6 @@
+import appRoutes from "../../src/features/routes";
+
 export const routes = {
-  home: "/",
-  login: "/auth/login",
+  home: appRoutes.application.pages.home.path(),
+  login: appRoutes.accounts.pages.login.path(),
 } as const;

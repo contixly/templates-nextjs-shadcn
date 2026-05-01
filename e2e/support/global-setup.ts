@@ -1,7 +1,6 @@
 import type { FullConfig } from "@playwright/test";
+import { E2E_ROUTES_TO_WARM, resolveE2EBaseURL, resolveE2EURL } from "./config";
 
-const DEFAULT_BASE_URL = "http://127.0.0.1:3127";
-const ROUTES_TO_WARM = ["/", "/auth/login"] as const;
 const READY_TIMEOUT_MS = 60_000;
 const RETRY_DELAY_MS = 500;
 const ROUTE_SETTLE_DELAY_MS = 2_000;
@@ -11,14 +10,12 @@ const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 const resolveBaseURL = (config: FullConfig) => {
   const configuredBaseURL = config.projects[0]?.use.baseURL;
 
-  return typeof configuredBaseURL === "string" && configuredBaseURL.length > 0
-    ? configuredBaseURL
-    : DEFAULT_BASE_URL;
+  return resolveE2EBaseURL(typeof configuredBaseURL === "string" ? configuredBaseURL : undefined);
 };
 
 const waitForRoute = async (baseURL: string, route: string) => {
   const deadline = Date.now() + READY_TIMEOUT_MS;
-  const url = new URL(route, baseURL).toString();
+  const url = resolveE2EURL(route, baseURL);
   let lastStatus: number | undefined;
   let lastError: unknown;
 
@@ -48,7 +45,7 @@ const waitForRoute = async (baseURL: string, route: string) => {
 export default async function globalSetup(config: FullConfig) {
   const baseURL = resolveBaseURL(config);
 
-  for (const [index, route] of ROUTES_TO_WARM.entries()) {
+  for (const [index, route] of E2E_ROUTES_TO_WARM.entries()) {
     if (index > 0) await delay(ROUTE_SETTLE_DELAY_MS);
 
     await waitForRoute(baseURL, route);

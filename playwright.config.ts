@@ -1,11 +1,11 @@
 import { defineConfig, devices } from "@playwright/test";
+import { E2E_READY_ROUTE, resolveE2EBaseURL, resolveE2EURL } from "./e2e/support/config";
 
-const DEFAULT_E2E_ORIGIN = "http://127.0.0.1:3127";
-const baseURL = process.env.PLAYWRIGHT_BASE_URL || DEFAULT_E2E_ORIGIN;
+const baseURL = resolveE2EBaseURL();
 const baseUrlConfig = new URL(baseURL);
 const webServerHostname = baseUrlConfig.hostname;
 const webServerPort = baseUrlConfig.port || (baseUrlConfig.protocol === "https:" ? "443" : "80");
-const webServerReadyURL = new URL("/auth/login", baseURL).toString();
+const webServerReadyURL = resolveE2EURL(E2E_READY_ROUTE, baseURL);
 const startWebServer = process.env.PLAYWRIGHT_START_SERVER !== "false";
 
 export default defineConfig({
