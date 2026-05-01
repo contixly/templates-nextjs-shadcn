@@ -1,9 +1,6 @@
 import { expect, test as base } from "@playwright/test";
 
-const isFirstPartyResponse = (
-  responseUrl: string,
-  baseURL: string | undefined,
-): boolean => {
+const isFirstPartyResponse = (responseUrl: string, baseURL: string | undefined): boolean => {
   if (!baseURL) return false;
 
   try {
@@ -14,7 +11,7 @@ const isFirstPartyResponse = (
 };
 
 export const test = base.extend({
-  page: async ({ page }, use, testInfo) => {
+  page: async ({ page }, run, testInfo) => {
     const pageErrors: string[] = [];
     const serverErrors: string[] = [];
 
@@ -31,7 +28,7 @@ export const test = base.extend({
       }
     });
 
-    await use(page);
+    await run(page);
 
     expect(pageErrors, "uncaught page errors").toEqual([]);
     expect(serverErrors, "first-party server errors").toEqual([]);
