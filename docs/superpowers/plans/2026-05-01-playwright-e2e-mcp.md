@@ -194,6 +194,7 @@ Expected: a commit is created with only `.agents/mcp/mcp.json`.
 
 **Files:**
 - Create: `playwright.config.ts`
+- Create: `e2e/support/global-setup.ts`
 - Modify: `.gitignore`
 
 - [ ] **Step 1: Create `playwright.config.ts`**
@@ -210,6 +211,7 @@ const startWebServer = process.env.PLAYWRIGHT_START_SERVER !== "false";
 
 export default defineConfig({
   testDir: "./e2e",
+  globalSetup: "./e2e/support/global-setup.ts",
   fullyParallel: true,
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 2 : 0,
@@ -252,7 +254,73 @@ export default defineConfig({
 });
 ```
 
-- [ ] **Step 2: Add Playwright artifacts to `.gitignore`**
+- [ ] **Step 2: Create `e2e/support/global-setup.ts`**
+
+The global setup warms the public routes used by the initial smoke test before any test runs. Playwright's web server
+readiness check only waits for the configured origin to respond, while Next.js can still be compiling `/auth/login`.
+Poll both `/` and `/auth/login` until they return 200 so cold local runs do not race route compilation. Fully read each
+successful response and wait briefly after `/` is ready before polling `/auth/login`.
+
+```ts
+import type { FullConfig } from "@playwright/test";
+
+const DEFAULT_BASE_URL = "http://127.0.0.1:3127";
+const ROUTES_TO_WARM = ["/", "/auth/login"] as const;
+const READY_TIMEOUT_MS = 60_000;
+const RETRY_DELAY_MS = 500;
+const ROUTE_SETTLE_DELAY_MS = 2_000;
+
+const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const resolveBaseURL = (config: FullConfig) => {
+  const configuredBaseURL = config.projects[0]?.use.baseURL;
+
+  return typeof configuredBaseURL === "string" && configuredBaseURL.length > 0
+    ? configuredBaseURL
+    : DEFAULT_BASE_URL;
+};
+
+const waitForRoute = async (baseURL: string, route: string) => {
+  const deadline = Date.now() + READY_TIMEOUT_MS;
+  const url = new URL(route, baseURL).toString();
+  let lastStatus: number | undefined;
+  let lastError: unknown;
+
+  while (Date.now() < deadline) {
+    try {
+      const response = await fetch(url, { redirect: "manual" });
+      lastStatus = response.status;
+
+      if (response.status === 200) {
+        await response.arrayBuffer();
+        return;
+      }
+    } catch (error) {
+      lastError = error;
+    }
+
+    await delay(RETRY_DELAY_MS);
+  }
+
+  throw new Error(
+    `Timed out waiting for ${url} to return 200. Last status: ${
+      lastStatus ?? "none"
+    }. Last error: ${lastError instanceof Error ? lastError.message : String(lastError ?? "none")}`
+  );
+};
+
+export default async function globalSetup(config: FullConfig) {
+  const baseURL = resolveBaseURL(config);
+
+  for (const [index, route] of ROUTES_TO_WARM.entries()) {
+    if (index > 0) await delay(ROUTE_SETTLE_DELAY_MS);
+
+    await waitForRoute(baseURL, route);
+  }
+}
+```
+
+- [ ] **Step 3: Add Playwright artifacts to `.gitignore`**
 
 Append this block under the existing `# testing` section:
 
@@ -272,7 +340,7 @@ The `# testing` section should then include:
 /blob-report
 ```
 
-- [ ] **Step 3: Validate the config can be loaded**
+- [ ] **Step 4: Validate the config can be loaded**
 
 Run:
 
@@ -285,16 +353,16 @@ default Playwright origin is `http://127.0.0.1:3127`, and the web server command
 `BETTER_AUTH_URL`, `NEXT_PUBLIC_APP_BASE_URL`, and `PORT` from the same `baseURL`. The `--pass-with-no-tests` flag is
 required here because Playwright normally exits with `No tests found` before the first test file exists.
 
-- [ ] **Step 4: Commit config and ignore changes**
+- [ ] **Step 5: Commit config and ignore changes**
 
 Run:
 
 ```bash
-git add playwright.config.ts .gitignore
+git add playwright.config.ts e2e/support/global-setup.ts .gitignore
 git commit -m "test: configure playwright"
 ```
 
-Expected: a commit is created with `playwright.config.ts` and `.gitignore`.
+Expected: a commit is created with `playwright.config.ts`, `e2e/support/global-setup.ts`, and `.gitignore`.
 
 ### Task 5: Add E2E Support Helpers and OpenSpec Folder Guidance
 
@@ -408,8 +476,8 @@ Expected: a commit is created with only the new `e2e/support/` files and `e2e/sp
 - [ ] **Step 1: Create `e2e/smoke/app-ui.smoke.spec.ts`**
 
 The smoke test verifies that the public home page exposes a visible login CTA that points to `/auth/login`, then
-uses retried direct navigation to the login route for login page assertions. The retry protects cold Next.js dev
-startup from a transient first-render 404 while still asserting that the route eventually returns 200.
+uses retried direct navigation to the login route for login page assertions. Global setup warms `/` and `/auth/login`
+before tests run; the retry remains a narrow guard around the actual navigation assertion.
 
 ```ts
 import { expect, test } from "../support/test";
@@ -476,6 +544,7 @@ Expected: a commit is created with only `e2e/smoke/app-ui.smoke.spec.ts`.
 - Read: `package.json`
 - Read: `.agents/mcp/mcp.json`
 - Read: `playwright.config.ts`
+- Read: `e2e/support/global-setup.ts`
 - Read: `e2e/smoke/app-ui.smoke.spec.ts`
 
 - [ ] **Step 1: Run the E2E suite**
