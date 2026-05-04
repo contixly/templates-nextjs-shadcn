@@ -190,7 +190,7 @@ deploy one instance for `en` and another for `ru`, each with its own domain-leve
 ## Documentation
 
 - **[TEMPLATE.md](./TEMPLATE.md)** — Checklist after creating a repo from this template
-- **[docs/releases/README.md](./docs/releases/README.md)** — Saved release notes for published template versions
+- **[docs/releases/README.md](docs/releases/template/README.md)** — Saved release notes for published template versions
 - **[CONTRIBUTING.md](./CONTRIBUTING.md)** — How to contribute to the template
 - **[SECURITY.md](./SECURITY.md)** — Reporting security issues
 - **[AGENTS.md](./AGENTS.md)** — Architecture, commands, and patterns used in the codebase
