@@ -1,7 +1,7 @@
 import "@testing-library/jest-dom";
 import { render, screen } from "@testing-library/react";
 import React from "react";
-import { LoadingButton } from "src/components/ui/custom/button-loading";
+import { LoadingButton } from "@components/ui/custom/button-loading";
 
 describe("LoadingButton", () => {
   it("renders idle content without a leading spinner slot", () => {
