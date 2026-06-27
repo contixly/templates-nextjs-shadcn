@@ -18,6 +18,8 @@ import { SocialProvider } from "@typings/auth";
 import { betterAuthOrganizationHooks } from "@server/auth/organization-hooks";
 import { getConfiguredSocialProviderIds } from "@server/auth/social-providers";
 import { YandexOAuth2ClientConfig } from "@server/auth/yandex-oauth2-client";
+import { apiKey } from "@better-auth/api-key";
+import { organizationAccessControl, organizationRoles } from "@server/auth/organization-access";
 
 type BetterAuthApiMethod = (...args: unknown[]) => Promise<unknown>;
 
@@ -114,13 +116,14 @@ export const auth = betterAuth({
       : {}),
   },
   plugins: [
-    nextCookies(),
     lastLoginMethod({
       cookieName: LAST_LOGIN_METHOD_KEY,
     }),
     organization({
+      ac: organizationAccessControl,
       organizationHooks: betterAuthOrganizationHooks,
       requireEmailVerificationOnInvitation: true,
+      roles: organizationRoles,
       teams: {
         enabled: true,
         defaultTeam: {
@@ -137,6 +140,20 @@ export const auth = betterAuth({
         },
       },
     }),
+    apiKey([
+      {
+        configId: "user-keys",
+        apiKeyHeaders: "x-api-key",
+        defaultPrefix: "user_",
+        references: "user", // Default - owned by users
+      },
+      {
+        configId: "org-keys",
+        apiKeyHeaders: "x-api-key",
+        defaultPrefix: "org_",
+        references: "organization", // Owned by organizations
+      },
+    ]),
     ...(isConfiguredSocialProvider("yandex")
       ? [
           genericOAuth({
@@ -144,12 +161,13 @@ export const auth = betterAuth({
           }),
         ]
       : []),
+    nextCookies(),
   ],
   session: {
     cookieCache: {
       enabled: true,
       maxAge: isProduction ? 5 * 60 : 60 * 60,
-      strategy: "jwt", // compact" or "jwt" or "jwe"
+      strategy: "jwt", // "compact" or "jwt" or "jwe"
     },
   },
   advanced: {

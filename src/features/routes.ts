@@ -44,7 +44,13 @@ export const routesConfig = {
     accounts.pages.login.pathTemplate,
     accounts.pages.error.pathTemplate,
   ],
-  publicApiRoute: ["/api/auth/(.*)", "/api/health(.*)", "/api/local-auth/(.*)"],
+  publicApiRoute: [
+    "/api/auth/(.*)",
+    "/api/health(.*)",
+    "/api/local-auth/(.*)",
+    // API v1 performs key-only authentication inside route handlers.
+    "/api/v1/(.*)",
+  ],
   // Protected API routes EXCLUDING public API routes
   protectedApiRoute: [
     "/api((?!/auth/)(?!/health).)*", // Match /api/* but exclude /api/auth/* and /api/health*
