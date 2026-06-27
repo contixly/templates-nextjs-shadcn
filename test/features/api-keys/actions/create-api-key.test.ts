@@ -2,6 +2,8 @@
 
 const createApiKeyMock = jest.fn();
 const loadCurrentUserIdMock = jest.fn();
+const mockApiKeysLoggerChild = jest.fn();
+const mockApiKeysLoggerError = jest.fn();
 
 jest.mock("@server/auth", () => ({
   auth: {
@@ -16,6 +18,12 @@ jest.mock("@features/accounts/accounts-actions", () => ({
   loadRequestHeaders: jest.fn(),
 }));
 
+jest.mock("@features/api-keys/api-keys-logger", () => ({
+  apiKeysLogger: {
+    child: (...args: unknown[]) => mockApiKeysLoggerChild(...args),
+  },
+}));
+
 jest.mock("next/navigation", () => ({
   unauthorized: jest.fn(() => {
     throw new Error("unauthorized");
@@ -28,6 +36,11 @@ describe("createApiKeyForCurrentUser", () => {
   beforeEach(() => {
     createApiKeyMock.mockReset();
     loadCurrentUserIdMock.mockReset();
+    mockApiKeysLoggerChild.mockReset();
+    mockApiKeysLoggerError.mockReset();
+    mockApiKeysLoggerChild.mockReturnValue({
+      error: mockApiKeysLoggerError,
+    });
     loadCurrentUserIdMock.mockResolvedValue("user_1");
     createApiKeyMock.mockResolvedValue({
       id: "key_1",
@@ -108,5 +121,157 @@ describe("createApiKeyForCurrentUser", () => {
       },
     });
     expect(createApiKeyMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects invalid key type before calling Better Auth", async () => {
+    const result = await createApiKeyForCurrentUser({
+      type: "team" as never,
+      name: "Bad type",
+      presetIds: ["basic-read"],
+    });
+
+    expect(result).toEqual({
+      success: false,
+      error: {
+        code: 400,
+        message: "api_keys.invalid_type",
+      },
+    });
+    expect(createApiKeyMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects invalid names before calling Better Auth", async () => {
+    const result = await createApiKeyForCurrentUser({
+      type: "user",
+      name: " ",
+      presetIds: ["basic-read"],
+    });
+
+    expect(result).toEqual({
+      success: false,
+      error: {
+        code: 400,
+        message: "api_keys.name_required",
+      },
+    });
+    expect(createApiKeyMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects empty preset lists before calling Better Auth", async () => {
+    const result = await createApiKeyForCurrentUser({
+      type: "user",
+      name: "No scopes",
+      presetIds: [],
+    });
+
+    expect(result).toEqual({
+      success: false,
+      error: {
+        code: 400,
+        message: "api_keys.preset_required",
+      },
+    });
+    expect(createApiKeyMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects invalid preset ids before calling Better Auth", async () => {
+    const result = await createApiKeyForCurrentUser({
+      type: "user",
+      name: "Bad scopes",
+      presetIds: ["billing-read" as never],
+    });
+
+    expect(result).toEqual({
+      success: false,
+      error: {
+        code: 400,
+        message: "api_keys.invalid_preset",
+      },
+    });
+    expect(createApiKeyMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects empty organization ids before calling Better Auth", async () => {
+    const result = await createApiKeyForCurrentUser({
+      type: "organization",
+      organizationId: " ",
+      name: "Missing org",
+      presetIds: ["basic-read"],
+    });
+
+    expect(result).toEqual({
+      success: false,
+      error: {
+        code: 400,
+        message: "api_keys.organization_id_required",
+      },
+    });
+    expect(createApiKeyMock).not.toHaveBeenCalled();
+  });
+
+  it("throws unauthorized before calling Better Auth for anonymous users", async () => {
+    loadCurrentUserIdMock.mockResolvedValue(null);
+
+    await expect(
+      createApiKeyForCurrentUser({
+        type: "user",
+        name: "Anonymous key",
+        presetIds: ["basic-read"],
+      })
+    ).rejects.toThrow("unauthorized");
+
+    expect(createApiKeyMock).not.toHaveBeenCalled();
+  });
+
+  it("returns a stable error when Better Auth rejects key creation", async () => {
+    createApiKeyMock.mockRejectedValue(new Error("database connection failed"));
+
+    await expect(
+      createApiKeyForCurrentUser({
+        type: "user",
+        name: "Local integration",
+        presetIds: ["basic-read"],
+      })
+    ).resolves.toEqual({
+      success: false,
+      error: {
+        code: 500,
+        message: "api_keys.create_failed",
+      },
+    });
+
+    expect(mockApiKeysLoggerError).toHaveBeenCalledWith({
+      error: "database connection failed",
+    });
+  });
+
+  it("returns a stable error when Better Auth returns a malformed created-key payload", async () => {
+    createApiKeyMock.mockResolvedValue({
+      id: "key_1",
+      key: "user_secret",
+      start: "user_s",
+      configId: "unknown-keys",
+      referenceId: "user_1",
+    });
+
+    await expect(
+      createApiKeyForCurrentUser({
+        type: "user",
+        name: "Local integration",
+        presetIds: ["basic-read"],
+      })
+    ).resolves.toEqual({
+      success: false,
+      error: {
+        code: 500,
+        message: "api_keys.create_failed",
+      },
+    });
+
+    expect(mockApiKeysLoggerError).toHaveBeenCalledWith(
+      expect.objectContaining({
+        error: "api_keys.created_key_payload_invalid",
+      })
+    );
   });
 });

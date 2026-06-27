@@ -6,7 +6,22 @@ export const API_KEY_HEADER_NAME = "x-api-key" as const;
 
 export type ApiKeyConfigId = typeof API_KEY_USER_CONFIG_ID | typeof API_KEY_ORGANIZATION_CONFIG_ID;
 
-export type ApiKeyPermissionRecord = Record<string, string[]>;
+export type ApiKeyBuiltInPermissionResource =
+  | "basic"
+  | "organization"
+  | "member"
+  | "team"
+  | "teamMember";
+
+export type ApiKeyBuiltInPermissionAction = "read";
+
+export type ApiKeyBuiltInPermissionRecord = Partial<
+  Record<ApiKeyBuiltInPermissionResource, ApiKeyBuiltInPermissionAction[]>
+>;
+
+export type ApiKeyPermissionRecord = ApiKeyBuiltInPermissionRecord & {
+  [resource: string]: string[] | undefined;
+};
 
 export interface ApiKeyDisplayData {
   id: string;

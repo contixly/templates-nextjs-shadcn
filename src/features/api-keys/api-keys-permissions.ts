@@ -1,4 +1,7 @@
-import type { ApiKeyPermissionRecord } from "@features/api-keys/api-keys-types";
+import type {
+  ApiKeyBuiltInPermissionRecord,
+  ApiKeyPermissionRecord,
+} from "@features/api-keys/api-keys-types";
 
 export const API_KEY_REQUIRED_PERMISSIONS = {
   basicRead: { basic: ["read"] },
@@ -10,7 +13,7 @@ export const API_KEY_REQUIRED_PERMISSIONS = {
     team: ["read"],
     teamMember: ["read"],
   },
-} satisfies Record<string, ApiKeyPermissionRecord>;
+} satisfies Record<string, ApiKeyBuiltInPermissionRecord>;
 
 export const API_KEY_PERMISSION_PRESETS = {
   "basic-read": {
@@ -42,7 +45,7 @@ export const API_KEY_PERMISSION_PRESETS = {
       teamMember: ["read"],
     },
   },
-} satisfies Record<string, { label: string; permissions: ApiKeyPermissionRecord }>;
+} satisfies Record<string, { label: string; permissions: ApiKeyBuiltInPermissionRecord }>;
 
 export type ApiKeyPermissionPresetId = keyof typeof API_KEY_PERMISSION_PRESETS;
 
@@ -56,6 +59,10 @@ export const mergeApiKeyPermissions = (
 
   for (const record of records) {
     for (const [resource, actions] of Object.entries(record)) {
+      if (!actions) {
+        continue;
+      }
+
       const resourceActions = merged.get(resource) ?? new Set<string>();
       actions.forEach((action) => resourceActions.add(action));
       merged.set(resource, resourceActions);
