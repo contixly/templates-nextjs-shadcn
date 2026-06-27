@@ -53,7 +53,7 @@ export const routesConfig = {
   ],
   // Protected API routes EXCLUDING public API routes
   protectedApiRoute: [
-    "/api((?!/auth/)(?!/health).)*", // Match /api/* but exclude /api/auth/* and /api/health*
+    "/api((?!/auth/)(?!/health)(?!/v1(?:/|$)).)*", // Match /api/* but exclude auth, health, and API v1
   ],
 };
 
