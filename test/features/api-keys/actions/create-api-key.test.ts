@@ -83,6 +83,14 @@ describe("createApiKeyForCurrentUser", () => {
   });
 
   it("creates an organization key without passing browser headers", async () => {
+    createApiKeyMock.mockResolvedValue({
+      id: "key_1",
+      key: "org_secret",
+      start: "org_s",
+      configId: "org-keys",
+      referenceId: "org_1",
+    });
+
     await createApiKeyForCurrentUser({
       type: "organization",
       organizationId: "org_1",
@@ -104,6 +112,34 @@ describe("createApiKeyForCurrentUser", () => {
         },
       },
     });
+  });
+
+  it("rejects undefined input with a stable request error before calling Better Auth", async () => {
+    const result = await createApiKeyForCurrentUser(undefined as never);
+
+    expect(result).toEqual({
+      success: false,
+      error: {
+        code: 400,
+        message: "api_keys.invalid_request",
+      },
+    });
+    expect(loadCurrentUserIdMock).not.toHaveBeenCalled();
+    expect(createApiKeyMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects null input with a stable request error before calling Better Auth", async () => {
+    const result = await createApiKeyForCurrentUser(null as never);
+
+    expect(result).toEqual({
+      success: false,
+      error: {
+        code: 400,
+        message: "api_keys.invalid_request",
+      },
+    });
+    expect(loadCurrentUserIdMock).not.toHaveBeenCalled();
+    expect(createApiKeyMock).not.toHaveBeenCalled();
   });
 
   it("rejects organization key creation without organization id", async () => {
@@ -259,6 +295,67 @@ describe("createApiKeyForCurrentUser", () => {
         type: "user",
         name: "Local integration",
         presetIds: ["basic-read"],
+      })
+    ).resolves.toEqual({
+      success: false,
+      error: {
+        code: 500,
+        message: "api_keys.create_failed",
+      },
+    });
+
+    expect(mockApiKeysLoggerError).toHaveBeenCalledWith(
+      expect.objectContaining({
+        error: "api_keys.created_key_payload_invalid",
+      })
+    );
+  });
+
+  it("returns a stable error when Better Auth returns a mismatched config id", async () => {
+    createApiKeyMock.mockResolvedValue({
+      id: "key_1",
+      key: "user_secret",
+      start: "user_s",
+      configId: "org-keys",
+      referenceId: "user_1",
+    });
+
+    await expect(
+      createApiKeyForCurrentUser({
+        type: "user",
+        name: "Local integration",
+        presetIds: ["basic-read"],
+      })
+    ).resolves.toEqual({
+      success: false,
+      error: {
+        code: 500,
+        message: "api_keys.create_failed",
+      },
+    });
+
+    expect(mockApiKeysLoggerError).toHaveBeenCalledWith(
+      expect.objectContaining({
+        error: "api_keys.created_key_payload_invalid",
+      })
+    );
+  });
+
+  it("returns a stable error when Better Auth returns a mismatched reference id", async () => {
+    createApiKeyMock.mockResolvedValue({
+      id: "key_1",
+      key: "org_secret",
+      start: "org_s",
+      configId: "org-keys",
+      referenceId: "org_2",
+    });
+
+    await expect(
+      createApiKeyForCurrentUser({
+        type: "organization",
+        organizationId: "org_1",
+        name: "Org integration",
+        presetIds: ["organization-read-all"],
       })
     ).resolves.toEqual({
       success: false,

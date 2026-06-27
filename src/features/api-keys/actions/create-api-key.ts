@@ -7,6 +7,7 @@ import { apiKeysLogger } from "@features/api-keys/api-keys-logger";
 import {
   API_KEY_ORGANIZATION_CONFIG_ID,
   API_KEY_USER_CONFIG_ID,
+  type ApiKeyConfigId,
   type ApiKeyDisplayData,
   type CreateApiKeyActionResult,
 } from "@features/api-keys/api-keys-types";
@@ -54,6 +55,9 @@ const createdApiKeySchema = z.object({
   referenceId: z.string().min(1),
 });
 
+const getValidationMessage = (message: string | undefined) =>
+  message?.startsWith("api_keys.") ? message : "api_keys.invalid_request";
+
 const createApiKeyFailure = (): CreateApiKeyActionResult => ({
   success: false,
   error: {
@@ -62,10 +66,23 @@ const createApiKeyFailure = (): CreateApiKeyActionResult => ({
   },
 });
 
-const toApiKeyDisplayData = (value: unknown): ApiKeyDisplayData | null => {
+const toApiKeyDisplayData = (
+  value: unknown,
+  expected: {
+    configId: ApiKeyConfigId;
+    referenceId: string;
+  }
+): ApiKeyDisplayData | null => {
   const parsed = createdApiKeySchema.safeParse(value);
 
   if (!parsed.success) {
+    return null;
+  }
+
+  if (
+    parsed.data.configId !== expected.configId ||
+    parsed.data.referenceId !== expected.referenceId
+  ) {
     return null;
   }
 
@@ -87,7 +104,7 @@ export const createApiKeyForCurrentUser = async (
       success: false,
       error: {
         code: HttpCodes.BAD_REQUEST,
-        message: parsed.error.issues[0]?.message ?? "api_keys.invalid_request",
+        message: getValidationMessage(parsed.error.issues[0]?.message),
       },
     };
   }
@@ -99,38 +116,44 @@ export const createApiKeyForCurrentUser = async (
 
   const presetIds = parsed.data.presetIds as ApiKeyPermissionPresetId[];
   const permissions = expandApiKeyPresetIds(presetIds);
+  const configId =
+    parsed.data.type === "organization" ? API_KEY_ORGANIZATION_CONFIG_ID : API_KEY_USER_CONFIG_ID;
   const logger = apiKeysLogger.child({
     function: "createApiKeyForCurrentUser",
     userId,
   });
 
-  if (parsed.data.type === "organization" && !parsed.data.organizationId) {
-    return {
-      success: false,
-      error: {
-        code: HttpCodes.BAD_REQUEST,
-        message: "api_keys.organization_id_required",
-      },
-    };
+  let referenceId = userId;
+
+  if (parsed.data.type === "organization") {
+    if (!parsed.data.organizationId) {
+      return {
+        success: false,
+        error: {
+          code: HttpCodes.BAD_REQUEST,
+          message: "api_keys.organization_id_required",
+        },
+      };
+    }
+
+    referenceId = parsed.data.organizationId;
   }
 
   try {
     const created = await auth.api.createApiKey({
       body: {
-        configId:
-          parsed.data.type === "organization"
-            ? API_KEY_ORGANIZATION_CONFIG_ID
-            : API_KEY_USER_CONFIG_ID,
-        ...(parsed.data.type === "organization"
-          ? { organizationId: parsed.data.organizationId }
-          : {}),
+        configId,
+        ...(parsed.data.type === "organization" ? { organizationId: referenceId } : {}),
         name: parsed.data.name,
         userId,
         permissions,
       },
     });
 
-    const data = toApiKeyDisplayData(created);
+    const data = toApiKeyDisplayData(created, {
+      configId,
+      referenceId,
+    });
     if (!data) {
       logger.error({ error: "api_keys.created_key_payload_invalid" });
       return createApiKeyFailure();
