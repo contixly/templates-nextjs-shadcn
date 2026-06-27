@@ -40,11 +40,40 @@ jest.mock("@features/api-keys/api-keys-logger", () => ({
 }));
 
 import { ApiKeyHttpError } from "@features/api-keys/api-keys-errors";
+import { API_KEY_REQUIRED_PERMISSIONS } from "@features/api-keys/api-keys-permissions";
 
 const request = () =>
   new Request("http://localhost:3000/api/v1/organizations/org_1", {
     headers: { "x-api-key": "secret" },
   });
+
+const expectRequireApiKeyCall = (
+  callIndex: number,
+  apiRequest: Request,
+  expectedPermissions: (typeof API_KEY_REQUIRED_PERMISSIONS)[keyof typeof API_KEY_REQUIRED_PERMISSIONS]
+) => {
+  const call = requireApiKeyMock.mock.calls[callIndex];
+
+  expect(call).toBeDefined();
+  expect(call[0]).toBe(apiRequest);
+  expect(call[1]).toBe(expectedPermissions);
+};
+
+const rejectOrganizationAccess = () => {
+  requireApiOrganizationAccessMock.mockRejectedValue(
+    new ApiKeyHttpError(403, "organization_access_denied", "Organization access denied")
+  );
+};
+
+const expectOrganizationAccessDeniedResponse = async (response: Response) => {
+  expect(response.status).toBe(403);
+  await expect(response.json()).resolves.toEqual({
+    error: {
+      code: "organization_access_denied",
+      message: "Organization access denied",
+    },
+  });
+};
 
 describe("/api/v1 route handlers", () => {
   beforeEach(() => {
@@ -70,9 +99,11 @@ describe("/api/v1 route handlers", () => {
     });
 
     const route = await import("../../../../src/app/api/v1/me/route");
-    const response = await route.GET(request());
+    const apiRequest = request();
+    const response = await route.GET(apiRequest);
 
     expect(response.status).toBe(200);
+    expectRequireApiKeyCall(0, apiRequest, API_KEY_REQUIRED_PERMISSIONS.basicRead);
     await expect(response.json()).resolves.toEqual({
       data: {
         principal: {
@@ -102,8 +133,10 @@ describe("/api/v1 route handlers", () => {
     findManyAccessibleOrganizationsByUserIdMock.mockResolvedValue([{ id: "org_1", name: "Acme" }]);
 
     const route = await import("../../../../src/app/api/v1/organizations/route");
-    const userResponse = await route.GET(request());
+    const userRequest = request();
+    const userResponse = await route.GET(userRequest);
 
+    expectRequireApiKeyCall(0, userRequest, API_KEY_REQUIRED_PERMISSIONS.organizationRead);
     await expect(userResponse.json()).resolves.toEqual({
       data: [{ id: "org_1", name: "Acme" }],
     });
@@ -118,10 +151,39 @@ describe("/api/v1 route handlers", () => {
     });
     findOrganizationDtoByIdMock.mockResolvedValue({ id: "org_2", name: "Beta" });
 
-    const orgResponse = await route.GET(request());
+    const orgRequest = request();
+    const orgResponse = await route.GET(orgRequest);
 
+    expectRequireApiKeyCall(1, orgRequest, API_KEY_REQUIRED_PERMISSIONS.organizationRead);
     await expect(orgResponse.json()).resolves.toEqual({
       data: [{ id: "org_2", name: "Beta" }],
+    });
+  });
+
+  it("returns not found when an organization-key list scope is missing", async () => {
+    requireApiKeyMock.mockResolvedValue({
+      type: "organization",
+      keyId: "key_2",
+      keyStart: "org_s",
+      configId: "org-keys",
+      organizationId: "org_2",
+      permissions: { organization: ["read"] },
+    });
+    findOrganizationDtoByIdMock.mockResolvedValue(null);
+
+    const route = await import("../../../../src/app/api/v1/organizations/route");
+    const apiRequest = request();
+    const response = await route.GET(apiRequest);
+
+    expect(response.status).toBe(404);
+    expectRequireApiKeyCall(0, apiRequest, API_KEY_REQUIRED_PERMISSIONS.organizationRead);
+    expect(findManyAccessibleOrganizationsByUserIdMock).not.toHaveBeenCalled();
+    expect(findOrganizationDtoByIdMock).toHaveBeenCalledWith("org_2");
+    await expect(response.json()).resolves.toEqual({
+      error: {
+        code: "resource_not_found",
+        message: "Resource not found",
+      },
     });
   });
 
@@ -137,10 +199,12 @@ describe("/api/v1 route handlers", () => {
     findOrganizationDtoByIdMock.mockResolvedValue({ id: "org_1", name: "Acme" });
 
     const route = await import("../../../../src/app/api/v1/organizations/[organizationId]/route");
-    const response = await route.GET(request(), {
+    const apiRequest = request();
+    const response = await route.GET(apiRequest, {
       params: Promise.resolve({ organizationId: "org_1" }),
     });
 
+    expectRequireApiKeyCall(0, apiRequest, API_KEY_REQUIRED_PERMISSIONS.organizationRead);
     expect(requireApiOrganizationAccessMock).toHaveBeenCalledWith(
       expect.objectContaining({ type: "user" }),
       "org_1"
@@ -148,6 +212,32 @@ describe("/api/v1 route handlers", () => {
     await expect(response.json()).resolves.toEqual({
       data: { id: "org_1", name: "Acme" },
     });
+  });
+
+  it("skips organization detail lookup when organization access is denied", async () => {
+    requireApiKeyMock.mockResolvedValue({
+      type: "user",
+      keyId: "key_1",
+      keyStart: "user_s",
+      configId: "user-keys",
+      userId: "user_1",
+      permissions: { organization: ["read"] },
+    });
+    rejectOrganizationAccess();
+
+    const route = await import("../../../../src/app/api/v1/organizations/[organizationId]/route");
+    const apiRequest = request();
+    const response = await route.GET(apiRequest, {
+      params: Promise.resolve({ organizationId: "org_1" }),
+    });
+
+    expectRequireApiKeyCall(0, apiRequest, API_KEY_REQUIRED_PERMISSIONS.organizationRead);
+    expect(requireApiOrganizationAccessMock).toHaveBeenCalledWith(
+      expect.objectContaining({ type: "user" }),
+      "org_1"
+    );
+    expect(findOrganizationDtoByIdMock).not.toHaveBeenCalled();
+    await expectOrganizationAccessDeniedResponse(response);
   });
 
   it("returns organization members after resolving organization scope", async () => {
@@ -164,10 +254,12 @@ describe("/api/v1 route handlers", () => {
 
     const route =
       await import("../../../../src/app/api/v1/organizations/[organizationId]/members/route");
-    const response = await route.GET(request(), {
+    const apiRequest = request();
+    const response = await route.GET(apiRequest, {
       params: Promise.resolve({ organizationId: "org_1" }),
     });
 
+    expectRequireApiKeyCall(0, apiRequest, API_KEY_REQUIRED_PERMISSIONS.organizationMembersRead);
     expect(requireApiOrganizationAccessMock).toHaveBeenCalledWith(
       expect.objectContaining({ type: "organization" }),
       "org_1"
@@ -175,6 +267,30 @@ describe("/api/v1 route handlers", () => {
     await expect(response.json()).resolves.toEqual({
       data: [{ id: "member_1" }],
     });
+  });
+
+  it("skips organization member lookups when organization access is denied", async () => {
+    requireApiKeyMock.mockResolvedValue({
+      type: "organization",
+      keyId: "key_2",
+      keyStart: "org_s",
+      configId: "org-keys",
+      organizationId: "org_1",
+      permissions: { organization: ["read"], member: ["read"] },
+    });
+    rejectOrganizationAccess();
+
+    const route =
+      await import("../../../../src/app/api/v1/organizations/[organizationId]/members/route");
+    const apiRequest = request();
+    const response = await route.GET(apiRequest, {
+      params: Promise.resolve({ organizationId: "org_1" }),
+    });
+
+    expectRequireApiKeyCall(0, apiRequest, API_KEY_REQUIRED_PERMISSIONS.organizationMembersRead);
+    expect(findOrganizationDtoByIdMock).not.toHaveBeenCalled();
+    expect(findManyOrganizationMembersByOrganizationIdMock).not.toHaveBeenCalled();
+    await expectOrganizationAccessDeniedResponse(response);
   });
 
   it("returns organization teams after resolving organization scope", async () => {
@@ -191,14 +307,40 @@ describe("/api/v1 route handlers", () => {
 
     const route =
       await import("../../../../src/app/api/v1/organizations/[organizationId]/teams/route");
-    const response = await route.GET(request(), {
+    const apiRequest = request();
+    const response = await route.GET(apiRequest, {
       params: Promise.resolve({ organizationId: "org_1" }),
     });
 
+    expectRequireApiKeyCall(0, apiRequest, API_KEY_REQUIRED_PERMISSIONS.organizationTeamsRead);
     expect(findManyWorkspaceTeamsByOrganizationIdMock).toHaveBeenCalledWith("org_1");
     await expect(response.json()).resolves.toEqual({
       data: [{ id: "team_1" }],
     });
+  });
+
+  it("skips organization team lookups when organization access is denied", async () => {
+    requireApiKeyMock.mockResolvedValue({
+      type: "organization",
+      keyId: "key_2",
+      keyStart: "org_s",
+      configId: "org-keys",
+      organizationId: "org_1",
+      permissions: { organization: ["read"], team: ["read"] },
+    });
+    rejectOrganizationAccess();
+
+    const route =
+      await import("../../../../src/app/api/v1/organizations/[organizationId]/teams/route");
+    const apiRequest = request();
+    const response = await route.GET(apiRequest, {
+      params: Promise.resolve({ organizationId: "org_1" }),
+    });
+
+    expectRequireApiKeyCall(0, apiRequest, API_KEY_REQUIRED_PERMISSIONS.organizationTeamsRead);
+    expect(findOrganizationDtoByIdMock).not.toHaveBeenCalled();
+    expect(findManyWorkspaceTeamsByOrganizationIdMock).not.toHaveBeenCalled();
+    await expectOrganizationAccessDeniedResponse(response);
   });
 
   it("returns team members after resolving organization scope and team ownership", async () => {
@@ -217,10 +359,16 @@ describe("/api/v1 route handlers", () => {
 
     const route =
       await import("../../../../src/app/api/v1/organizations/[organizationId]/teams/[teamId]/members/route");
-    const response = await route.GET(request(), {
+    const apiRequest = request();
+    const response = await route.GET(apiRequest, {
       params: Promise.resolve({ organizationId: "org_1", teamId: "team_1" }),
     });
 
+    expectRequireApiKeyCall(
+      0,
+      apiRequest,
+      API_KEY_REQUIRED_PERMISSIONS.organizationTeamMembersRead
+    );
     expect(findWorkspaceTeamByIdAndOrganizationIdMock).toHaveBeenCalledWith("team_1", "org_1");
     expect(findManyWorkspaceTeamMembersByTeamIdAndOrganizationIdMock).toHaveBeenCalledWith(
       "team_1",
@@ -229,6 +377,34 @@ describe("/api/v1 route handlers", () => {
     await expect(response.json()).resolves.toEqual({
       data: [{ id: "team_member_1" }],
     });
+  });
+
+  it("skips team member lookups when organization access is denied", async () => {
+    requireApiKeyMock.mockResolvedValue({
+      type: "organization",
+      keyId: "key_2",
+      keyStart: "org_s",
+      configId: "org-keys",
+      organizationId: "org_1",
+      permissions: { organization: ["read"], team: ["read"], teamMember: ["read"] },
+    });
+    rejectOrganizationAccess();
+
+    const route =
+      await import("../../../../src/app/api/v1/organizations/[organizationId]/teams/[teamId]/members/route");
+    const apiRequest = request();
+    const response = await route.GET(apiRequest, {
+      params: Promise.resolve({ organizationId: "org_1", teamId: "team_1" }),
+    });
+
+    expectRequireApiKeyCall(
+      0,
+      apiRequest,
+      API_KEY_REQUIRED_PERMISSIONS.organizationTeamMembersRead
+    );
+    expect(findWorkspaceTeamByIdAndOrganizationIdMock).not.toHaveBeenCalled();
+    expect(findManyWorkspaceTeamMembersByTeamIdAndOrganizationIdMock).not.toHaveBeenCalled();
+    await expectOrganizationAccessDeniedResponse(response);
   });
 
   it("returns not found when an organization-scoped resource is missing", async () => {
