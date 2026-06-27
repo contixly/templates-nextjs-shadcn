@@ -174,6 +174,33 @@ export const findManyWorkspaceTeamsByOrganizationIdAndUserId = async (
   return teams.map(toWorkspaceTeamListItemDto);
 };
 
+export const findManyWorkspaceTeamsByOrganizationId = async (
+  organizationId: string
+): Promise<WorkspaceTeamListItemDto[]> => {
+  "use cache";
+  cacheLife("hours");
+  cacheTag(CACHE_WorkspaceTeamsTag(organizationId), CACHE_OrganizationByIdTag(organizationId));
+
+  const teams = await prisma.team.findMany({
+    where: {
+      organizationId,
+    },
+    orderBy: teamOrderBy,
+    select: teamListSelect,
+  });
+
+  if (teams.length > 0) {
+    cacheTag(
+      ...teams.flatMap((team) => [
+        CACHE_WorkspaceTeamByIdTag(team.id),
+        CACHE_WorkspaceTeamMembersTag(team.id),
+      ])
+    );
+  }
+
+  return teams.map(toWorkspaceTeamListItemDto);
+};
+
 export const findWorkspaceTeamByIdAndOrganizationIdAndUserId = async (
   teamId: string,
   organizationId: string,
@@ -199,6 +226,29 @@ export const findWorkspaceTeamByIdAndOrganizationIdAndUserId = async (
           },
         },
       },
+    },
+    select: teamListSelect,
+  });
+
+  return team ? toWorkspaceTeamListItemDto(team) : null;
+};
+
+export const findWorkspaceTeamByIdAndOrganizationId = async (
+  teamId: string,
+  organizationId: string
+): Promise<WorkspaceTeamListItemDto | null> => {
+  "use cache";
+  cacheLife("hours");
+  cacheTag(
+    CACHE_WorkspaceTeamsTag(organizationId),
+    CACHE_WorkspaceTeamByIdTag(teamId),
+    CACHE_OrganizationByIdTag(organizationId)
+  );
+
+  const team = await prisma.team.findFirst({
+    where: {
+      id: teamId,
+      organizationId,
     },
     select: teamListSelect,
   });
@@ -233,6 +283,55 @@ export const findManyWorkspaceTeamMembersByTeamIdAndUserId = async (
             },
           },
         },
+      },
+    },
+    orderBy: teamMemberOrderBy,
+    select: {
+      id: true,
+      teamId: true,
+      userId: true,
+      createdAt: true,
+      user: {
+        select: {
+          name: true,
+          email: true,
+          image: true,
+          members: {
+            where: {
+              organizationId,
+            },
+            select: {
+              role: true,
+              createdAt: true,
+            },
+            take: 1,
+          },
+        },
+      },
+    },
+  });
+
+  return members.map(toWorkspaceTeamMemberDto);
+};
+
+export const findManyWorkspaceTeamMembersByTeamIdAndOrganizationId = async (
+  teamId: string,
+  organizationId: string
+): Promise<WorkspaceTeamMemberDto[]> => {
+  "use cache";
+  cacheLife("hours");
+  cacheTag(
+    CACHE_WorkspaceTeamsTag(organizationId),
+    CACHE_WorkspaceTeamByIdTag(teamId),
+    CACHE_WorkspaceTeamMembersTag(teamId),
+    CACHE_OrganizationMembersTag(organizationId)
+  );
+
+  const members = await prisma.teamMember.findMany({
+    where: {
+      teamId,
+      team: {
+        organizationId,
       },
     },
     orderBy: teamMemberOrderBy,

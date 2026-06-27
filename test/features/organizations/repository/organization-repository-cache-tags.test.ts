@@ -5,6 +5,7 @@ const cacheTagMock = jest.fn();
 
 const findManyMock = jest.fn();
 const findFirstMock = jest.fn();
+const memberFindManyMock = jest.fn();
 const memberFindFirstMock = jest.fn();
 
 jest.mock("next/cache", () => ({
@@ -20,6 +21,7 @@ jest.mock("@server/prisma", () => ({
       findFirst: (...args: unknown[]) => findFirstMock(...args),
     },
     member: {
+      findMany: (...args: unknown[]) => memberFindManyMock(...args),
       findFirst: (...args: unknown[]) => memberFindFirstMock(...args),
     },
   },
@@ -44,6 +46,7 @@ import {
 } from "@features/organizations/organizations-repository";
 import {
   CACHE_OrganizationByIdTag,
+  CACHE_OrganizationMembersTag,
   CACHE_OrganizationsByUserIdTag,
 } from "@features/organizations/organizations-types";
 
@@ -53,6 +56,7 @@ describe("organization repository cache tags", () => {
     cacheTagMock.mockReset();
     findManyMock.mockReset();
     findFirstMock.mockReset();
+    memberFindManyMock.mockReset();
     memberFindFirstMock.mockReset();
   });
 
@@ -162,5 +166,71 @@ describe("organization repository cache tags", () => {
     });
     expect(cacheLifeMock).not.toHaveBeenCalled();
     expect(cacheTagMock).not.toHaveBeenCalled();
+  });
+
+  it("loads organization DTOs by id without requiring a user principal", async () => {
+    findFirstMock.mockResolvedValue({
+      id: "org_1",
+      name: "Acme",
+      slug: "acme",
+      logo: null,
+      metadata: null,
+      createdAt: new Date("2026-04-20T10:00:00.000Z"),
+      updatedAt: new Date("2026-04-20T10:00:00.000Z"),
+    });
+
+    const { findOrganizationDtoById } =
+      await import("@features/organizations/organizations-repository");
+
+    await expect(findOrganizationDtoById("org_1")).resolves.toMatchObject({
+      id: "org_1",
+      name: "Acme",
+    });
+    expect(cacheTagMock).toHaveBeenCalledWith(CACHE_OrganizationByIdTag("org_1"));
+    expect(findFirstMock).toHaveBeenCalledWith({
+      where: {
+        id: "org_1",
+      },
+      select: expect.any(Object),
+    });
+  });
+
+  it("loads organization members by organization id without requiring a user principal", async () => {
+    memberFindManyMock.mockResolvedValue([
+      {
+        id: "member_1",
+        userId: "user_1",
+        role: "owner",
+        createdAt: new Date("2026-04-20T10:00:00.000Z"),
+        user: {
+          id: "user_1",
+          name: "Alice",
+          email: "alice@example.com",
+          image: null,
+        },
+      },
+    ]);
+
+    const { findManyOrganizationMembersByOrganizationId } =
+      await import("@features/organizations/organizations-repository");
+
+    await expect(findManyOrganizationMembersByOrganizationId("org_1")).resolves.toEqual([
+      expect.objectContaining({
+        id: "member_1",
+        userId: "user_1",
+        role: "owner",
+      }),
+    ]);
+    expect(cacheTagMock).toHaveBeenCalledWith(
+      CACHE_OrganizationByIdTag("org_1"),
+      CACHE_OrganizationMembersTag("org_1")
+    );
+    expect(memberFindManyMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: {
+          organizationId: "org_1",
+        },
+      })
+    );
   });
 });
