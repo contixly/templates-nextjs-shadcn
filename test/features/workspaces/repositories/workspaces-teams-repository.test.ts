@@ -116,10 +116,7 @@ describe("workspace teams repository", () => {
       "organization_org-1_members",
       "organizations_user_user-1"
     );
-    expect(mockCacheTag).toHaveBeenCalledWith(
-      "workspace_team_team-1",
-      "workspace_team_team-1_members"
-    );
+    expect(mockCacheTag).toHaveBeenCalledTimes(1);
   });
 
   it("loads team members with workspace role labels", async () => {
@@ -233,24 +230,26 @@ describe("workspace teams repository", () => {
   });
 
   it("loads workspace teams by organization id without a user principal", async () => {
-    mockTeamFindMany.mockResolvedValue([
-      {
-        id: "team_1",
+    mockTeamFindMany.mockResolvedValue(
+      Array.from({ length: 70 }, (_, index) => ({
+        id: `team_${index + 1}`,
         organizationId: "org_1",
-        name: "Platform",
+        name: `Platform ${index + 1}`,
         createdAt: new Date("2026-05-01T10:00:00.000Z"),
         updatedAt: new Date("2026-05-01T10:00:00.000Z"),
         _count: { members: 2 },
-      },
-    ]);
+      }))
+    );
 
-    await expect(findManyWorkspaceTeamsByOrganizationId("org_1")).resolves.toEqual([
-      expect.objectContaining({
-        id: "team_1",
-        organizationId: "org_1",
-        memberCount: 2,
-      }),
-    ]);
+    await expect(findManyWorkspaceTeamsByOrganizationId("org_1")).resolves.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: "team_1",
+          organizationId: "org_1",
+          memberCount: 2,
+        }),
+      ])
+    );
     expect(mockTeamFindMany).toHaveBeenCalledWith(
       expect.objectContaining({
         where: {
@@ -258,6 +257,8 @@ describe("workspace teams repository", () => {
         },
       })
     );
+    expect(mockCacheTag).toHaveBeenCalledWith("organization_org_1_teams", "organization_org_1");
+    expect(mockCacheTag).toHaveBeenCalledTimes(1);
   });
 
   it("loads one workspace team by id and organization id without a user principal", async () => {

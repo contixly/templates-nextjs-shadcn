@@ -162,15 +162,6 @@ export const findManyWorkspaceTeamsByOrganizationIdAndUserId = async (
     select: teamListSelect,
   });
 
-  if (teams.length > 0) {
-    cacheTag(
-      ...teams.flatMap((team) => [
-        CACHE_WorkspaceTeamByIdTag(team.id),
-        CACHE_WorkspaceTeamMembersTag(team.id),
-      ])
-    );
-  }
-
   return teams.map(toWorkspaceTeamListItemDto);
 };
 
@@ -188,15 +179,6 @@ export const findManyWorkspaceTeamsByOrganizationId = async (
     orderBy: teamOrderBy,
     select: teamListSelect,
   });
-
-  if (teams.length > 0) {
-    cacheTag(
-      ...teams.flatMap((team) => [
-        CACHE_WorkspaceTeamByIdTag(team.id),
-        CACHE_WorkspaceTeamMembersTag(team.id),
-      ])
-    );
-  }
 
   return teams.map(toWorkspaceTeamListItemDto);
 };
