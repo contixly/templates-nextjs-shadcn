@@ -41,6 +41,7 @@ describe("api key permissions", () => {
   it("identifies preset ids", () => {
     expect(isApiKeyPermissionPresetId("basic-read")).toBe(true);
     expect(isApiKeyPermissionPresetId("billing-read")).toBe(false);
+    expect(isApiKeyPermissionPresetId("toString")).toBe(false);
   });
 
   it("keeps custom downstream resources and actions extension-friendly", () => {

@@ -50,7 +50,8 @@ export const API_KEY_PERMISSION_PRESETS = {
 export type ApiKeyPermissionPresetId = keyof typeof API_KEY_PERMISSION_PRESETS;
 
 export const isApiKeyPermissionPresetId = (value: unknown): value is ApiKeyPermissionPresetId =>
-  typeof value === "string" && value in API_KEY_PERMISSION_PRESETS;
+  typeof value === "string" &&
+  Object.prototype.hasOwnProperty.call(API_KEY_PERMISSION_PRESETS, value);
 
 export const mergeApiKeyPermissions = (
   records: ApiKeyPermissionRecord[]

@@ -227,6 +227,23 @@ describe("createApiKeyForCurrentUser", () => {
     expect(createApiKeyMock).not.toHaveBeenCalled();
   });
 
+  it("rejects inherited preset names before calling Better Auth", async () => {
+    const result = await createApiKeyForCurrentUser({
+      type: "user",
+      name: "Bad scopes",
+      presetIds: ["toString" as never],
+    });
+
+    expect(result).toEqual({
+      success: false,
+      error: {
+        code: 400,
+        message: "api_keys.invalid_preset",
+      },
+    });
+    expect(createApiKeyMock).not.toHaveBeenCalled();
+  });
+
   it("rejects empty organization ids before calling Better Auth", async () => {
     const result = await createApiKeyForCurrentUser({
       type: "organization",
