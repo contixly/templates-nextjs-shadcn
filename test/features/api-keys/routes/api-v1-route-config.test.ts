@@ -6,6 +6,7 @@ const requestFor = (pathname: string) =>
 
 describe("/api/v1 route config", () => {
   it("lets API v1 route handlers own API key authentication", () => {
+    expect(routesConfig.publicApiRoute).toContain("/api/v1");
     expect(routesConfig.publicApiRoute).toContain("/api/v1/(.*)");
   });
 
@@ -13,7 +14,11 @@ describe("/api/v1 route config", () => {
     const isPublicApiRoute = createRouteMatcher(routesConfig.publicApiRoute);
     const isProtectedApiRoute = createRouteMatcher(routesConfig.protectedApiRoute);
 
+    expect(isPublicApiRoute(requestFor("/api/v1"))).toBe(true);
+    expect(isPublicApiRoute(requestFor("/api/v1/"))).toBe(true);
     expect(isPublicApiRoute(requestFor("/api/v1/me"))).toBe(true);
+    expect(isPublicApiRoute(requestFor("/api/v10/me"))).toBe(false);
+    expect(isPublicApiRoute(requestFor("/api/workspaces"))).toBe(false);
     expect(isProtectedApiRoute(requestFor("/api/v1"))).toBe(false);
     expect(isProtectedApiRoute(requestFor("/api/v1/me"))).toBe(false);
     expect(isProtectedApiRoute(requestFor("/api/v10/me"))).toBe(true);

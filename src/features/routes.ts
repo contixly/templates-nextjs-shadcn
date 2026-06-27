@@ -49,6 +49,7 @@ export const routesConfig = {
     "/api/health(.*)",
     "/api/local-auth/(.*)",
     // API v1 performs key-only authentication inside route handlers.
+    "/api/v1",
     "/api/v1/(.*)",
   ],
   // Protected API routes EXCLUDING public API routes
