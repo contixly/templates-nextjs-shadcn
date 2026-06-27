@@ -94,6 +94,12 @@ const getAuthErrorCode = (error: unknown) => {
     return code;
   }
 
+  const body = "body" in error ? error.body : undefined;
+  if (body && typeof body === "object" && "code" in body) {
+    const bodyCode = body.code;
+    return typeof bodyCode === "string" ? bodyCode : undefined;
+  }
+
   const nestedError = "error" in error ? error.error : undefined;
   if (nestedError && typeof nestedError === "object" && "code" in nestedError) {
     const nestedCode = nestedError.code;

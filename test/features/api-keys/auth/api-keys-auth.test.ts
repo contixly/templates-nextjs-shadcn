@@ -36,6 +36,10 @@ const requestWithKey = (key?: string) =>
   });
 
 const authError = (code: string) => Object.assign(new Error(code), { code });
+const apiError = (code: string) => ({
+  name: "APIError",
+  body: { code },
+});
 
 describe("requireApiKey", () => {
   beforeEach(() => {
@@ -248,6 +252,54 @@ describe("requireApiKey", () => {
 
   it("normalizes thrown rate-limit errors immediately", async () => {
     verifyApiKeyMock.mockRejectedValueOnce(authError("RATE_LIMIT_EXCEEDED"));
+
+    await expect(
+      requireApiKey(requestWithKey("secret"), API_KEY_REQUIRED_PERMISSIONS.basicRead)
+    ).rejects.toMatchObject({
+      status: 429,
+      code: "api_key_rate_limited",
+    });
+    expect(verifyApiKeyMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("normalizes thrown APIError invalid key codes", async () => {
+    verifyApiKeyMock
+      .mockRejectedValueOnce(apiError("INVALID_API_KEY"))
+      .mockRejectedValueOnce(apiError("INVALID_API_KEY"));
+
+    await expect(
+      requireApiKey(requestWithKey("secret"), API_KEY_REQUIRED_PERMISSIONS.basicRead)
+    ).rejects.toMatchObject({
+      status: 401,
+      code: "api_key_invalid",
+    });
+    expect(verifyApiKeyMock).toHaveBeenCalledTimes(2);
+  });
+
+  it.each(["INSUFFICIENT_API_KEY_PERMISSIONS", "KEY_NOT_FOUND"])(
+    "normalizes thrown APIError permission code %s",
+    async (code) => {
+      verifyApiKeyMock.mockRejectedValueOnce(apiError(code)).mockResolvedValueOnce({
+        valid: false,
+        error: { code: "INVALID_API_KEY", message: "Invalid API key" },
+        key: null,
+      });
+
+      await expect(
+        requireApiKey(
+          requestWithKey("secret"),
+          API_KEY_REQUIRED_PERMISSIONS.organizationMembersRead
+        )
+      ).rejects.toMatchObject({
+        status: 403,
+        code: "api_key_permission_denied",
+      });
+      expect(verifyApiKeyMock).toHaveBeenCalledTimes(2);
+    }
+  );
+
+  it("normalizes thrown APIError rate-limit codes immediately", async () => {
+    verifyApiKeyMock.mockRejectedValueOnce(apiError("RATE_LIMITED"));
 
     await expect(
       requireApiKey(requestWithKey("secret"), API_KEY_REQUIRED_PERMISSIONS.basicRead)
