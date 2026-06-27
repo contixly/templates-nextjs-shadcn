@@ -70,7 +70,8 @@ describe("Better Auth API key configuration", () => {
   it("registers user and organization API key configurations", async () => {
     await loadAuthModule();
 
-    expect(apiKeyMock).toHaveBeenCalledWith([
+    const [apiKeyConfigurations] = apiKeyMock.mock.calls[0] ?? [];
+    expect(apiKeyConfigurations).toEqual([
       expect.objectContaining({
         configId: "user-keys",
         references: "user",
@@ -84,6 +85,21 @@ describe("Better Auth API key configuration", () => {
         apiKeyHeaders: "x-api-key",
       }),
     ]);
+  });
+
+  it("maps the Better Auth apikey table to the generated Prisma apiKey delegate", async () => {
+    await loadAuthModule();
+
+    const [, apiKeyOptions] = apiKeyMock.mock.calls[0] ?? [];
+    expect(apiKeyOptions).toEqual(
+      expect.objectContaining({
+        schema: expect.objectContaining({
+          apikey: expect.objectContaining({
+            modelName: "apiKey",
+          }),
+        }),
+      })
+    );
   });
 
   it("adds apiKey management permissions to organization access control", async () => {

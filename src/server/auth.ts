@@ -140,20 +140,29 @@ export const auth = betterAuth({
         },
       },
     }),
-    apiKey([
+    apiKey(
+      [
+        {
+          configId: "user-keys",
+          apiKeyHeaders: "x-api-key",
+          defaultPrefix: "user_",
+          references: "user", // Default - owned by users
+        },
+        {
+          configId: "org-keys",
+          apiKeyHeaders: "x-api-key",
+          defaultPrefix: "org_",
+          references: "organization", // Owned by organizations
+        },
+      ],
       {
-        configId: "user-keys",
-        apiKeyHeaders: "x-api-key",
-        defaultPrefix: "user_",
-        references: "user", // Default - owned by users
-      },
-      {
-        configId: "org-keys",
-        apiKeyHeaders: "x-api-key",
-        defaultPrefix: "org_",
-        references: "organization", // Owned by organizations
-      },
-    ]),
+        schema: {
+          apikey: {
+            modelName: "apiKey",
+          },
+        },
+      }
+    ),
     ...(isConfiguredSocialProvider("yandex")
       ? [
           genericOAuth({
