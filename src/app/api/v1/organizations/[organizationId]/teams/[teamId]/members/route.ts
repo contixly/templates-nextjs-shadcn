@@ -11,8 +11,6 @@ import {
   findWorkspaceTeamByIdAndOrganizationId,
 } from "@features/workspaces/workspaces-teams-repository";
 
-export const dynamic = "force-dynamic";
-
 interface OrganizationTeamMembersRouteContext {
   params: Promise<{ organizationId: string; teamId: string }>;
 }

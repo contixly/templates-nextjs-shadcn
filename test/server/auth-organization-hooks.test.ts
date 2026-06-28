@@ -26,6 +26,9 @@ const loadOrganizationHooks = async () => {
   jest.doMock("@better-auth/prisma-adapter", () => ({
     prismaAdapter: jest.fn(() => "prisma-adapter"),
   }));
+  jest.doMock("@better-auth/api-key", () => ({
+    apiKey: jest.fn(() => ({ id: "api-key" })),
+  }));
   jest.doMock("@features/accounts/accounts-local-auth", () => ({
     isLocalAutomationAuthEnabled: () => false,
   }));
@@ -50,6 +53,13 @@ const loadOrganizationHooks = async () => {
     nextCookies: jest.fn(() => ({ id: "next-cookies" })),
   }));
   jest.doMock("better-auth/plugins", () => ({
+    createAccessControl: jest.fn((statements) => ({
+      statements,
+      newRole: (permissions: unknown) => ({
+        authorize: jest.fn(() => ({ success: true })),
+        permissions,
+      }),
+    })),
     genericOAuth: genericOAuthMock,
     lastLoginMethod: jest.fn(() => ({ id: "last-login-method" })),
     organization: organizationMock,

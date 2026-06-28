@@ -76,6 +76,9 @@ describe("configured social auth providers", () => {
     jest.doMock("@better-auth/prisma-adapter", () => ({
       prismaAdapter: jest.fn(() => "prisma-adapter"),
     }));
+    jest.doMock("@better-auth/api-key", () => ({
+      apiKey: jest.fn(() => ({ id: "api-key" })),
+    }));
     jest.doMock("@lib/environment", () => ({
       APP_BASE_DOMAIN: "localhost:3000",
       APP_BASE_URL: "http://localhost:3000",
@@ -101,6 +104,13 @@ describe("configured social auth providers", () => {
       nextCookies: jest.fn(() => ({ id: "next-cookies" })),
     }));
     jest.doMock("better-auth/plugins", () => ({
+      createAccessControl: jest.fn((statements) => ({
+        statements,
+        newRole: (permissions: unknown) => ({
+          authorize: jest.fn(() => ({ success: true })),
+          permissions,
+        }),
+      })),
       genericOAuth,
       lastLoginMethod: jest.fn(() => ({ id: "last-login-method" })),
       organization: jest.fn(() => ({ id: "organization" })),

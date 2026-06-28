@@ -11,8 +11,6 @@ import {
   findOrganizationDtoById,
 } from "@features/organizations/organizations-repository";
 
-export const dynamic = "force-dynamic";
-
 interface OrganizationMembersRouteContext {
   params: Promise<{ organizationId: string }>;
 }

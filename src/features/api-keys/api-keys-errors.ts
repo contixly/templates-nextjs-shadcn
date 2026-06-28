@@ -1,3 +1,5 @@
+import { unstable_rethrow } from "next/navigation";
+
 import { apiKeysLogger } from "@features/api-keys/api-keys-logger";
 import { HttpCodes } from "@typings/network";
 
@@ -69,6 +71,8 @@ export const withApiKeyRouteErrors = async (handler: () => Promise<Response>) =>
   try {
     return await handler();
   } catch (error) {
+    unstable_rethrow(error);
+
     if (error instanceof ApiKeyHttpError) {
       return apiErrorResponse(error);
     }

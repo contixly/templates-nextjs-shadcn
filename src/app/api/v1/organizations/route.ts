@@ -11,8 +11,6 @@ import {
   findOrganizationDtoById,
 } from "@features/organizations/organizations-repository";
 
-export const dynamic = "force-dynamic";
-
 export async function GET(request: NextRequest) {
   return withApiKeyRouteErrors(async () => {
     const principal = await requireApiKey(request, API_KEY_REQUIRED_PERMISSIONS.organizationRead);

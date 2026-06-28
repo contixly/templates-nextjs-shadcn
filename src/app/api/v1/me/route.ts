@@ -3,8 +3,6 @@ import { requireApiKey } from "@features/api-keys/api-keys-auth";
 import { apiDataResponse, withApiKeyRouteErrors } from "@features/api-keys/api-keys-errors";
 import { API_KEY_REQUIRED_PERMISSIONS } from "@features/api-keys/api-keys-permissions";
 
-export const dynamic = "force-dynamic";
-
 export async function GET(request: NextRequest) {
   return withApiKeyRouteErrors(async () => {
     const principal = await requireApiKey(request, API_KEY_REQUIRED_PERMISSIONS.basicRead);

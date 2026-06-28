@@ -8,8 +8,6 @@ import {
 import { API_KEY_REQUIRED_PERMISSIONS } from "@features/api-keys/api-keys-permissions";
 import { findOrganizationDtoById } from "@features/organizations/organizations-repository";
 
-export const dynamic = "force-dynamic";
-
 interface OrganizationRouteContext {
   params: Promise<{ organizationId: string }>;
 }

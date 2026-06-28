@@ -9,8 +9,6 @@ import { API_KEY_REQUIRED_PERMISSIONS } from "@features/api-keys/api-keys-permis
 import { findOrganizationDtoById } from "@features/organizations/organizations-repository";
 import { findManyWorkspaceTeamsByOrganizationId } from "@features/workspaces/workspaces-teams-repository";
 
-export const dynamic = "force-dynamic";
-
 interface OrganizationTeamsRouteContext {
   params: Promise<{ organizationId: string }>;
 }
