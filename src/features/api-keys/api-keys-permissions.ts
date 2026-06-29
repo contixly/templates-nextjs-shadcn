@@ -17,27 +17,33 @@ export const API_KEY_REQUIRED_PERMISSIONS = {
 
 export const API_KEY_PERMISSION_PRESETS = {
   "basic-read": {
-    label: "Basic read",
+    labelKey: "presets.basicRead.label",
+    descriptionKey: "presets.basicRead.description",
     permissions: { basic: ["read"] },
   },
   "organization-read": {
-    label: "Organization read",
+    labelKey: "presets.organizationRead.label",
+    descriptionKey: "presets.organizationRead.description",
     permissions: { organization: ["read"] },
   },
   "organization-members-read": {
-    label: "Organization members read",
+    labelKey: "presets.organizationMembersRead.label",
+    descriptionKey: "presets.organizationMembersRead.description",
     permissions: { organization: ["read"], member: ["read"] },
   },
   "organization-teams-read": {
-    label: "Organization teams read",
+    labelKey: "presets.organizationTeamsRead.label",
+    descriptionKey: "presets.organizationTeamsRead.description",
     permissions: { organization: ["read"], team: ["read"] },
   },
   "organization-team-members-read": {
-    label: "Organization team members read",
+    labelKey: "presets.organizationTeamMembersRead.label",
+    descriptionKey: "presets.organizationTeamMembersRead.description",
     permissions: { organization: ["read"], team: ["read"], teamMember: ["read"] },
   },
   "organization-read-all": {
-    label: "Organization read all",
+    labelKey: "presets.organizationReadAll.label",
+    descriptionKey: "presets.organizationReadAll.description",
     permissions: {
       organization: ["read"],
       member: ["read"],
@@ -45,7 +51,14 @@ export const API_KEY_PERMISSION_PRESETS = {
       teamMember: ["read"],
     },
   },
-} satisfies Record<string, { label: string; permissions: ApiKeyBuiltInPermissionRecord }>;
+} satisfies Record<
+  string,
+  {
+    labelKey: string;
+    descriptionKey: string;
+    permissions: ApiKeyBuiltInPermissionRecord;
+  }
+>;
 
 export type ApiKeyPermissionPresetId = keyof typeof API_KEY_PERMISSION_PRESETS;
 
@@ -84,7 +97,9 @@ export const expandApiKeyPresetIds = (
 
 export const apiKeyPermissionPresetOptions = Object.entries(API_KEY_PERMISSION_PRESETS).map(
   ([value, preset]) => ({
-    value,
-    label: preset.label,
+    value: value as ApiKeyPermissionPresetId,
+    labelKey: preset.labelKey,
+    descriptionKey: preset.descriptionKey,
+    permissions: preset.permissions,
   })
 );

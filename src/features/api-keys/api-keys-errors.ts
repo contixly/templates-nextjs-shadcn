@@ -1,7 +1,23 @@
-import { unstable_rethrow } from "next/navigation";
-
-import { apiKeysLogger } from "@features/api-keys/api-keys-logger";
 import { HttpCodes } from "@typings/network";
+
+export const API_KEY_ERROR_KEYS = {
+  invalidRequest: "api_keys.invalid_request",
+  invalidType: "api_keys.invalid_type",
+  nameRequired: "api_keys.name_required",
+  nameTooLong: "api_keys.name_too_long",
+  organizationIdRequired: "api_keys.organization_id_required",
+  presetRequired: "api_keys.preset_required",
+  invalidPreset: "api_keys.invalid_preset",
+  rateLimitMaxInvalid: "api_keys.rate_limit_max_invalid",
+  rateLimitWindowInvalid: "api_keys.rate_limit_window_invalid",
+  expirationInvalid: "api_keys.expiration_invalid",
+  keyNotFound: "api_keys.key_not_found",
+  createFailed: "api_keys.create_failed",
+  updateFailed: "api_keys.update_failed",
+  deleteFailed: "api_keys.delete_failed",
+  permissionDenied: "api_keys.permission_denied",
+  noUpdateValues: "api_keys.no_update_values",
+} as const;
 
 export type ApiKeyErrorCode =
   | "api_key_missing"
@@ -71,11 +87,15 @@ export const withApiKeyRouteErrors = async (handler: () => Promise<Response>) =>
   try {
     return await handler();
   } catch (error) {
+    const { unstable_rethrow } = await import("next/navigation");
+
     unstable_rethrow(error);
 
     if (error instanceof ApiKeyHttpError) {
       return apiErrorResponse(error);
     }
+
+    const { apiKeysLogger } = await import("@features/api-keys/api-keys-logger");
 
     apiKeysLogger
       .child({ type: "route" })
