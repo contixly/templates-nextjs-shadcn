@@ -20,6 +20,7 @@ export const NavUserSettings = ({ hideGroupLabel = false }: { hideGroupLabel?: b
   const invitationsTranslations = usePageTranslations(routes.accounts.pages.invitations);
   const connectionsTranslations = usePageTranslations(routes.accounts.pages.connections);
   const securityTranslations = usePageTranslations(routes.accounts.pages.security);
+  const apiKeysTranslations = usePageTranslations(routes.accounts.pages.api_keys);
   const dangerTranslations = usePageTranslations(routes.accounts.pages.danger);
 
   const navItems = [
@@ -27,6 +28,7 @@ export const NavUserSettings = ({ hideGroupLabel = false }: { hideGroupLabel?: b
     getMenuItem(routes.accounts.pages.invitations, invitationsTranslations.title),
     getMenuItem(routes.accounts.pages.connections, connectionsTranslations.title),
     getMenuItem(routes.accounts.pages.security, securityTranslations.title),
+    getMenuItem(routes.accounts.pages.api_keys, apiKeysTranslations.title),
     { ...getMenuItem(routes.accounts.pages.danger, dangerTranslations.title), isDanger: true },
   ] as (MenuItem & { isDanger?: boolean })[];
 

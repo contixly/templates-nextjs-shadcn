@@ -1,5 +1,6 @@
 import {
   IconAlertTriangle,
+  IconKey,
   IconLink,
   IconLogin,
   IconMail,
@@ -19,6 +20,7 @@ type AccountsPages =
   | "invitation"
   | "connections"
   | "security"
+  | "api_keys"
   | "danger";
 
 export type AccountsRoutes = Feature<AccountsPages>;
@@ -75,6 +77,13 @@ const accountsRoutes: AccountsRoutes = buildFeature<AccountsPages>("accounts", {
       parent: "user",
       pathTemplate: "/user/security",
       icon: IconShield,
+
+      hidePageHeader: true,
+    },
+    api_keys: {
+      parent: "user",
+      pathTemplate: "/user/api-keys",
+      icon: IconKey,
 
       hidePageHeader: true,
     },

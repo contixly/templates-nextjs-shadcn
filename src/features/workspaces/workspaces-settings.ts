@@ -59,6 +59,13 @@ export interface WorkspaceSettingsTeamsPageContext extends WorkspaceSettingsPage
   canRemoveTeamMembers: boolean;
 }
 
+export interface WorkspaceSettingsApiKeysPageContext extends WorkspaceSettingsPageContext {
+  canReadApiKeys: boolean;
+  canCreateApiKeys: boolean;
+  canUpdateApiKeys: boolean;
+  canDeleteApiKeys: boolean;
+}
+
 const loadRequiredCurrentUserId = async () => {
   const userId = await loadCurrentUserId();
   if (!userId) {
@@ -190,5 +197,26 @@ export const loadWorkspaceSettingsTeamsPageContext = async (
     canDeleteTeams,
     canAddTeamMembers,
     canRemoveTeamMembers,
+  };
+};
+
+export const loadWorkspaceSettingsApiKeysPageContext = async (
+  organizationKey: string
+): Promise<WorkspaceSettingsApiKeysPageContext> => {
+  const userId = await loadRequiredCurrentUserId();
+  const workspaceContext = await loadWorkspaceSettingsPageContextForUser(organizationKey, userId);
+  const [canReadApiKeys, canCreateApiKeys, canUpdateApiKeys, canDeleteApiKeys] = await Promise.all([
+    hasWorkspacePermission(workspaceContext.workspace.id, { apiKey: ["read"] }),
+    hasWorkspacePermission(workspaceContext.workspace.id, { apiKey: ["create"] }),
+    hasWorkspacePermission(workspaceContext.workspace.id, { apiKey: ["update"] }),
+    hasWorkspacePermission(workspaceContext.workspace.id, { apiKey: ["delete"] }),
+  ]);
+
+  return {
+    ...workspaceContext,
+    canReadApiKeys,
+    canCreateApiKeys,
+    canUpdateApiKeys,
+    canDeleteApiKeys,
   };
 };

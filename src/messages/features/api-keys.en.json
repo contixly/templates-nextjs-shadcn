@@ -1,0 +1,111 @@
+{
+  "ui": {
+    "education": {
+      "title": "Personal vs organization keys",
+      "description": "Choose the key type that matches how your integration should act.",
+      "personalTitle": "Personal keys",
+      "personalDescription": "Personal keys act as your user account. Organization API routes only return data that your current organization membership allows.",
+      "organizationTitle": "Organization keys",
+      "organizationDescription": "Organization keys act as a service principal for one organization. They are not reduced when the creator later changes role or leaves.",
+      "scopesTitle": "Scopes still apply",
+      "scopesDescription": "Both key types are limited by the API scopes selected on the key.",
+      "managementTitle": "Organization key management",
+      "managementDescription": "Only roles with API key permissions can create, edit, or delete organization keys.",
+      "personalLink": "Manage personal keys"
+    },
+    "table": {
+      "title": "API keys",
+      "personalDescription": "Create and manage keys that act as your user account.",
+      "organizationDescription": "Create and manage keys that act for this organization.",
+      "readOnlyNotice": "You can review organization keys, but your role cannot change them.",
+      "createAction": "Create key",
+      "emptyTitle": "No API keys",
+      "emptyDescription": "Create a key when an external integration needs API access.",
+      "loadedCount": "{count} key(s) loaded.",
+      "columns": {
+        "name": "Name",
+        "key": "Key",
+        "scopes": "Scopes",
+        "rateLimit": "Rate limit",
+        "expires": "Expires",
+        "lastUsed": "Last used",
+        "created": "Created",
+        "actions": "Actions"
+      },
+      "status": {
+        "active": "Active",
+        "disabled": "Disabled",
+        "expired": "Expired"
+      },
+      "never": "Never",
+      "notUsed": "Not used",
+      "unlimited": "Unlimited",
+      "actions": {
+        "edit": "Edit",
+        "enable": "Enable",
+        "disable": "Disable",
+        "delete": "Delete"
+      }
+    },
+    "form": {
+      "nameLabel": "Name",
+      "namePlaceholder": "Local CLI",
+      "expirationLabel": "Expiration",
+      "rateLimitEnabledLabel": "Rate limit",
+      "rateLimitMaxLabel": "Max requests",
+      "rateLimitWindowLabel": "Window",
+      "scopesLabel": "Scopes",
+      "permissionsPreviewTitle": "Permissions preview",
+      "createTitle": "Create API key",
+      "createDescription": "The secret is shown only once after creation.",
+      "editTitle": "Edit API key",
+      "editDescription": "Changes apply to future API requests that use this key.",
+      "createSuccess": "API key created",
+      "updateSuccess": "API key updated",
+      "deleteSuccess": "API key deleted",
+      "errorTitle": "API key action failed",
+      "unknownError": "Unknown error",
+      "secretTitle": "Copy the API key",
+      "secretDescription": "This secret will not be shown again.",
+      "createAnother": "Create another key"
+    },
+    "expiration": {
+      "never": "Never",
+      "7d": "7 days",
+      "30d": "30 days",
+      "90d": "90 days",
+      "365d": "1 year"
+    },
+    "rateLimitWindow": {
+      "1m": "1 minute",
+      "1h": "1 hour",
+      "1d": "1 day"
+    },
+    "presets": {
+      "basicRead": {
+        "label": "Basic read",
+        "description": "Read the current API principal metadata."
+      },
+      "organizationRead": {
+        "label": "Organization read",
+        "description": "Read organization records available to the key."
+      },
+      "organizationMembersRead": {
+        "label": "Organization members read",
+        "description": "Read organization member lists."
+      },
+      "organizationTeamsRead": {
+        "label": "Organization teams read",
+        "description": "Read organization team lists."
+      },
+      "organizationTeamMembersRead": {
+        "label": "Organization team members read",
+        "description": "Read team membership."
+      },
+      "organizationReadAll": {
+        "label": "Organization read all",
+        "description": "Read organization, members, teams, and team members."
+      }
+    }
+  }
+}

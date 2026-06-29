@@ -1,0 +1,111 @@
+{
+  "ui": {
+    "education": {
+      "title": "Личные и организационные ключи",
+      "description": "Выберите тип ключа под то, от чьего имени должна работать интеграция.",
+      "personalTitle": "Личные ключи",
+      "personalDescription": "Личные ключи действуют как ваша учетная запись. Ручки API организации возвращают только данные, доступные через ваше текущее участие в организации.",
+      "organizationTitle": "Ключи организации",
+      "organizationDescription": "Ключи организации действуют как service principal одной организации. Их доступ не уменьшается, если роль создателя позже изменится или создатель покинет организацию.",
+      "scopesTitle": "Scopes все равно ограничивают доступ",
+      "scopesDescription": "Оба типа ключей дополнительно ограничены API scopes, выбранными на ключе.",
+      "managementTitle": "Управление ключами организации",
+      "managementDescription": "Создавать, редактировать и удалять ключи организации могут только роли с правами на API-ключи.",
+      "personalLink": "Управлять личными ключами"
+    },
+    "table": {
+      "title": "API-ключи",
+      "personalDescription": "Создавайте и управляйте ключами, которые действуют как ваша учетная запись.",
+      "organizationDescription": "Создавайте и управляйте ключами, которые действуют от имени этой организации.",
+      "readOnlyNotice": "Вы можете просматривать ключи организации, но ваша роль не позволяет изменять их.",
+      "createAction": "Создать ключ",
+      "emptyTitle": "API-ключей нет",
+      "emptyDescription": "Создайте ключ, когда внешней интеграции нужен доступ к API.",
+      "loadedCount": "Загружено ключей: {count}.",
+      "columns": {
+        "name": "Название",
+        "key": "Ключ",
+        "scopes": "Scopes",
+        "rateLimit": "Rate limit",
+        "expires": "Истекает",
+        "lastUsed": "Последнее использование",
+        "created": "Создан",
+        "actions": "Действия"
+      },
+      "status": {
+        "active": "Активен",
+        "disabled": "Отключен",
+        "expired": "Истек"
+      },
+      "never": "Никогда",
+      "notUsed": "Не использовался",
+      "unlimited": "Без лимита",
+      "actions": {
+        "edit": "Редактировать",
+        "enable": "Включить",
+        "disable": "Отключить",
+        "delete": "Удалить"
+      }
+    },
+    "form": {
+      "nameLabel": "Название",
+      "namePlaceholder": "Local CLI",
+      "expirationLabel": "Срок действия",
+      "rateLimitEnabledLabel": "Rate limit",
+      "rateLimitMaxLabel": "Максимум запросов",
+      "rateLimitWindowLabel": "Окно",
+      "scopesLabel": "Scopes",
+      "permissionsPreviewTitle": "Предпросмотр permissions",
+      "createTitle": "Создать API-ключ",
+      "createDescription": "Секрет будет показан только один раз после создания.",
+      "editTitle": "Редактировать API-ключ",
+      "editDescription": "Изменения применятся к будущим API-запросам с этим ключом.",
+      "createSuccess": "API-ключ создан",
+      "updateSuccess": "API-ключ обновлен",
+      "deleteSuccess": "API-ключ удален",
+      "errorTitle": "Действие с API-ключом не выполнено",
+      "unknownError": "Неизвестная ошибка",
+      "secretTitle": "Скопируйте API-ключ",
+      "secretDescription": "Этот секрет больше не будет показан.",
+      "createAnother": "Создать еще один ключ"
+    },
+    "expiration": {
+      "never": "Никогда",
+      "7d": "7 дней",
+      "30d": "30 дней",
+      "90d": "90 дней",
+      "365d": "1 год"
+    },
+    "rateLimitWindow": {
+      "1m": "1 минута",
+      "1h": "1 час",
+      "1d": "1 день"
+    },
+    "presets": {
+      "basicRead": {
+        "label": "Basic read",
+        "description": "Чтение метаданных текущего API principal."
+      },
+      "organizationRead": {
+        "label": "Organization read",
+        "description": "Чтение записей организации, доступных ключу."
+      },
+      "organizationMembersRead": {
+        "label": "Organization members read",
+        "description": "Чтение списка участников организации."
+      },
+      "organizationTeamsRead": {
+        "label": "Organization teams read",
+        "description": "Чтение списка команд организации."
+      },
+      "organizationTeamMembersRead": {
+        "label": "Organization team members read",
+        "description": "Чтение участников команд."
+      },
+      "organizationReadAll": {
+        "label": "Organization read all",
+        "description": "Чтение организации, участников, команд и участников команд."
+      }
+    }
+  }
+}

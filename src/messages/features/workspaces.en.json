@@ -63,6 +63,14 @@
         "title": "Roles",
         "description": "Review the upcoming workspace role management area."
       }
+    },
+    "settings_api_keys": {
+      "title": "API Keys",
+      "description": "Manage organization API keys for service integrations.",
+      "openGraph": {
+        "title": "API Keys",
+        "description": "Create and manage organization API keys for service integrations."
+      }
     }
   },
   "validation": {
