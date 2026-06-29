@@ -18,7 +18,10 @@ import { LoadingButton } from "@components/ui/custom/button-loading";
 import { FormErrorNotice } from "@components/ui/custom/form-error-notice";
 import { useTranslations } from "next-intl";
 import { deleteApiKeyForCurrentUser } from "@features/api-keys/actions/delete-api-key";
-import { translateApiKeyErrorMessage } from "@features/api-keys/components/api-key-component-utils";
+import {
+  type ApiKeyTranslationFn,
+  translateApiKeyErrorMessage,
+} from "@features/api-keys/components/api-key-component-utils";
 import type { ApiKeyListItemDto, ApiKeyOwnerType } from "@features/api-keys/api-keys-types";
 
 interface ApiKeyDeleteControlProps {
@@ -36,7 +39,7 @@ export function ApiKeyDeleteControl({
   apiKey,
   trigger,
 }: ApiKeyDeleteControlProps) {
-  const t = useTranslations("apiKeys.ui");
+  const t = useTranslations("apiKeys.ui") as unknown as ApiKeyTranslationFn;
   const tCommon = useTranslations("common");
   const router = useRouter();
   const [open, setOpen] = useState(false);

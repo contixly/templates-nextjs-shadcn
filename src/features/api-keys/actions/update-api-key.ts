@@ -17,6 +17,7 @@ import {
   API_KEY_ORGANIZATION_CONFIG_ID,
   API_KEY_USER_CONFIG_ID,
   type ApiKeyListItemDto,
+  type ApiKeyPermissionRecord,
 } from "@features/api-keys/api-keys-types";
 import { hasWorkspacePermission } from "@features/workspaces/workspaces-permissions";
 import { auth } from "@server/auth";
@@ -33,7 +34,7 @@ type UpdateApiKeyBody = {
   rateLimitEnabled?: boolean;
   rateLimitMax?: number;
   rateLimitTimeWindow?: number;
-  permissions?: Record<string, string[]>;
+  permissions?: ApiKeyPermissionRecord;
 };
 
 const getValidationMessage = (message: string | undefined) =>
@@ -72,7 +73,18 @@ export const updateApiKeyForCurrentUser = async (
   }
 
   if (parsed.data.type === "organization") {
-    const canUpdate = await hasWorkspacePermission(parsed.data.organizationId, {
+    const organizationId = parsed.data.organizationId;
+    if (!organizationId) {
+      return {
+        success: false,
+        error: {
+          code: HttpCodes.BAD_REQUEST,
+          message: API_KEY_ERROR_KEYS.organizationIdRequired,
+        },
+      };
+    }
+
+    const canUpdate = await hasWorkspacePermission(organizationId, {
       apiKey: ["update"],
     });
 

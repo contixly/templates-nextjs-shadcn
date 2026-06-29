@@ -43,7 +43,18 @@ export const deleteApiKeyForCurrentUser = async (
   }
 
   if (parsed.data.type === "organization") {
-    const canDelete = await hasWorkspacePermission(parsed.data.organizationId, {
+    const organizationId = parsed.data.organizationId;
+    if (!organizationId) {
+      return {
+        success: false,
+        error: {
+          code: HttpCodes.BAD_REQUEST,
+          message: API_KEY_ERROR_KEYS.organizationIdRequired,
+        },
+      };
+    }
+
+    const canDelete = await hasWorkspacePermission(organizationId, {
       apiKey: ["delete"],
     });
 

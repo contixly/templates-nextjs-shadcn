@@ -30,7 +30,8 @@ const apiKeyPermissionPresetIdSchema = z
   .string({ error: API_KEY_ERROR_KEYS.invalidPreset })
   .refine(isApiKeyPermissionPresetId, {
     message: API_KEY_ERROR_KEYS.invalidPreset,
-  }) as z.ZodType<ApiKeyPermissionPresetId>;
+  })
+  .transform((value) => value as ApiKeyPermissionPresetId);
 
 const apiKeyPresetIdsSchema = z
   .array(apiKeyPermissionPresetIdSchema, {

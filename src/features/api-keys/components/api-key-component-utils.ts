@@ -4,7 +4,7 @@ import {
 } from "@features/api-keys/api-keys-permissions";
 import type { ApiKeyPermissionRecord } from "@features/api-keys/api-keys-types";
 
-type TranslationFn = (key: string) => string;
+export type ApiKeyTranslationFn = (key: string, values?: Record<string, string | number>) => string;
 
 const API_KEY_ERROR_TRANSLATION_KEYS: Record<string, string> = {
   "api_keys.invalid_request": "errors.invalidRequest",
@@ -27,7 +27,7 @@ const API_KEY_ERROR_TRANSLATION_KEYS: Record<string, string> = {
 
 export const translateApiKeyErrorMessage = (
   message: string | undefined,
-  t: TranslationFn,
+  t: ApiKeyTranslationFn,
   fallbackKey = "form.unknownError"
 ) => {
   if (!message) {
@@ -38,7 +38,7 @@ export const translateApiKeyErrorMessage = (
   return translationKey ? t(translationKey) : message;
 };
 
-export const translatedFieldError = (message: string | undefined, t: TranslationFn) =>
+export const translatedFieldError = (message: string | undefined, t: ApiKeyTranslationFn) =>
   message
     ? {
         message: translateApiKeyErrorMessage(message, t),

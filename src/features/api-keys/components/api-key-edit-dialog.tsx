@@ -4,6 +4,7 @@ import type { ReactElement } from "react";
 import { useEffect, useMemo, useState, useTransition } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, type SubmitHandler, useForm } from "react-hook-form";
+import type { z } from "zod";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
@@ -30,14 +31,15 @@ import {
   apiKeyUpdateFormSchema,
   type ApiKeyExpirationOption,
   type ApiKeyRateLimitWindowOption,
-  type ApiKeyUpdateFormInput,
   type ApiKeyUpdateInput,
 } from "@features/api-keys/api-keys-schemas";
 import {
   apiKeyPermissionPresetOptions,
   expandApiKeyPresetIds,
+  type ApiKeyPermissionPresetId,
 } from "@features/api-keys/api-keys-permissions";
 import {
+  type ApiKeyTranslationFn,
   getPresetIdsForPermissions,
   translateApiKeyErrorMessage,
   translatedFieldError,
@@ -52,6 +54,11 @@ interface ApiKeyEditDialogProps {
   apiKey: ApiKeyListItemDto;
   trigger: ReactElement;
 }
+
+type ApiKeyUpdateFormValues = z.input<typeof apiKeyUpdateFormSchema>;
+type ApiKeyUpdateFormControl = ReturnType<
+  typeof useForm<ApiKeyUpdateFormValues, unknown, ApiKeyUpdateInput>
+>["control"];
 
 const getExpirationOptionForDate = (expiresAt: Date | null): ApiKeyExpirationOption => {
   if (!expiresAt) {
@@ -90,14 +97,14 @@ export function ApiKeyEditDialog({
   apiKey,
   trigger,
 }: ApiKeyEditDialogProps) {
-  const t = useTranslations("apiKeys.ui");
+  const t = useTranslations("apiKeys.ui") as unknown as ApiKeyTranslationFn;
   const tCommon = useTranslations("common");
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [formError, setFormError] = useState<string | null>(null);
 
-  const defaultValues = useMemo<ApiKeyUpdateFormInput>(
+  const defaultValues = useMemo<ApiKeyUpdateFormValues>(
     () => ({
       type: ownerType,
       organizationId,
@@ -119,7 +126,7 @@ export function ApiKeyEditDialog({
     handleSubmit,
     reset,
     formState: { dirtyFields, isDirty, isValid },
-  } = useForm<ApiKeyUpdateFormInput>({
+  } = useForm<ApiKeyUpdateFormValues, unknown, ApiKeyUpdateInput>({
     resolver: zodResolver(apiKeyUpdateFormSchema),
     mode: "all",
     defaultValues,
@@ -139,7 +146,7 @@ export function ApiKeyEditDialog({
     setOpen(nextOpen);
   };
 
-  const submit: SubmitHandler<ApiKeyUpdateFormInput> = (data) => {
+  const submit: SubmitHandler<ApiKeyUpdateInput> = (data) => {
     const input: ApiKeyUpdateInput = {
       type: ownerType,
       organizationId,
@@ -216,9 +223,9 @@ function ApiKeyEditFields({
   t,
   apiKeyId,
 }: {
-  control: ReturnType<typeof useForm<ApiKeyUpdateFormInput>>["control"];
+  control: ApiKeyUpdateFormControl;
   disabled: boolean;
-  t: (key: string) => string;
+  t: ApiKeyTranslationFn;
   apiKeyId: string;
 }) {
   return (
@@ -355,16 +362,16 @@ function PresetSelector({
   disabled,
   t,
 }: {
-  control: ReturnType<typeof useForm<ApiKeyUpdateFormInput>>["control"];
+  control: ApiKeyUpdateFormControl;
   disabled: boolean;
-  t: (key: string) => string;
+  t: ApiKeyTranslationFn;
 }) {
   return (
     <Controller
       name="presetIds"
       control={control}
       render={({ field, fieldState }) => {
-        const selected = field.value ?? [];
+        const selected = (field.value ?? []) as ApiKeyPermissionPresetId[];
         const previewPermissions = expandApiKeyPresetIds(selected);
 
         return (

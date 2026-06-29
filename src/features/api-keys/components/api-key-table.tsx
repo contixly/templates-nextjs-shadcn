@@ -21,6 +21,7 @@ import {
 } from "@components/ui/table";
 import { IconDotsVertical, IconKey, IconPencil, IconTrash } from "@tabler/icons-react";
 import { timeTools } from "@lib/time";
+import type { ApiKeyTranslationFn } from "@features/api-keys/components/api-key-component-utils";
 import { ApiKeyDeleteControl } from "@features/api-keys/components/api-key-delete-control";
 import { ApiKeyEditDialog } from "@features/api-keys/components/api-key-edit-dialog";
 import { ApiKeyPermissionsPreview } from "@features/api-keys/components/api-key-permissions-preview";
@@ -70,7 +71,7 @@ export function ApiKeyTable({
   keys,
   capabilities,
 }: ApiKeyTableProps) {
-  const t = useTranslations("apiKeys.ui");
+  const t = useTranslations("apiKeys.ui") as unknown as ApiKeyTranslationFn;
   const locale = useLocale();
   const isReadOnly =
     ownerType === "organization" &&
@@ -174,7 +175,7 @@ function ApiKeyRowActions({
   apiKey: ApiKeyListItemDto;
   capabilities: ApiKeyManagementCapabilities;
 }) {
-  const t = useTranslations("apiKeys.ui");
+  const t = useTranslations("apiKeys.ui") as unknown as ApiKeyTranslationFn;
 
   if (!capabilities.canUpdate && !capabilities.canDelete) {
     return <span className="text-muted-foreground">-</span>;
@@ -229,7 +230,7 @@ function ApiKeyRowActions({
 
 function formatRateLimit(
   apiKey: Pick<ApiKeyListItemDto, "rateLimitEnabled" | "rateLimitMax" | "rateLimitTimeWindow">,
-  t: (key: string) => string
+  t: ApiKeyTranslationFn
 ) {
   if (!apiKey.rateLimitEnabled || !apiKey.rateLimitMax || !apiKey.rateLimitTimeWindow) {
     return t("table.unlimited");

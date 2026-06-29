@@ -97,8 +97,20 @@ export const createApiKeyForCurrentUser = async (
     unauthorized();
   }
 
+  let referenceId = userId;
   if (parsed.data.type === "organization") {
-    const canCreateOrganizationKey = await hasWorkspacePermission(parsed.data.organizationId, {
+    const organizationId = parsed.data.organizationId;
+    if (!organizationId) {
+      return {
+        success: false,
+        error: {
+          code: HttpCodes.BAD_REQUEST,
+          message: API_KEY_ERROR_KEYS.organizationIdRequired,
+        },
+      };
+    }
+
+    const canCreateOrganizationKey = await hasWorkspacePermission(organizationId, {
       apiKey: ["create"],
     });
 
@@ -111,12 +123,13 @@ export const createApiKeyForCurrentUser = async (
         },
       };
     }
+
+    referenceId = organizationId;
   }
 
   const permissions = expandApiKeyPresetIds(parsed.data.presetIds);
   const configId =
     parsed.data.type === "organization" ? API_KEY_ORGANIZATION_CONFIG_ID : API_KEY_USER_CONFIG_ID;
-  const referenceId = parsed.data.type === "organization" ? parsed.data.organizationId : userId;
   const logger = apiKeysLogger.child({
     function: "createApiKeyForCurrentUser",
     userId,

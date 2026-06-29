@@ -4,6 +4,7 @@ import type { ReactElement } from "react";
 import { useEffect, useMemo, useState, useTransition } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, type SubmitHandler, useForm } from "react-hook-form";
+import type { z } from "zod";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
@@ -34,8 +35,10 @@ import {
 import {
   apiKeyPermissionPresetOptions,
   expandApiKeyPresetIds,
+  type ApiKeyPermissionPresetId,
 } from "@features/api-keys/api-keys-permissions";
 import {
+  type ApiKeyTranslationFn,
   translateApiKeyErrorMessage,
   translatedFieldError,
 } from "@features/api-keys/components/api-key-component-utils";
@@ -49,6 +52,11 @@ interface ApiKeyCreateDialogProps {
   trigger: ReactElement;
 }
 
+type ApiKeyCreateFormValues = z.input<typeof apiKeyCreateFormSchema>;
+type ApiKeyCreateFormControl = ReturnType<
+  typeof useForm<ApiKeyCreateFormValues, unknown, ApiKeyCreateFormInput>
+>["control"];
+
 const getDefaultPresetIds = (ownerType: ApiKeyOwnerType) =>
   ownerType === "organization" ? ["organization-read-all" as const] : ["basic-read" as const];
 
@@ -58,7 +66,7 @@ export function ApiKeyCreateDialog({
   organizationKey,
   trigger,
 }: ApiKeyCreateDialogProps) {
-  const t = useTranslations("apiKeys.ui");
+  const t = useTranslations("apiKeys.ui") as unknown as ApiKeyTranslationFn;
   const tCommon = useTranslations("common");
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -66,7 +74,7 @@ export function ApiKeyCreateDialog({
   const [formError, setFormError] = useState<string | null>(null);
   const [createdKey, setCreatedKey] = useState<ApiKeyDisplayData | null>(null);
 
-  const defaultValues = useMemo<ApiKeyCreateFormInput>(
+  const defaultValues = useMemo<ApiKeyCreateFormValues>(
     () => ({
       type: ownerType,
       organizationId,
@@ -86,7 +94,7 @@ export function ApiKeyCreateDialog({
     handleSubmit,
     reset,
     formState: { isDirty, isValid },
-  } = useForm<ApiKeyCreateFormInput>({
+  } = useForm<ApiKeyCreateFormValues, unknown, ApiKeyCreateFormInput>({
     resolver: zodResolver(apiKeyCreateFormSchema),
     mode: "all",
     defaultValues,
@@ -206,9 +214,9 @@ function ApiKeyCreateFields({
   disabled,
   t,
 }: {
-  control: ReturnType<typeof useForm<ApiKeyCreateFormInput>>["control"];
+  control: ApiKeyCreateFormControl;
   disabled: boolean;
-  t: (key: string) => string;
+  t: ApiKeyTranslationFn;
 }) {
   return (
     <>
@@ -330,16 +338,16 @@ function PresetSelector({
   disabled,
   t,
 }: {
-  control: ReturnType<typeof useForm<ApiKeyCreateFormInput>>["control"];
+  control: ApiKeyCreateFormControl;
   disabled: boolean;
-  t: (key: string) => string;
+  t: ApiKeyTranslationFn;
 }) {
   return (
     <Controller
       name="presetIds"
       control={control}
       render={({ field, fieldState }) => {
-        const selected = field.value;
+        const selected = field.value as ApiKeyPermissionPresetId[];
         const previewPermissions = expandApiKeyPresetIds(selected);
 
         return (
