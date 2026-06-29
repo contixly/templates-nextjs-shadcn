@@ -78,7 +78,7 @@ export const mapApiKeyRateLimitWindowToMs = (option: ApiKeyRateLimitWindowOption
   }
 };
 
-const requireOrganizationId = (
+const validateOwnerOrganizationId = (
   value: { type: "user" | "organization"; organizationId?: string },
   ctx: z.RefinementCtx
 ) => {
@@ -86,6 +86,14 @@ const requireOrganizationId = (
     ctx.addIssue({
       code: "custom",
       message: API_KEY_ERROR_KEYS.organizationIdRequired,
+      path: ["organizationId"],
+    });
+  }
+
+  if (value.type === "user" && value.organizationId !== undefined) {
+    ctx.addIssue({
+      code: "custom",
+      message: API_KEY_ERROR_KEYS.invalidRequest,
       path: ["organizationId"],
     });
   }
@@ -102,7 +110,7 @@ export const apiKeyCreateFormSchema = z
     rateLimitMax: apiKeyRateLimitMaxSchema,
     rateLimitWindow: apiKeyRateLimitWindowSchema,
   })
-  .superRefine(requireOrganizationId);
+  .superRefine(validateOwnerOrganizationId);
 
 export type ApiKeyCreateFormInput = z.infer<typeof apiKeyCreateFormSchema>;
 export type ApiKeyCreateInput = ApiKeyCreateFormInput;
@@ -121,7 +129,7 @@ export const apiKeyUpdateFormSchema = z
     enabled: z.boolean({ error: API_KEY_ERROR_KEYS.invalidRequest }).optional(),
   })
   .superRefine((value, ctx) => {
-    requireOrganizationId(value, ctx);
+    validateOwnerOrganizationId(value, ctx);
 
     const hasUpdateValue =
       value.name !== undefined ||
@@ -149,6 +157,6 @@ export const apiKeyDeleteSchema = z
     keyId: id,
     organizationId: organizationIdSchema.optional(),
   })
-  .superRefine(requireOrganizationId);
+  .superRefine(validateOwnerOrganizationId);
 
 export type ApiKeyDeleteInput = z.infer<typeof apiKeyDeleteSchema>;

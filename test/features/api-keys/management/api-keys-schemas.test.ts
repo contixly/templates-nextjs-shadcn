@@ -3,6 +3,7 @@
 import {
   API_KEY_EXPIRATION_OPTIONS,
   API_KEY_RATE_LIMIT_WINDOW_OPTIONS,
+  apiKeyDeleteSchema,
   apiKeyCreateFormSchema,
   apiKeyUpdateFormSchema,
   mapApiKeyExpirationOptionToSeconds,
@@ -68,6 +69,45 @@ describe("api key form schemas", () => {
 
     expect(parsed.success).toBe(false);
     expect(parsed.error?.issues[0]?.message).toBe("api_keys.organization_id_required");
+  });
+
+  it("rejects personal key creation with an organization id", () => {
+    const parsed = apiKeyCreateFormSchema.safeParse({
+      type: "user",
+      organizationId: "org1",
+      name: "Personal key",
+      presetIds: ["basic-read"],
+      expiresIn: "7d",
+      rateLimitEnabled: true,
+      rateLimitMax: 100,
+      rateLimitWindow: "1h",
+    });
+
+    expect(parsed.success).toBe(false);
+    expect(parsed.error?.issues[0]?.message).toBe("api_keys.invalid_request");
+  });
+
+  it("rejects personal key updates with an organization id", () => {
+    const parsed = apiKeyUpdateFormSchema.safeParse({
+      type: "user",
+      keyId: "key1",
+      organizationId: "org1",
+      name: "Personal key",
+    });
+
+    expect(parsed.success).toBe(false);
+    expect(parsed.error?.issues[0]?.message).toBe("api_keys.invalid_request");
+  });
+
+  it("rejects personal key deletion with an organization id", () => {
+    const parsed = apiKeyDeleteSchema.safeParse({
+      type: "user",
+      keyId: "key1",
+      organizationId: "org1",
+    });
+
+    expect(parsed.success).toBe(false);
+    expect(parsed.error?.issues[0]?.message).toBe("api_keys.invalid_request");
   });
 
   it("rejects ids outside the repository id validators", () => {

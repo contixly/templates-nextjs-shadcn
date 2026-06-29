@@ -54,6 +54,15 @@ describe("api key management DTO mapping", () => {
     expect("key" in dto).toBe(false);
   });
 
+  it("rejects unsupported config ids", () => {
+    expect(() =>
+      toApiKeyListItemDto({
+        ...baseKey,
+        configId: "service-keys",
+      })
+    ).toThrow("Unsupported API key config id: service-keys");
+  });
+
   it("marks disabled and expired keys", () => {
     expect(getApiKeyStatus({ enabled: false, expiresAt: null })).toBe("disabled");
     expect(
