@@ -2,6 +2,8 @@
 
 const createApiKeyMock = jest.fn();
 const loadCurrentUserIdMock = jest.fn();
+const hasWorkspacePermissionMock = jest.fn();
+const revalidatePathMock = jest.fn();
 const mockApiKeysLoggerChild = jest.fn();
 const mockApiKeysLoggerError = jest.fn();
 
@@ -18,6 +20,10 @@ jest.mock("@features/accounts/accounts-actions", () => ({
   loadRequestHeaders: jest.fn(),
 }));
 
+jest.mock("@features/workspaces/workspaces-permissions", () => ({
+  hasWorkspacePermission: (...args: unknown[]) => hasWorkspacePermissionMock(...args),
+}));
+
 jest.mock("@features/api-keys/api-keys-logger", () => ({
   apiKeysLogger: {
     child: (...args: unknown[]) => mockApiKeysLoggerChild(...args),
@@ -30,42 +36,70 @@ jest.mock("next/navigation", () => ({
   }),
 }));
 
-import { createApiKeyForCurrentUser } from "@features/api-keys/actions/create-api-key";
+jest.mock("next/cache", () => ({
+  revalidatePath: (...args: unknown[]) => revalidatePathMock(...args),
+}));
+
+import {
+  createApiKeyForCurrentUser,
+  type CreateApiKeyInput,
+} from "@features/api-keys/actions/create-api-key";
+
+const withCreateDefaults = (
+  input: Omit<
+    CreateApiKeyInput,
+    "expiresIn" | "rateLimitEnabled" | "rateLimitMax" | "rateLimitWindow"
+  >
+) =>
+  ({
+    expiresIn: "30d",
+    rateLimitEnabled: true,
+    rateLimitMax: 100,
+    rateLimitWindow: "1h",
+    ...input,
+  }) satisfies CreateApiKeyInput;
 
 describe("createApiKeyForCurrentUser", () => {
   beforeEach(() => {
     createApiKeyMock.mockReset();
     loadCurrentUserIdMock.mockReset();
+    hasWorkspacePermissionMock.mockReset();
+    revalidatePathMock.mockReset();
     mockApiKeysLoggerChild.mockReset();
     mockApiKeysLoggerError.mockReset();
     mockApiKeysLoggerChild.mockReturnValue({
       error: mockApiKeysLoggerError,
     });
-    loadCurrentUserIdMock.mockResolvedValue("user_1");
+    loadCurrentUserIdMock.mockResolvedValue("user1");
+    hasWorkspacePermissionMock.mockResolvedValue(true);
     createApiKeyMock.mockResolvedValue({
-      id: "key_1",
+      id: "key1",
       key: "user_secret",
       start: "user_s",
       configId: "user-keys",
-      referenceId: "user_1",
+      referenceId: "user1",
     });
   });
 
-  it("creates a personal key with expanded allowlisted presets", async () => {
+  it("creates a personal key with expanded allowlisted presets and server fields", async () => {
     await expect(
       createApiKeyForCurrentUser({
         type: "user",
         name: "Local integration",
         presetIds: ["basic-read", "organization-read"],
+        expiresIn: "30d",
+        rateLimitEnabled: true,
+        rateLimitMax: 100,
+        rateLimitWindow: "1h",
       })
     ).resolves.toEqual({
       success: true,
       data: {
-        id: "key_1",
+        id: "key1",
         key: "user_secret",
         start: "user_s",
         configId: "user-keys",
-        referenceId: "user_1",
+        referenceId: "user1",
       },
     });
 
@@ -73,45 +107,85 @@ describe("createApiKeyForCurrentUser", () => {
       body: {
         configId: "user-keys",
         name: "Local integration",
-        userId: "user_1",
+        userId: "user1",
         permissions: {
           basic: ["read"],
           organization: ["read"],
         },
+        expiresIn: 30 * 24 * 60 * 60,
+        rateLimitEnabled: true,
+        rateLimitMax: 100,
+        rateLimitTimeWindow: 60 * 60 * 1000,
       },
     });
+    expect(revalidatePathMock).toHaveBeenCalledWith("/user/api-keys");
   });
 
   it("creates an organization key without passing browser headers", async () => {
     createApiKeyMock.mockResolvedValue({
-      id: "key_1",
+      id: "key1",
       key: "org_secret",
       start: "org_s",
       configId: "org-keys",
-      referenceId: "org_1",
+      referenceId: "org1",
     });
 
     await createApiKeyForCurrentUser({
       type: "organization",
-      organizationId: "org_1",
+      organizationId: "org1",
       name: "Org integration",
       presetIds: ["organization-read-all"],
+      expiresIn: "never",
+      rateLimitEnabled: false,
+      rateLimitMax: 100,
+      rateLimitWindow: "1d",
     });
 
+    expect(hasWorkspacePermissionMock).toHaveBeenCalledWith("org1", { apiKey: ["create"] });
     expect(createApiKeyMock).toHaveBeenCalledWith({
       body: {
         configId: "org-keys",
-        organizationId: "org_1",
+        organizationId: "org1",
         name: "Org integration",
-        userId: "user_1",
+        userId: "user1",
         permissions: {
           organization: ["read"],
           member: ["read"],
           team: ["read"],
           teamMember: ["read"],
         },
+        expiresIn: null,
+        rateLimitEnabled: false,
+        rateLimitMax: 100,
+        rateLimitTimeWindow: 24 * 60 * 60 * 1000,
       },
     });
+    expect(revalidatePathMock).toHaveBeenCalledWith("/w/org1/settings/api-keys");
+  });
+
+  it("rejects organization key creation without apiKey create permission", async () => {
+    hasWorkspacePermissionMock.mockResolvedValue(false);
+
+    await expect(
+      createApiKeyForCurrentUser({
+        type: "organization",
+        organizationId: "org1",
+        name: "Org integration",
+        presetIds: ["organization-read-all"],
+        expiresIn: "never",
+        rateLimitEnabled: false,
+        rateLimitMax: 100,
+        rateLimitWindow: "1d",
+      })
+    ).resolves.toEqual({
+      success: false,
+      error: {
+        code: 403,
+        message: "api_keys.permission_denied",
+      },
+    });
+
+    expect(createApiKeyMock).not.toHaveBeenCalled();
   });
 
   it("rejects undefined input with a stable request error before calling Better Auth", async () => {
@@ -143,11 +217,13 @@ describe("createApiKeyForCurrentUser", () => {
   });
 
   it("rejects organization key creation without organization id", async () => {
-    const result = await createApiKeyForCurrentUser({
-      type: "organization",
-      name: "Missing org",
-      presetIds: ["basic-read"],
-    });
+    const result = await createApiKeyForCurrentUser(
+      withCreateDefaults({
+        type: "organization",
+        name: "Missing org",
+        presetIds: ["basic-read"],
+      })
+    );
 
     expect(result).toEqual({
       success: false,
@@ -160,11 +236,13 @@ describe("createApiKeyForCurrentUser", () => {
   });
 
   it("rejects invalid key type before calling Better Auth", async () => {
-    const result = await createApiKeyForCurrentUser({
-      type: "team" as never,
-      name: "Bad type",
-      presetIds: ["basic-read"],
-    });
+    const result = await createApiKeyForCurrentUser(
+      withCreateDefaults({
+        type: "team" as never,
+        name: "Bad type",
+        presetIds: ["basic-read"],
+      }) as never
+    );
 
     expect(result).toEqual({
       success: false,
@@ -177,11 +255,13 @@ describe("createApiKeyForCurrentUser", () => {
   });
 
   it("rejects invalid names before calling Better Auth", async () => {
-    const result = await createApiKeyForCurrentUser({
-      type: "user",
-      name: " ",
-      presetIds: ["basic-read"],
-    });
+    const result = await createApiKeyForCurrentUser(
+      withCreateDefaults({
+        type: "user",
+        name: " ",
+        presetIds: ["basic-read"],
+      })
+    );
 
     expect(result).toEqual({
       success: false,
@@ -194,11 +274,13 @@ describe("createApiKeyForCurrentUser", () => {
   });
 
   it("rejects empty preset lists before calling Better Auth", async () => {
-    const result = await createApiKeyForCurrentUser({
-      type: "user",
-      name: "No scopes",
-      presetIds: [],
-    });
+    const result = await createApiKeyForCurrentUser(
+      withCreateDefaults({
+        type: "user",
+        name: "No scopes",
+        presetIds: [],
+      })
+    );
 
     expect(result).toEqual({
       success: false,
@@ -211,11 +293,13 @@ describe("createApiKeyForCurrentUser", () => {
   });
 
   it("rejects invalid preset ids before calling Better Auth", async () => {
-    const result = await createApiKeyForCurrentUser({
-      type: "user",
-      name: "Bad scopes",
-      presetIds: ["billing-read" as never],
-    });
+    const result = await createApiKeyForCurrentUser(
+      withCreateDefaults({
+        type: "user",
+        name: "Bad scopes",
+        presetIds: ["billing-read" as never],
+      }) as never
+    );
 
     expect(result).toEqual({
       success: false,
@@ -228,11 +312,13 @@ describe("createApiKeyForCurrentUser", () => {
   });
 
   it("rejects inherited preset names before calling Better Auth", async () => {
-    const result = await createApiKeyForCurrentUser({
-      type: "user",
-      name: "Bad scopes",
-      presetIds: ["toString" as never],
-    });
+    const result = await createApiKeyForCurrentUser(
+      withCreateDefaults({
+        type: "user",
+        name: "Bad scopes",
+        presetIds: ["toString" as never],
+      }) as never
+    );
 
     expect(result).toEqual({
       success: false,
@@ -245,18 +331,20 @@ describe("createApiKeyForCurrentUser", () => {
   });
 
   it("rejects empty organization ids before calling Better Auth", async () => {
-    const result = await createApiKeyForCurrentUser({
-      type: "organization",
-      organizationId: " ",
-      name: "Missing org",
-      presetIds: ["basic-read"],
-    });
+    const result = await createApiKeyForCurrentUser(
+      withCreateDefaults({
+        type: "organization",
+        organizationId: " ",
+        name: "Missing org",
+        presetIds: ["basic-read"],
+      }) as never
+    );
 
     expect(result).toEqual({
       success: false,
       error: {
         code: 400,
-        message: "api_keys.organization_id_required",
+        message: "api_keys.invalid_request",
       },
     });
     expect(createApiKeyMock).not.toHaveBeenCalled();
@@ -270,6 +358,10 @@ describe("createApiKeyForCurrentUser", () => {
         type: "user",
         name: "Anonymous key",
         presetIds: ["basic-read"],
+        expiresIn: "30d",
+        rateLimitEnabled: true,
+        rateLimitMax: 100,
+        rateLimitWindow: "1h",
       })
     ).rejects.toThrow("unauthorized");
 
@@ -284,6 +376,10 @@ describe("createApiKeyForCurrentUser", () => {
         type: "user",
         name: "Local integration",
         presetIds: ["basic-read"],
+        expiresIn: "30d",
+        rateLimitEnabled: true,
+        rateLimitMax: 100,
+        rateLimitWindow: "1h",
       })
     ).resolves.toEqual({
       success: false,
@@ -300,11 +396,11 @@ describe("createApiKeyForCurrentUser", () => {
 
   it("returns a stable error when Better Auth returns a malformed created-key payload", async () => {
     createApiKeyMock.mockResolvedValue({
-      id: "key_1",
+      id: "key1",
       key: "user_secret",
       start: "user_s",
       configId: "unknown-keys",
-      referenceId: "user_1",
+      referenceId: "user1",
     });
 
     await expect(
@@ -312,6 +408,10 @@ describe("createApiKeyForCurrentUser", () => {
         type: "user",
         name: "Local integration",
         presetIds: ["basic-read"],
+        expiresIn: "30d",
+        rateLimitEnabled: true,
+        rateLimitMax: 100,
+        rateLimitWindow: "1h",
       })
     ).resolves.toEqual({
       success: false,
@@ -330,11 +430,11 @@ describe("createApiKeyForCurrentUser", () => {
 
   it("returns a stable error when Better Auth returns a mismatched config id", async () => {
     createApiKeyMock.mockResolvedValue({
-      id: "key_1",
+      id: "key1",
       key: "user_secret",
       start: "user_s",
       configId: "org-keys",
-      referenceId: "user_1",
+      referenceId: "user1",
     });
 
     await expect(
@@ -342,6 +442,10 @@ describe("createApiKeyForCurrentUser", () => {
         type: "user",
         name: "Local integration",
         presetIds: ["basic-read"],
+        expiresIn: "30d",
+        rateLimitEnabled: true,
+        rateLimitMax: 100,
+        rateLimitWindow: "1h",
       })
     ).resolves.toEqual({
       success: false,
@@ -360,19 +464,23 @@ describe("createApiKeyForCurrentUser", () => {
 
   it("returns a stable error when Better Auth returns a mismatched reference id", async () => {
     createApiKeyMock.mockResolvedValue({
-      id: "key_1",
+      id: "key1",
       key: "org_secret",
       start: "org_s",
       configId: "org-keys",
-      referenceId: "org_2",
+      referenceId: "org2",
     });
 
     await expect(
       createApiKeyForCurrentUser({
         type: "organization",
-        organizationId: "org_1",
+        organizationId: "org1",
         name: "Org integration",
         presetIds: ["organization-read-all"],
+        expiresIn: "30d",
+        rateLimitEnabled: true,
+        rateLimitMax: 100,
+        rateLimitWindow: "1h",
       })
     ).resolves.toEqual({
       success: false,
