@@ -48,7 +48,9 @@ const updateFailure = (): ActionResult<ApiKeyListItemDto> => ({
 });
 
 const getRevalidationPath = (input: ApiKeyUpdateInput) =>
-  input.type === "organization" ? `/w/${input.organizationId}/settings/api-keys` : "/user/api-keys";
+  input.type === "organization"
+    ? `/w/${input.organizationKey ?? input.organizationId}/settings/api-keys`
+    : "/user/api-keys";
 
 export const updateApiKeyForCurrentUser = async (
   input: ApiKeyUpdateInput

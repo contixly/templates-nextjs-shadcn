@@ -133,6 +133,7 @@ describe("createApiKeyForCurrentUser", () => {
     await createApiKeyForCurrentUser({
       type: "organization",
       organizationId: "org1",
+      organizationKey: "client-workspace",
       name: "Org integration",
       presetIds: ["organization-read-all"],
       expiresIn: "never",
@@ -160,7 +161,7 @@ describe("createApiKeyForCurrentUser", () => {
         rateLimitTimeWindow: 24 * 60 * 60 * 1000,
       },
     });
-    expect(revalidatePathMock).toHaveBeenCalledWith("/w/org1/settings/api-keys");
+    expect(revalidatePathMock).toHaveBeenCalledWith("/w/client-workspace/settings/api-keys");
   });
 
   it("rejects organization key creation without apiKey create permission", async () => {
@@ -170,6 +171,7 @@ describe("createApiKeyForCurrentUser", () => {
       createApiKeyForCurrentUser({
         type: "organization",
         organizationId: "org1",
+        organizationKey: "client-workspace",
         name: "Org integration",
         presetIds: ["organization-read-all"],
         expiresIn: "never",

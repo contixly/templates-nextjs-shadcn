@@ -19,7 +19,9 @@ const getValidationMessage = (message: string | undefined) =>
   message?.startsWith("api_keys.") ? message : API_KEY_ERROR_KEYS.invalidRequest;
 
 const getRevalidationPath = (input: ApiKeyDeleteInput) =>
-  input.type === "organization" ? `/w/${input.organizationId}/settings/api-keys` : "/user/api-keys";
+  input.type === "organization"
+    ? `/w/${input.organizationKey ?? input.organizationId}/settings/api-keys`
+    : "/user/api-keys";
 
 export const deleteApiKeyForCurrentUser = async (
   input: ApiKeyDeleteInput

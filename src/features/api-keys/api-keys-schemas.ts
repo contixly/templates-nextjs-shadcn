@@ -52,6 +52,13 @@ const apiKeyRateLimitWindowSchema = z.enum(API_KEY_RATE_LIMIT_WINDOW_OPTIONS, {
   error: API_KEY_ERROR_KEYS.rateLimitWindowInvalid,
 });
 
+const apiKeyOrganizationKeySchema = z
+  .string({ error: API_KEY_ERROR_KEYS.invalidRequest })
+  .trim()
+  .min(1, { message: API_KEY_ERROR_KEYS.invalidRequest })
+  .max(100, { message: API_KEY_ERROR_KEYS.invalidRequest })
+  .regex(/^[A-Za-z0-9-]+$/, { message: API_KEY_ERROR_KEYS.invalidRequest });
+
 export const mapApiKeyExpirationOptionToSeconds = (option: ApiKeyExpirationOption) => {
   switch (option) {
     case "never":
@@ -79,7 +86,11 @@ export const mapApiKeyRateLimitWindowToMs = (option: ApiKeyRateLimitWindowOption
 };
 
 const validateOwnerOrganizationId = (
-  value: { type: "user" | "organization"; organizationId?: string },
+  value: {
+    type: "user" | "organization";
+    organizationId?: string;
+    organizationKey?: string;
+  },
   ctx: z.RefinementCtx
 ) => {
   if (value.type === "organization" && !value.organizationId) {
@@ -97,12 +108,21 @@ const validateOwnerOrganizationId = (
       path: ["organizationId"],
     });
   }
+
+  if (value.type === "user" && value.organizationKey !== undefined) {
+    ctx.addIssue({
+      code: "custom",
+      message: API_KEY_ERROR_KEYS.invalidRequest,
+      path: ["organizationKey"],
+    });
+  }
 };
 
 export const apiKeyCreateFormSchema = z
   .object({
     type: apiKeyOwnerTypeSchema,
     organizationId: organizationIdSchema.optional(),
+    organizationKey: apiKeyOrganizationKeySchema.optional(),
     name: apiKeyNameSchema,
     presetIds: apiKeyPresetIdsSchema,
     expiresIn: apiKeyExpirationOptionSchema,
@@ -120,6 +140,7 @@ export const apiKeyUpdateFormSchema = z
     type: apiKeyOwnerTypeSchema,
     keyId: id,
     organizationId: organizationIdSchema.optional(),
+    organizationKey: apiKeyOrganizationKeySchema.optional(),
     name: apiKeyNameSchema.optional(),
     presetIds: apiKeyPresetIdsSchema.optional(),
     expiresIn: apiKeyExpirationOptionSchema.optional(),
@@ -156,6 +177,7 @@ export const apiKeyDeleteSchema = z
     type: apiKeyOwnerTypeSchema,
     keyId: id,
     organizationId: organizationIdSchema.optional(),
+    organizationKey: apiKeyOrganizationKeySchema.optional(),
   })
   .superRefine(validateOwnerOrganizationId);
 

@@ -146,6 +146,7 @@ describe("API key management actions", () => {
     await updateApiKeyForCurrentUser({
       type: "organization",
       organizationId: "org1",
+      organizationKey: "client-workspace",
       keyId: "key1",
       enabled: false,
     });
@@ -159,7 +160,7 @@ describe("API key management actions", () => {
         enabled: false,
       },
     });
-    expect(revalidatePathMock).toHaveBeenCalledWith("/w/org1/settings/api-keys");
+    expect(revalidatePathMock).toHaveBeenCalledWith("/w/client-workspace/settings/api-keys");
   });
 
   it("rejects organization update without apiKey update permission", async () => {
@@ -169,6 +170,7 @@ describe("API key management actions", () => {
       updateApiKeyForCurrentUser({
         type: "organization",
         organizationId: "org1",
+        organizationKey: "client-workspace",
         keyId: "key1",
         enabled: false,
       })
@@ -204,6 +206,7 @@ describe("API key management actions", () => {
     await deleteApiKeyForCurrentUser({
       type: "organization",
       organizationId: "org1",
+      organizationKey: "client-workspace",
       keyId: "key1",
     });
 
@@ -214,7 +217,7 @@ describe("API key management actions", () => {
         keyId: "key1",
       },
     });
-    expect(revalidatePathMock).toHaveBeenCalledWith("/w/org1/settings/api-keys");
+    expect(revalidatePathMock).toHaveBeenCalledWith("/w/client-workspace/settings/api-keys");
   });
 
   it("rejects organization delete without apiKey delete permission", async () => {
@@ -224,6 +227,7 @@ describe("API key management actions", () => {
       deleteApiKeyForCurrentUser({
         type: "organization",
         organizationId: "org1",
+        organizationKey: "client-workspace",
         keyId: "key1",
       })
     ).resolves.toEqual({

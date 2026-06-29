@@ -45,6 +45,7 @@ describe("api key form schemas", () => {
     const parsed = apiKeyCreateFormSchema.safeParse({
       type: "organization",
       organizationId: "org1",
+      organizationKey: "client-workspace",
       name: "Warehouse sync",
       presetIds: ["organization-read-all"],
       expiresIn: "never",
@@ -87,6 +88,22 @@ describe("api key form schemas", () => {
     expect(parsed.error?.issues[0]?.message).toBe("api_keys.invalid_request");
   });
 
+  it("rejects personal key creation with an organization route key", () => {
+    const parsed = apiKeyCreateFormSchema.safeParse({
+      type: "user",
+      organizationKey: "client-workspace",
+      name: "Personal key",
+      presetIds: ["basic-read"],
+      expiresIn: "7d",
+      rateLimitEnabled: true,
+      rateLimitMax: 100,
+      rateLimitWindow: "1h",
+    });
+
+    expect(parsed.success).toBe(false);
+    expect(parsed.error?.issues[0]?.message).toBe("api_keys.invalid_request");
+  });
+
   it("rejects personal key updates with an organization id", () => {
     const parsed = apiKeyUpdateFormSchema.safeParse({
       type: "user",
@@ -99,11 +116,34 @@ describe("api key form schemas", () => {
     expect(parsed.error?.issues[0]?.message).toBe("api_keys.invalid_request");
   });
 
+  it("rejects personal key updates with an organization route key", () => {
+    const parsed = apiKeyUpdateFormSchema.safeParse({
+      type: "user",
+      keyId: "key1",
+      organizationKey: "client-workspace",
+      name: "Personal key",
+    });
+
+    expect(parsed.success).toBe(false);
+    expect(parsed.error?.issues[0]?.message).toBe("api_keys.invalid_request");
+  });
+
   it("rejects personal key deletion with an organization id", () => {
     const parsed = apiKeyDeleteSchema.safeParse({
       type: "user",
       keyId: "key1",
       organizationId: "org1",
+    });
+
+    expect(parsed.success).toBe(false);
+    expect(parsed.error?.issues[0]?.message).toBe("api_keys.invalid_request");
+  });
+
+  it("rejects personal key deletion with an organization route key", () => {
+    const parsed = apiKeyDeleteSchema.safeParse({
+      type: "user",
+      keyId: "key1",
+      organizationKey: "client-workspace",
     });
 
     expect(parsed.success).toBe(false);

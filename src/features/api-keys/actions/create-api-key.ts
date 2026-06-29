@@ -45,7 +45,9 @@ const createApiKeyFailure = (): CreateApiKeyActionResult => ({
 });
 
 const getRevalidationPath = (input: CreateApiKeyInput) =>
-  input.type === "organization" ? `/w/${input.organizationId}/settings/api-keys` : "/user/api-keys";
+  input.type === "organization"
+    ? `/w/${input.organizationKey ?? input.organizationId}/settings/api-keys`
+    : "/user/api-keys";
 
 const toApiKeyDisplayData = (
   value: unknown,
