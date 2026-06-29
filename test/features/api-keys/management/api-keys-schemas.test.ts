@@ -43,7 +43,7 @@ describe("api key form schemas", () => {
   it("accepts a valid organization key creation form", () => {
     const parsed = apiKeyCreateFormSchema.safeParse({
       type: "organization",
-      organizationId: "org_1",
+      organizationId: "org1",
       name: "Warehouse sync",
       presetIds: ["organization-read-all"],
       expiresIn: "never",
@@ -70,6 +70,29 @@ describe("api key form schemas", () => {
     expect(parsed.error?.issues[0]?.message).toBe("api_keys.organization_id_required");
   });
 
+  it("rejects ids outside the repository id validators", () => {
+    expect(
+      apiKeyCreateFormSchema.safeParse({
+        type: "organization",
+        organizationId: "org_1",
+        name: "Underscore org",
+        presetIds: ["basic-read"],
+        expiresIn: "7d",
+        rateLimitEnabled: true,
+        rateLimitMax: 100,
+        rateLimitWindow: "1h",
+      }).success
+    ).toBe(false);
+
+    expect(
+      apiKeyUpdateFormSchema.safeParse({
+        type: "user",
+        keyId: "key_1",
+        name: "Underscore key",
+      }).success
+    ).toBe(false);
+  });
+
   it("rejects empty presets and invalid rate limits", () => {
     const parsed = apiKeyCreateFormSchema.safeParse({
       type: "user",
@@ -90,7 +113,7 @@ describe("api key form schemas", () => {
   it("requires an editable field for update forms", () => {
     const parsed = apiKeyUpdateFormSchema.safeParse({
       type: "user",
-      keyId: "key_1",
+      keyId: "key1",
     });
 
     expect(parsed.success).toBe(false);

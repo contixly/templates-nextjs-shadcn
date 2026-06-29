@@ -16,9 +16,6 @@ export const API_KEY_RATE_LIMIT_WINDOW_OPTIONS = ["1m", "1h", "1d"] as const;
 export type ApiKeyExpirationOption = (typeof API_KEY_EXPIRATION_OPTIONS)[number];
 export type ApiKeyRateLimitWindowOption = (typeof API_KEY_RATE_LIMIT_WINDOW_OPTIONS)[number];
 
-const apiKeyIdSchema = id.or(z.string().regex(/^[A-Za-z0-9_-]+$/));
-const apiKeyOrganizationIdSchema = organizationIdSchema.or(z.string().regex(/^[A-Za-z0-9_-]+$/));
-
 const apiKeyOwnerTypeSchema = z.enum(["user", "organization"], {
   error: API_KEY_ERROR_KEYS.invalidType,
 });
@@ -97,7 +94,7 @@ const requireOrganizationId = (
 export const apiKeyCreateFormSchema = z
   .object({
     type: apiKeyOwnerTypeSchema,
-    organizationId: apiKeyOrganizationIdSchema.optional(),
+    organizationId: organizationIdSchema.optional(),
     name: apiKeyNameSchema,
     presetIds: apiKeyPresetIdsSchema,
     expiresIn: apiKeyExpirationOptionSchema,
@@ -113,8 +110,8 @@ export type ApiKeyCreateInput = ApiKeyCreateFormInput;
 export const apiKeyUpdateFormSchema = z
   .object({
     type: apiKeyOwnerTypeSchema,
-    keyId: apiKeyIdSchema,
-    organizationId: apiKeyOrganizationIdSchema.optional(),
+    keyId: id,
+    organizationId: organizationIdSchema.optional(),
     name: apiKeyNameSchema.optional(),
     presetIds: apiKeyPresetIdsSchema.optional(),
     expiresIn: apiKeyExpirationOptionSchema.optional(),
@@ -149,8 +146,8 @@ export type ApiKeyUpdateInput = ApiKeyUpdateFormInput;
 export const apiKeyDeleteSchema = z
   .object({
     type: apiKeyOwnerTypeSchema,
-    keyId: apiKeyIdSchema,
-    organizationId: apiKeyOrganizationIdSchema.optional(),
+    keyId: id,
+    organizationId: organizationIdSchema.optional(),
   })
   .superRefine(requireOrganizationId);
 
