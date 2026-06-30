@@ -8,6 +8,7 @@ const withNextIntl = createNextIntlPlugin({
       "./src/messages/common.en.json",
       "./src/messages/features/accounts.en.json",
       "./src/messages/features/workspaces.en.json",
+      "./src/messages/features/api-keys.en.json",
       "./src/messages/features/application.en.json",
       "./src/messages/features/dashboard.en.json",
     ],
