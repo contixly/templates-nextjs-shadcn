@@ -102,6 +102,17 @@ describe("Better Auth API key configuration", () => {
     );
   });
 
+  it("configures a fallback base URL for direct server auth API calls", async () => {
+    await loadAuthModule();
+
+    const authOptions = betterAuthMock.mock.calls[0]?.[0];
+    expect(authOptions.baseURL).toEqual(
+      expect.objectContaining({
+        fallback: "http://localhost:3000",
+      })
+    );
+  });
+
   it("adds apiKey management permissions to organization access control", async () => {
     await loadAuthModule();
 

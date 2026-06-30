@@ -184,6 +184,7 @@ export const auth = betterAuth({
   } as BetterAuthAdvancedOptions,
   baseURL: {
     allowedHosts: betterAuthAllowedHosts,
+    fallback: APP_BASE_URL,
     protocol: isProduction ? "https" : "http",
   },
   secret: process.env.BETTER_AUTH_SECRET,
