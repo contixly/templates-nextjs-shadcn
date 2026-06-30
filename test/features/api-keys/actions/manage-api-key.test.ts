@@ -3,6 +3,7 @@
 const updateApiKeyMock = jest.fn();
 const deleteApiKeyMock = jest.fn();
 const loadCurrentUserIdMock = jest.fn();
+const loadRequestHeadersMock = jest.fn();
 const hasWorkspacePermissionMock = jest.fn();
 const revalidatePathMock = jest.fn();
 const mockApiKeysLoggerChild = jest.fn();
@@ -19,7 +20,7 @@ jest.mock("@server/auth", () => ({
 
 jest.mock("@features/accounts/accounts-actions", () => ({
   loadCurrentUserId: (...args: unknown[]) => loadCurrentUserIdMock(...args),
-  loadRequestHeaders: jest.fn(async () => new Headers()),
+  loadRequestHeaders: (...args: unknown[]) => loadRequestHeadersMock(...args),
 }));
 
 jest.mock("@features/workspaces/workspaces-permissions", () => ({
@@ -50,6 +51,7 @@ describe("API key management actions", () => {
     updateApiKeyMock.mockReset();
     deleteApiKeyMock.mockReset();
     loadCurrentUserIdMock.mockReset();
+    loadRequestHeadersMock.mockReset();
     hasWorkspacePermissionMock.mockReset();
     revalidatePathMock.mockReset();
     mockApiKeysLoggerChild.mockReset();
@@ -58,6 +60,7 @@ describe("API key management actions", () => {
       error: mockApiKeysLoggerError,
     });
     loadCurrentUserIdMock.mockResolvedValue("user1");
+    loadRequestHeadersMock.mockResolvedValue(new Headers([["x-test", "1"]]));
     hasWorkspacePermissionMock.mockResolvedValue(true);
     updateApiKeyMock.mockResolvedValue({
       id: "key1",
@@ -198,6 +201,7 @@ describe("API key management actions", () => {
         configId: "user-keys",
         keyId: "key1",
       },
+      headers: expect.any(Headers),
     });
     expect(revalidatePathMock).toHaveBeenCalledWith("/user/api-keys");
   });
@@ -216,6 +220,7 @@ describe("API key management actions", () => {
         configId: "org-keys",
         keyId: "key1",
       },
+      headers: expect.any(Headers),
     });
     expect(revalidatePathMock).toHaveBeenCalledWith("/w/client-workspace/settings/api-keys");
   });

@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { unauthorized } from "next/navigation";
-import { loadCurrentUserId } from "@features/accounts/accounts-actions";
+import { loadCurrentUserId, loadRequestHeaders } from "@features/accounts/accounts-actions";
 import { API_KEY_ERROR_KEYS } from "@features/api-keys/api-keys-errors";
 import { apiKeysLogger } from "@features/api-keys/api-keys-logger";
 import { apiKeyDeleteSchema, type ApiKeyDeleteInput } from "@features/api-keys/api-keys-schemas";
@@ -83,6 +83,7 @@ export const deleteApiKeyForCurrentUser = async (
             : API_KEY_USER_CONFIG_ID,
         keyId: parsed.data.keyId,
       },
+      headers: await loadRequestHeaders(),
     });
 
     revalidatePath(getRevalidationPath(parsed.data));
