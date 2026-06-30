@@ -179,5 +179,4 @@ All data access uses three-layer caching:
 
 ## Learned Workspace Facts
 
-- The project actively uses the Cursor plugin ecosystem (Context7 for docs lookup, Continuous Learning for memory).
 - Jest is used for testing; test files live in `test/{feature_name}/{test_module}` (e.g. `test/server/` for server-side code).
