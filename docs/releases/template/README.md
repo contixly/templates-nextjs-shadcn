@@ -4,6 +4,7 @@ This directory stores text versions of release notes for published template vers
 
 ## Available releases
 
+- [v0.0.9](0.0.9.md) - API key management release with personal and organization keys, scoped `/api/v1` access, permission presets, rate limits, OpenSpec specs, and Playwright coverage
 - [v0.0.8](0.0.8.md) - Local automation and Playwright E2E release with local-only Better Auth automation login, scenario cleanup, browser smoke tests, and invitation policy hooks
 - [v0.0.7](0.0.7.md) - Distributed caching release with optional Redis/Valkey-backed Next.js cache handlers, workspace streaming skeletons, and configured-only social login providers
 - [v0.0.6](0.0.6.md) - Better Auth Teams release with workspace team management, team-targeted invitations, active team sessions, and team persistence
