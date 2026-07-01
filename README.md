@@ -8,8 +8,8 @@ A localized, organization-ready starting point for building custom services with
 Better Auth, Prisma, `next-intl`, and shadcn/ui.
 
 The template ships with public and protected application flows, feature-sliced modules, server actions, Prisma-backed
-persistence, social authentication, bilingual UI/message infrastructure for English and Russian, and collaboration
-flows built around organization-backed workspaces.
+persistence, social authentication, personal and organization API keys, bilingual UI/message infrastructure for English
+and Russian, and collaboration flows built around organization-backed workspaces.
 
 **After generating a new repo from this template**, follow **[TEMPLATE.md](./TEMPLATE.md)** for environment variables,
 auth, and domain setup.
@@ -22,6 +22,7 @@ auth, and domain setup.
 - Organization-scoped workspace routes under `/w/:organizationKey/...` with slug-preferred URLs and active/fallback
   workspace resolution
 - Workspace management, settings, member directory, team management, and invitation surfaces
+- Personal and organization API key management with scoped `/api/v1` access
 - Role-aware owner/admin/member controls for adding members and updating member roles
 - Invitation lifecycle: create, list, copy link, accept, reject, expire, optional team targeting, and personal
   pending-invitation entry points
@@ -39,7 +40,7 @@ auth, and domain setup.
 
 - **Frontend**: Next.js 16, React 19, TypeScript, Tailwind CSS v4, shadcn/ui
 - **Backend**: Next.js Server Actions, Prisma ORM, PostgreSQL
-- **Auth**: Better Auth with OAuth providers and the organization plugin with Teams enabled
+- **Auth**: Better Auth with OAuth providers, organization plugin with Teams enabled, and API key plugin
 - **Caching**: Next.js Cache Components with optional Redis/Valkey via `@mrjasonroy/cache-components-cache-handler`
 - **Localization**: `next-intl`
 
@@ -63,6 +64,18 @@ Invitees can open a dedicated invitation route after authentication, review the 
 team, role, and expiration details, then accept or reject when their verified primary email matches the invitation and
 the workspace's active allowed-domain policy. Workspace admins can restrict new invitations to exact email domains, and
 existing members outside the active policy are surfaced with warnings rather than removed automatically.
+
+## API Key Access
+
+The template includes Better Auth API keys for machine access under `/api/v1`. API clients send keys in the `x-api-key`
+header; browser session cookies are not accepted for these external API routes.
+
+- Personal keys are managed at `/user/api-keys`, act as the owning user, and can read organization data only while that
+  user remains a member of the requested organization.
+- Organization keys are managed at `/w/:organizationKey/settings/api-keys` and act as the organization principal for a
+  single workspace.
+- Both key types use explicit permission presets and scopes, so applications built from the template can add product
+  endpoints, role rules, and API key presets without exposing raw Better Auth payloads to client code.
 
 ## Getting Started
 

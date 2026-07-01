@@ -1,6 +1,7 @@
 import type { TablerIcon } from "@tabler/icons-react";
 import {
   IconDatabase,
+  IconKey,
   IconMail,
   IconRoute,
   IconServer,
@@ -12,7 +13,7 @@ import {
 /** Shared marketing copy for public home and authenticated welcome — replace with your product story. */
 export type TemplateStackFeature = {
   icon: TablerIcon;
-  id: "routing" | "actions" | "database" | "auth" | "features" | "ui";
+  id: "routing" | "actions" | "database" | "auth" | "features" | "ui" | "apiKeys";
 };
 
 export const templateStackFeatureBlocks: TemplateStackFeature[] = [
@@ -39,6 +40,10 @@ export const templateStackFeatureBlocks: TemplateStackFeature[] = [
   {
     icon: IconSettings,
     id: "ui",
+  },
+  {
+    icon: IconKey,
+    id: "apiKeys",
   },
 ];
 

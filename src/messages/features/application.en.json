@@ -2,7 +2,7 @@
   "pages": {
     "home": {
       "title": "Home",
-      "description": "A Next.js template with organization-backed workspaces, invitations, email-domain restrictions, member roles, shared settings surfaces, and reusable product scaffolding.",
+      "description": "A Next.js template with organization-backed workspaces, API keys, invitations, email-domain restrictions, member roles, shared settings surfaces, and reusable product scaffolding.",
       "openGraph": {
         "title": "Home",
         "description": "A template application with organization-backed workspace and collaboration flows."
@@ -10,8 +10,8 @@
       "heroBadge": "Organization-ready template",
       "heroTitlePrefix": "Workspace collaboration for",
       "heroTitleEmphasis": "your next service",
-      "heroDescription": "This template now includes Better Auth organizations, slug-aware workspace routing, member directories, domain-aware invitation flows, and role-aware settings so you can start from a real multi-tenant foundation.",
-      "heroSecurity": "OAuth login, verified invitation acceptance, domain restrictions, role-aware permissions",
+      "heroDescription": "This template now includes Better Auth organizations, slug-aware workspace routing, member directories, API keys, domain-aware invitation flows, and role-aware settings so you can start from a real multi-tenant foundation.",
+      "heroSecurity": "OAuth login, API keys, verified invitation acceptance, domain restrictions, role-aware permissions",
       "featuresTitle": "Organization and workspace flows are included",
       "featuresDescription": "The branch now ships the core collaboration surface most SaaS products need before domain-specific features begin.",
       "extensionsBadge": "Management surfaces",
@@ -52,6 +52,11 @@
           "badge": "Included",
           "title": "Settings and member management",
           "description": "Workspace settings include general settings, allowed email domains, user lists, direct member adds, role edits, invitations, Better Auth Teams, and a placeholder section for roles."
+        },
+        "apiKeys": {
+          "badge": "Included",
+          "title": "Personal and organization API keys",
+          "description": "Personal keys act as the owning user, organization keys act for a workspace, and key-only /api/v1 routes enforce explicit scopes."
         }
       },
       "extensionBlocks": {

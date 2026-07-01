@@ -139,6 +139,7 @@ export default async function HomePage() {
             "PostgreSQL",
             "Better Auth",
             "Better Auth Organizations",
+            "Better Auth API Keys",
             "shadcn/ui",
             "next-intl",
           ].map((tech) => (
