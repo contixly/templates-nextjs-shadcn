@@ -20,6 +20,7 @@ import { getConfiguredSocialProviderIds } from "@server/auth/social-providers";
 import { YandexOAuth2ClientConfig } from "@server/auth/yandex-oauth2-client";
 import { apiKey } from "@better-auth/api-key";
 import { organizationAccessControl, organizationRoles } from "@server/auth/organization-access";
+import { deletePersonalApiKeysForUser } from "@server/auth/api-key-cleanup";
 
 type BetterAuthApiMethod = (...args: unknown[]) => Promise<unknown>;
 
@@ -64,6 +65,9 @@ export const auth = betterAuth({
   user: {
     deleteUser: {
       enabled: true,
+      beforeDelete: async (user) => {
+        await deletePersonalApiKeysForUser(user.id);
+      },
     },
     changeEmail: {
       enabled: false,

@@ -138,6 +138,22 @@ The system SHALL update API key metadata, enabled state, scopes, expiration, and
 - **THEN** the server action returns a forbidden action result
 - **AND** no organization API key is updated
 
+#### Scenario: Custom permissions are preserved during unrelated edits
+- **GIVEN** an existing API key has stored permissions that do not exactly match built-in permission presets
+- **WHEN** a user updates an unrelated field such as the key name or enabled state
+- **THEN** the system preserves the stored permissions
+- **AND** the update request does not replace the permissions with built-in presets
+
+#### Scenario: Expiration renewal is explicit
+- **GIVEN** an existing API key has an expiration duration shown in the edit form
+- **WHEN** a user saves the key without changing expiration and without enabling explicit renewal
+- **THEN** the system does not renew the key expiration
+
+#### Scenario: Expiration can be renewed to the displayed duration
+- **GIVEN** an existing API key has an expiration duration shown in the edit form
+- **WHEN** a user enables explicit expiration renewal and saves the key
+- **THEN** the system renews the key expiration to the selected displayed duration from the save time
+
 ### Requirement: API Key Deletion Is Authorized
 The system SHALL delete API keys only through protected server actions that enforce the relevant owner and organization permissions.
 
@@ -158,6 +174,18 @@ The system SHALL delete API keys only through protected server actions that enfo
 - **WHEN** the member confirms deletion of an organization API key
 - **THEN** the server action returns a forbidden action result
 - **AND** no organization API key is deleted
+
+#### Scenario: Personal API keys are revoked when the owner is deleted
+- **GIVEN** a user owns personal API keys through the `user-keys` configuration
+- **WHEN** that user account is deleted
+- **THEN** the system deletes API keys whose reference is that user id
+- **AND** those personal keys can no longer authenticate `/api/v1` requests
+
+#### Scenario: Organization API keys are revoked when the organization is deleted
+- **GIVEN** an organization owns API keys through the `org-keys` configuration
+- **WHEN** that organization is deleted
+- **THEN** the system deletes API keys whose reference is that organization id
+- **AND** those organization keys can no longer authenticate `/api/v1` requests
 
 ### Requirement: Permission Presets Remain Extensible
 The system SHALL expose API key permissions to users through safe presets while storing permissions as an extensible resource/action record.

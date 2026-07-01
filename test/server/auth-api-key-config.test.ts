@@ -2,7 +2,12 @@
 
 const betterAuthMock = jest.fn((options) => ({ api: {}, options }));
 const organizationMock = jest.fn((options) => ({ id: "organization", options }));
-const apiKeyMock = jest.fn((options) => ({ id: "api-key", options }));
+const apiKeyMock = jest.fn((configurations: unknown, options?: unknown) => ({
+  configurations,
+  id: "api-key",
+  options,
+}));
+const apiKeyDeleteManyMock = jest.fn();
 type PermissionMap = Record<string, readonly string[]>;
 const createAccessControlMock = jest.fn((statements: PermissionMap) => ({
   statements,
@@ -21,6 +26,7 @@ const loadAuthModule = async () => {
   betterAuthMock.mockClear();
   organizationMock.mockClear();
   apiKeyMock.mockClear();
+  apiKeyDeleteManyMock.mockReset();
   createAccessControlMock.mockClear();
 
   jest.doMock("@better-auth/prisma-adapter", () => ({
@@ -37,7 +43,11 @@ const loadAuthModule = async () => {
   }));
   jest.doMock("@server/prisma", () => ({
     __esModule: true,
-    default: {},
+    default: {
+      apiKey: {
+        deleteMany: (...args: unknown[]) => apiKeyDeleteManyMock(...args),
+      },
+    },
   }));
   jest.doMock("@server/auth/organization-hooks", () => ({
     betterAuthOrganizationHooks: {},
@@ -102,6 +112,31 @@ describe("Better Auth API key configuration", () => {
     );
   });
 
+  it("deletes personal API keys before deleting a user", async () => {
+    await loadAuthModule();
+
+    const authOptions = betterAuthMock.mock.calls[0]?.[0];
+    const beforeDelete = authOptions.user.deleteUser.beforeDelete;
+
+    expect(beforeDelete).toEqual(expect.any(Function));
+
+    await beforeDelete({
+      id: "user1",
+      email: "person@example.com",
+      emailVerified: true,
+      name: "Person",
+      createdAt: new Date("2026-06-01T00:00:00.000Z"),
+      updatedAt: new Date("2026-06-01T00:00:00.000Z"),
+    });
+
+    expect(apiKeyDeleteManyMock).toHaveBeenCalledWith({
+      where: {
+        configId: "user-keys",
+        referenceId: "user1",
+      },
+    });
+  });
+
   it("configures a fallback base URL for direct server auth API calls", async () => {
     await loadAuthModule();
 
@@ -134,3 +169,5 @@ describe("Better Auth API key configuration", () => {
     expect(organizationOptions.roles.member.authorize({ apiKey: ["create"] }).success).toBe(false);
   });
 });
+
+export {};

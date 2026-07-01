@@ -9,11 +9,7 @@ export type ApiKeyOwnerType = "user" | "organization";
 export type ApiKeyStatus = "active" | "disabled" | "expired";
 
 export type ApiKeyBuiltInPermissionResource =
-  | "basic"
-  | "organization"
-  | "member"
-  | "team"
-  | "teamMember";
+  "basic" | "organization" | "member" | "team" | "teamMember";
 
 export type ApiKeyBuiltInPermissionAction = "read";
 

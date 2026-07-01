@@ -4,6 +4,7 @@ import { APIError } from "better-auth/api";
 import type { OrganizationOptions } from "better-auth/plugins";
 import { WORKSPACE_ERROR_KEYS } from "@features/workspaces/workspaces-errors";
 import { evaluateWorkspaceEmailDomainEligibility } from "@features/workspaces/workspaces-domain-restrictions";
+import { deleteOrganizationApiKeysForOrganization } from "@server/auth/api-key-cleanup";
 import prisma from "@server/prisma";
 
 type OrganizationHooks = NonNullable<OrganizationOptions["organizationHooks"]>;
@@ -111,5 +112,8 @@ export const betterAuthOrganizationHooks = {
   },
   beforeAcceptInvitation: async ({ invitation, organization }) => {
     await assertInvitationPolicy(invitation, organization);
+  },
+  beforeDeleteOrganization: async ({ organization }) => {
+    await deleteOrganizationApiKeysForOrganization(organization.id);
   },
 } satisfies OrganizationHooks;

@@ -87,6 +87,11 @@ The system SHALL allow an organization API key to access only data for its ownin
 - **THEN** the key continues to act as an organization principal until it is disabled, expired, deleted, rate-limited, or lacks required API permissions
 - **AND** creator role is relevant only for key management actions and allowed scope selection
 
+#### Scenario: Deleted organization key cannot authenticate
+- **GIVEN** an organization API key belongs to an organization
+- **WHEN** the organization is deleted
+- **THEN** the key no longer authenticates `/api/v1` requests
+
 ### Requirement: API Key Permissions Gate Route Access
 The system SHALL require every `/api/v1` route handler to verify the API key with the route's required resource/action permissions.
 
