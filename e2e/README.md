@@ -22,5 +22,12 @@ npm run e2e
 - `specs/` contains durable requirement-backed scenarios mapped from OpenSpec capabilities.
 - `support/` contains shared fixtures, routes, setup, and helpers.
 
+## Local automation auth
+
+Use `signInLocalAutomationUser(page)` from `e2e/support/local-auth` to create and sign in
+a local Better Auth automation user in the current browser context. Use
+`cleanupLocalAutomationUser(page)` in test cleanup to delete that user and any now-memberless
+local organizations created during the scenario.
+
 For OpenSpec-backed tests, mirror each capability from `openspec/specs/<capability>/spec.md`
 into `e2e/specs/<capability>/`.

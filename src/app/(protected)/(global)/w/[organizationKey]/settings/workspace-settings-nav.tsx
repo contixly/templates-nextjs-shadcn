@@ -8,14 +8,20 @@ export async function WorkspaceSettingsNav({
   organizationId: string;
   organizationKey: string;
 }>) {
-  const canCreateInvitations = await hasWorkspacePermission(organizationId, {
-    invitation: ["create"],
-  });
+  const [canCreateInvitations, canReadApiKeys] = await Promise.all([
+    hasWorkspacePermission(organizationId, {
+      invitation: ["create"],
+    }),
+    hasWorkspacePermission(organizationId, {
+      apiKey: ["read"],
+    }),
+  ]);
 
   return (
     <NavWorkspaceSettings
       organizationKey={organizationKey}
       canCreateInvitations={canCreateInvitations}
+      canReadApiKeys={canReadApiKeys}
     />
   );
 }

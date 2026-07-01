@@ -67,6 +67,14 @@
         "description": "Review and manage your active sessions and account security."
       }
     },
+    "api_keys": {
+      "title": "API Keys",
+      "description": "Manage personal API keys that act as your user account.",
+      "openGraph": {
+        "title": "API Keys",
+        "description": "Create and manage personal API keys for external integrations."
+      }
+    },
     "danger": {
       "title": "Danger Zone",
       "description": "Account deletion and other dangerous operations. Proceed with caution — these actions cannot be undone.",

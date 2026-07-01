@@ -4,6 +4,7 @@ const betterAuthMock = jest.fn((options) => ({ api: {}, options }));
 const genericOAuthMock = jest.fn((options) => ({ id: "generic-oauth", options }));
 const organizationMock = jest.fn((options) => ({ id: "organization", options }));
 const teamFindManyMock = jest.fn();
+const apiKeyDeleteManyMock = jest.fn();
 
 class MockAPIError extends Error {
   status: string;
@@ -22,9 +23,13 @@ const loadOrganizationHooks = async () => {
   genericOAuthMock.mockClear();
   organizationMock.mockClear();
   teamFindManyMock.mockReset();
+  apiKeyDeleteManyMock.mockReset();
 
   jest.doMock("@better-auth/prisma-adapter", () => ({
     prismaAdapter: jest.fn(() => "prisma-adapter"),
+  }));
+  jest.doMock("@better-auth/api-key", () => ({
+    apiKey: jest.fn(() => ({ id: "api-key" })),
   }));
   jest.doMock("@features/accounts/accounts-local-auth", () => ({
     isLocalAutomationAuthEnabled: () => false,
@@ -38,6 +43,9 @@ const loadOrganizationHooks = async () => {
   jest.doMock("@server/prisma", () => ({
     __esModule: true,
     default: {
+      apiKey: {
+        deleteMany: (...args: unknown[]) => apiKeyDeleteManyMock(...args),
+      },
       team: {
         findMany: (...args: unknown[]) => teamFindManyMock(...args),
       },
@@ -50,6 +58,13 @@ const loadOrganizationHooks = async () => {
     nextCookies: jest.fn(() => ({ id: "next-cookies" })),
   }));
   jest.doMock("better-auth/plugins", () => ({
+    createAccessControl: jest.fn((statements) => ({
+      statements,
+      newRole: (permissions: unknown) => ({
+        authorize: jest.fn(() => ({ success: true })),
+        permissions,
+      }),
+    })),
     genericOAuth: genericOAuthMock,
     lastLoginMethod: jest.fn(() => ({ id: "last-login-method" })),
     organization: organizationMock,
@@ -224,4 +239,27 @@ describe("Better Auth organization hooks", () => {
       body: { message: "validation.errors.invitationTeamInvalid" },
     });
   });
+
+  it("deletes organization API keys before deleting an organization", async () => {
+    const hooks = await loadOrganizationHooks();
+    const beforeDeleteOrganization = hooks?.beforeDeleteOrganization;
+
+    expect(beforeDeleteOrganization).toEqual(expect.any(Function));
+
+    await expect(
+      beforeDeleteOrganization?.({
+        organization,
+        user: inviter,
+      })
+    ).resolves.toBeUndefined();
+
+    expect(apiKeyDeleteManyMock).toHaveBeenCalledWith({
+      where: {
+        configId: "org-keys",
+        referenceId: "org1",
+      },
+    });
+  });
 });
+
+export {};

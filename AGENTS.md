@@ -56,6 +56,14 @@ The project follows FSD principles. Each feature is self-contained in `features/
 - `npx prisma studio` - Open database GUI.
 - `npm run migrate:postgres` - Deploy migrations to production database.
 
+## OpenSpec Workflow
+
+When a feature change affects existing OpenSpec capabilities or introduces behavior that should be specified, route the
+work through the relevant OpenSpec skill (`openspec-propose`, `openspec-apply-change`, `openspec-retrofit`, or
+`openspec-archive-change`) before implementation. Keep the specs, implementation, and related e2e coverage aligned:
+inspect existing tests, fix broken tests, and add focused e2e tests for spec-visible user/API workflows when the
+behavior changes.
+
 ## Local Automation Auth
 
 For local browser automation with Playwright, browser-use, or LLM-driven development agents, enable the local-only Better Auth automation flow:
@@ -179,5 +187,4 @@ All data access uses three-layer caching:
 
 ## Learned Workspace Facts
 
-- The project actively uses the Cursor plugin ecosystem (Context7 for docs lookup, Continuous Learning for memory).
 - Jest is used for testing; test files live in `test/{feature_name}/{test_module}` (e.g. `test/server/` for server-side code).

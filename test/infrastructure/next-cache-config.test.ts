@@ -86,6 +86,26 @@ describe("Next cache configuration", () => {
     expect(isrCacheHandlerSource).not.toContain("process.env.REMOTE_CACHING_ENABLED");
   });
 
+  test("includes every English i18n message bundle in next-intl type declarations", async () => {
+    const [nextConfigSource, messagesSource] = await Promise.all([
+      fs.readFile(path.join(rootDir, "next.config.ts"), "utf8"),
+      fs.readFile(path.join(rootDir, "src/i18n/messages.ts"), "utf8"),
+    ]);
+
+    const importedEnglishMessages = Array.from(
+      messagesSource.matchAll(/from "@messages\/(.+?\.en\.json)"/g),
+      ([, messagePath]) => `./src/messages/${messagePath}`
+    );
+
+    expect(importedEnglishMessages).toEqual(
+      expect.arrayContaining(["./src/messages/common.en.json"])
+    );
+
+    for (const messagePath of importedEnglishMessages) {
+      expect(nextConfigSource).toContain(messagePath);
+    }
+  });
+
   test("rejects whitespace-only remote cache URLs when remote caching is enabled", async () => {
     await withRemoteCacheEnv(
       cacheSettingsPath,

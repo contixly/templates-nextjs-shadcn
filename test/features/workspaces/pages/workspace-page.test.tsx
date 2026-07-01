@@ -14,8 +14,7 @@ jest.mock("@features/organizations/components/organization-route-guard", () => (
     }: {
       organizationKey: string;
       children:
-        | React.ReactNode
-        | ((organization: { id: string; slug?: string | null }) => React.ReactNode);
+        React.ReactNode | ((organization: { id: string; slug?: string | null }) => React.ReactNode);
     }) => {
       if (organizationKey === "workspace-404") {
         throw new Error("forbidden");

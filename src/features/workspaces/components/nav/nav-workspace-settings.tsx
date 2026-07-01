@@ -11,12 +11,14 @@ import { getMenuItem } from "@lib/ui";
 interface NavWorkspaceSettingsProps {
   organizationKey: string;
   canCreateInvitations?: boolean;
+  canReadApiKeys?: boolean;
   hideGroupLabel?: boolean;
 }
 
 export const NavWorkspaceSettings = ({
   organizationKey,
   canCreateInvitations = false,
+  canReadApiKeys = false,
   hideGroupLabel = false,
 }: NavWorkspaceSettingsProps) => {
   const pathname = usePathname();
@@ -26,6 +28,7 @@ export const NavWorkspaceSettings = ({
   const usersTranslations = usePageTranslations(routes.workspaces.pages.settings_users);
   const teamsTranslations = usePageTranslations(routes.workspaces.pages.settings_teams);
   const rolesTranslations = usePageTranslations(routes.workspaces.pages.settings_roles);
+  const apiKeysTranslations = usePageTranslations(routes.workspaces.pages.settings_api_keys);
 
   const navItems = [
     getMenuItem(routes.workspaces.pages.settings_workspace, workspaceTranslations.title, {
@@ -47,6 +50,14 @@ export const NavWorkspaceSettings = ({
       1,
       0,
       getMenuItem(routes.workspaces.pages.settings_invitations, invitationsTranslations.title, {
+        organizationKey,
+      })
+    );
+  }
+
+  if (canReadApiKeys) {
+    navItems.push(
+      getMenuItem(routes.workspaces.pages.settings_api_keys, apiKeysTranslations.title, {
         organizationKey,
       })
     );

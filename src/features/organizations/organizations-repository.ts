@@ -232,6 +232,41 @@ export const findManyAccessibleOrganizationMembersByIdAndUserId = async (
   return members.map((member) => toOrganizationMemberListItemDto(member));
 };
 
+export const findOrganizationDtoById = async (
+  organizationId: string
+): Promise<OrganizationWorkspaceDto | null> => {
+  "use cache";
+  cacheLife("hours");
+  cacheTag(CACHE_OrganizationByIdTag(organizationId));
+
+  const organization = await prisma.organization.findFirst({
+    where: {
+      id: organizationId,
+    },
+    select: workspaceSelect,
+  });
+
+  return organization ? toWorkspaceDto(organization) : null;
+};
+
+export const findManyOrganizationMembersByOrganizationId = async (
+  organizationId: string
+): Promise<OrganizationMemberListItemDto[]> => {
+  "use cache";
+  cacheLife("hours");
+  cacheTag(CACHE_OrganizationByIdTag(organizationId), CACHE_OrganizationMembersTag(organizationId));
+
+  const members = await prisma.member.findMany({
+    where: {
+      organizationId,
+    },
+    orderBy: memberOrderBy,
+    select: memberSelect,
+  });
+
+  return members.map((member) => toOrganizationMemberListItemDto(member));
+};
+
 export const findOrganizationMemberByOrganizationIdAndUserId = async (
   organizationId: string,
   userId: string,

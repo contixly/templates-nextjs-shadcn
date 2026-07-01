@@ -1,6 +1,7 @@
 import { Feature } from "@typings/pages";
 import { buildFeature } from "@lib/pages";
 import {
+  IconKey,
   IconMail,
   IconSettings,
   IconShield,
@@ -14,7 +15,8 @@ export type WorkspaceSettingsPages =
   | "settings_invitations"
   | "settings_users"
   | "settings_teams"
-  | "settings_roles";
+  | "settings_roles"
+  | "settings_api_keys";
 
 type WorkspacesPages = "workspaces" | "workspace" | "settings" | WorkspaceSettingsPages;
 
@@ -66,6 +68,12 @@ const workspaceRoutes: WorkspaceRoutes = buildFeature<WorkspacesPages>("workspac
       parent: "workspace",
       pathTemplate: "/w/[organizationKey]/settings/roles",
       icon: IconShield,
+      hidePageHeader: true,
+    },
+    settings_api_keys: {
+      parent: "workspace",
+      pathTemplate: "/w/[organizationKey]/settings/api-keys",
+      icon: IconKey,
       hidePageHeader: true,
     },
   },

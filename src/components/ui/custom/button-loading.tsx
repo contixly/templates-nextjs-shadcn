@@ -1,7 +1,7 @@
 import * as React from "react";
-import { Button } from "../button";
-import { Spinner } from "../spinner";
-import { cn } from "src/lib/utils";
+import { Button } from "@components/ui/button";
+import { cn } from "@lib/utils";
+import { Spinner } from "@components/ui/spinner";
 
 type LoadingButtonProps = Omit<React.ComponentProps<typeof Button>, "asChild"> & {
   loading: boolean;

@@ -50,8 +50,11 @@ import {
   CACHE_WorkspaceInvitationsTag,
 } from "@features/workspaces/workspaces-invitations-cache";
 import {
+  findManyWorkspaceTeamMembersByTeamIdAndOrganizationId,
+  findManyWorkspaceTeamsByOrganizationId,
   findManyWorkspaceTeamMembersByTeamIdAndUserId,
   findManyWorkspaceTeamsByOrganizationIdAndUserId,
+  findWorkspaceTeamByIdAndOrganizationId,
   findWorkspaceTeamByOrganizationIdAndNormalizedName,
 } from "@features/workspaces/workspaces-teams-repository";
 import { updateWorkspaceTeamCache } from "@features/workspaces/workspaces-teams-types";
@@ -113,10 +116,7 @@ describe("workspace teams repository", () => {
       "organization_org-1_members",
       "organizations_user_user-1"
     );
-    expect(mockCacheTag).toHaveBeenCalledWith(
-      "workspace_team_team-1",
-      "workspace_team_team-1_members"
-    );
+    expect(mockCacheTag).toHaveBeenCalledTimes(1);
   });
 
   it("loads team members with workspace role labels", async () => {
@@ -152,6 +152,55 @@ describe("workspace teams repository", () => {
     ]);
   });
 
+  it("loads team members by team id and organization id without a user principal", async () => {
+    mockTeamMemberFindMany.mockResolvedValue([
+      {
+        id: "membership_1",
+        teamId: "team_1",
+        userId: "user_2",
+        createdAt: new Date("2026-05-02T10:00:00.000Z"),
+        user: {
+          name: "Alice",
+          email: "alice@example.com",
+          image: null,
+          members: [
+            {
+              role: "admin,member",
+              createdAt: new Date("2026-05-01T10:00:00.000Z"),
+            },
+          ],
+        },
+      },
+    ]);
+
+    await expect(
+      findManyWorkspaceTeamMembersByTeamIdAndOrganizationId("team_1", "org_1")
+    ).resolves.toEqual([
+      expect.objectContaining({
+        id: "membership_1",
+        teamId: "team_1",
+        userId: "user_2",
+        roleLabels: ["admin", "member"],
+      }),
+    ]);
+    expect(mockCacheTag).toHaveBeenCalledWith(
+      "organization_org_1_teams",
+      "workspace_team_team_1",
+      "workspace_team_team_1_members",
+      "organization_org_1_members"
+    );
+    expect(mockTeamMemberFindMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: {
+          teamId: "team_1",
+          team: {
+            organizationId: "org_1",
+          },
+        },
+      })
+    );
+  });
+
   it("checks team-name uniqueness case-insensitively within an organization", async () => {
     mockTeamFindFirst.mockResolvedValue({ id: "team-1", name: "Design", organizationId: "org-1" });
 
@@ -178,6 +227,65 @@ describe("workspace teams repository", () => {
         organizationId: true,
       },
     });
+  });
+
+  it("loads workspace teams by organization id without a user principal", async () => {
+    mockTeamFindMany.mockResolvedValue(
+      Array.from({ length: 70 }, (_, index) => ({
+        id: `team_${index + 1}`,
+        organizationId: "org_1",
+        name: `Platform ${index + 1}`,
+        createdAt: new Date("2026-05-01T10:00:00.000Z"),
+        updatedAt: new Date("2026-05-01T10:00:00.000Z"),
+        _count: { members: 2 },
+      }))
+    );
+
+    await expect(findManyWorkspaceTeamsByOrganizationId("org_1")).resolves.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: "team_1",
+          organizationId: "org_1",
+          memberCount: 2,
+        }),
+      ])
+    );
+    expect(mockTeamFindMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: {
+          organizationId: "org_1",
+        },
+      })
+    );
+    expect(mockCacheTag).toHaveBeenCalledWith("organization_org_1_teams", "organization_org_1");
+    expect(mockCacheTag).toHaveBeenCalledTimes(1);
+  });
+
+  it("loads one workspace team by id and organization id without a user principal", async () => {
+    mockTeamFindFirst.mockResolvedValue({
+      id: "team_1",
+      organizationId: "org_1",
+      name: "Platform",
+      createdAt: new Date("2026-05-01T10:00:00.000Z"),
+      updatedAt: new Date("2026-05-01T10:00:00.000Z"),
+      _count: { members: 2 },
+    });
+
+    await expect(findWorkspaceTeamByIdAndOrganizationId("team_1", "org_1")).resolves.toEqual(
+      expect.objectContaining({
+        id: "team_1",
+        organizationId: "org_1",
+        memberCount: 2,
+      })
+    );
+    expect(mockTeamFindFirst).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: {
+          id: "team_1",
+          organizationId: "org_1",
+        },
+      })
+    );
   });
 
   it("updates team, member, organization, and user cache tags", () => {
