@@ -12,7 +12,7 @@ NextJs template with TypeScript, Tailwind CSS v4, Better Auth, Radix UI, Shadcn 
 
 ## Architecture: Feature Slice Design (FSD)
 
-The project follows FSD principles. Each feature is self-contained in `features/{feature-name}/`:
+The project follows FSD principles. Each feature is self-contained in `src/features/{feature-name}/`:
 
 - `actions/` - Server actions (mutations).
 - `components/` - Feature-specific components.
@@ -24,21 +24,22 @@ The project follows FSD principles. Each feature is self-contained in `features/
 
 **Rules**:
 
-- `app/` contains only pages and layouts.
-- `features/` contain business logic.
-- Features depend on `lib/` and `components/`, never on other features.
-- Shared UI is in `components/ui/` (shadcn) or `components/application/`.
-- `server/` contains server-only singletons (prisma, s3, auth).
+- `src/app/` contains only pages and layouts.
+- `src/features/` contain business logic.
+- Features depend on `src/lib/` and `src/components/`, never on other features.
+- Shared UI is in `src/components/ui/` (shadcn) or `src/components/application/`.
+- `src/server/` contains server-only singletons (prisma, s3, auth).
 
 ## Path Aliases
 
 - `@/*` - Root directory.
-- `@components/*` - `components/`.
-- `@features/*` - `features/`.
-- `@lib/*` - `lib/`.
-- `@hooks/*` - `hooks/`.
-- `@messages/*` - `messages/`.
-- `@server/*` - `server/`.
+- `@components/*` - `src/components/`.
+- `@features/*` - `src/features/`.
+- `@lib/*` - `src/lib/`.
+- `@hooks/*` - `src/hooks/`.
+- `@messages/*` - `src/messages/`.
+- `@server/*` - `src/server/`.
+- `@typings/*` - `src/types/`.
 - `@/prisma/generated/*` - Generated Prisma client (contains `@/prisma/generated/client` for Prisma types and `@/prisma/generated/models` for select types).
 
 ## Development Commands
@@ -50,7 +51,13 @@ The project follows FSD principles. Each feature is self-contained in `features/
 - `npm run format` - Format code with Prettier.
 - `npm run test` - Run all Jest tests.
 - `npm run test -- --testPathPatterns=<pattern>` - Run a single test file (e.g., `npm run test -- --testPathPatterns=workspaces`).
+- `npm run e2e` - Run Playwright E2E tests; by default this starts `npm run dev` on the configured Playwright base URL.
+- `npm run e2e:install` - Install the Chromium browser used by local Playwright runs.
+- `npm run e2e:headed` - Run Playwright E2E tests in headed mode.
+- `npm run e2e:ui` - Open the Playwright UI runner.
+- `npm run e2e:report` - Open the saved Playwright HTML report.
 - `npm run shadcn:upgrade` - Upgrade all shadcn/ui components to latest.
+- `npm run openspec:ui` - Open the OpenSpec UI.
 - `npx prisma migrate dev --name <name>` - Create and apply a migration.
 - `npx prisma generate` - Regenerate Prisma client.
 - `npx prisma studio` - Open database GUI.
@@ -64,23 +71,32 @@ work through the relevant OpenSpec skill (`openspec-propose`, `openspec-apply-ch
 inspect existing tests, fix broken tests, and add focused e2e tests for spec-visible user/API workflows when the
 behavior changes.
 
+OpenSpec-backed Playwright tests live in `e2e/specs/<capability>/`, mirroring `openspec/specs/<capability>/spec.md`.
+Keep quick reachability/browser checks in `e2e/smoke/`.
+
 ## Local Automation Auth
 
 For local browser automation with Playwright, browser-use, or LLM-driven development agents, enable the local-only Better Auth automation flow:
 
-1. Set `LOCAL_AUTOMATION_AUTH_ENABLED=true` in the local environment. Never enable this flag in production.
+1. Set `LOCAL_AUTOMATION_AUTH_ENABLED=true` in the local environment. Never enable this flag in production. `npm run e2e` sets this default when Playwright starts the dev server itself.
 2. Start the app with `npm run dev`.
-3. From the same browser/API context used by the scenario, create and sign in a new user:
+3. From the same browser/API context used by the scenario, create and sign in a new user. Prefer `signInLocalAutomationUser(page)` from `e2e/support/local-auth`:
+
+   ```ts
+   const scenario = await signInLocalAutomationUser(page);
+   ```
+
+   Or call the route directly and read the `data` envelope:
 
    ```ts
    const response = await page.request.post("/api/local-auth/scenario", {
      data: {},
    });
-   const scenario = await response.json();
+   const { data: scenario } = await response.json();
    ```
 
 4. Use the same browser context to test protected pages. The create response sets the real Better Auth session cookie.
-5. Clean up the current automation user and its now-memberless local organizations from the same authenticated context:
+5. Clean up the current automation user and its now-memberless local organizations from the same authenticated context. Prefer `cleanupLocalAutomationUser(page)` from `e2e/support/local-auth`, or call:
 
    ```ts
    await page.request.delete("/api/local-auth/scenario");
@@ -96,7 +112,9 @@ After any mutation (Create/Update/Delete), you **MUST**:
 
 ## Server Actions Pattern
 
-All mutations must be server actions. Location: `features/{feature}/actions/`.
+All mutations must be server actions. Location: `src/features/{feature}/actions/`.
+
+Exception: framework/external API surfaces use route handlers under `src/app/api/` (Better Auth, local automation auth, health, and `/api/v1`). Keep those handlers thin: validate request input, authorize at the route/helper boundary, call feature/server modules, and revalidate affected paths when they mutate data.
 
 **Pattern**:
 
@@ -132,8 +150,8 @@ All mutations must be server actions. Location: `features/{feature}/actions/`.
 
 ## External Services
 
-- **Auth**: Better Auth with Google and GitHub OAuth providers. Route handler at `app/api/auth/[...all]/route.ts`.
-- **Prisma**: Uses `pg` adapter with connection pooling. Client is a singleton in `server/prisma.ts`.
+- **Auth**: Better Auth with configured OAuth providers (Google, GitHub, GitLab, VK, Yandex), organization/teams, and API key plugins. Route handler at `src/app/api/auth/[...all]/route.ts`.
+- **Prisma**: Uses `pg` adapter with connection pooling. Client is a singleton in `src/server/prisma.ts`.
 
 ## Logging
 
@@ -154,9 +172,13 @@ Each feature should have its own logger instance in `{feature}-logger.ts`.
 ## Next.js Configuration
 
 - `cacheComponents: true` - Cache Components mode is enabled (Next.js 16+).
+- `cacheHandler` points to `src/server/cache/isr-cache.mjs` for ISR/server cache storage.
+- `cacheHandlers.default` and `cacheHandlers.remote` point to `src/server/cache/cache.mjs` for `"use cache"` storage; remote Redis/Valkey mode is enabled with `REMOTE_CACHING_ENABLED=true` plus `REDIS_URL` or `VALKEY_URL`.
+- `cacheMaxMemorySize: 0` disables Next's built-in in-memory cache in favor of the configured handlers.
 - `reactCompiler: true` - React Compiler is enabled.
 - `output: "standalone"` - Standalone output for Docker deployment.
-- `experimental.authInterrupts: true` - Auth interrupts for middleware.
+- `experimental.authInterrupts: true` - Auth interrupts for `forbidden`/`unauthorized` APIs are enabled.
+- `experimental.viewTransition: true` - Next.js integration for React View Transitions is enabled.
 
 ## Git Workflow
 
@@ -165,7 +187,7 @@ Each feature should have its own logger instance in `{feature}-logger.ts`.
 
 ## Middleware & Authentication
 
-- **Middleware Location**: `proxy.ts` (not `middleware.ts` to avoid Next.js auto-detection).
+- **Proxy Location**: `src/proxy.ts` uses the Next.js Proxy file convention; `middleware.ts` is the deprecated name in Next.js 16.
 - **Auth Provider**: Better Auth with session validation via `auth.api.getSession()`.
 - **Route Protection**: Public routes (login, auth API), protected routes (require valid session), and API routes have different handling in the proxy.
 - **Current User**: Use `loadCurrentUserId()` from `@features/accounts/accounts-actions` in server actions to get the authenticated user ID.
@@ -188,3 +210,4 @@ All data access uses three-layer caching:
 ## Learned Workspace Facts
 
 - Jest is used for testing; test files live in `test/{feature_name}/{test_module}` (e.g. `test/server/` for server-side code).
+- Playwright E2E tests live under `e2e/`; `e2e/smoke/` is for quick browser smoke checks and `e2e/specs/` is for OpenSpec-backed scenarios. Jest ignores the `e2e/` tree.
