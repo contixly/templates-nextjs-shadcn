@@ -1,5 +1,4 @@
 import { expect, type APIResponse, type Page } from "@playwright/test";
-import { routes } from "./routes";
 
 type ApiV1Response<TBody = unknown> = {
   status: number;
@@ -10,12 +9,6 @@ type ApiV1Response<TBody = unknown> = {
 type CreateApiKeyOptions = {
   name: string;
   additionalPresetLabels?: string[];
-};
-
-type AddWorkspaceMemberOptions = {
-  organizationKey: string;
-  userId: string;
-  email: string;
 };
 
 const parseJsonResponse = async (response: APIResponse) => {
@@ -74,22 +67,6 @@ export const callApiV1WithKey = async <TBody = unknown>(
     body: (await parseJsonResponse(response)) as TBody,
     response,
   };
-};
-
-export const createWorkspaceThroughUI = async (page: Page, name: string) => {
-  await page.goto(routes.welcome);
-  await clickHydratedModalTrigger(page, "Create Workspace");
-
-  const dialog = getOpenModal(page, "Create New Workspace");
-  await expect(dialog).toBeVisible();
-  await dialog.getByLabel("Workspace Name").fill(name);
-  await dialog.getByRole("button", { name: "Create" }).click();
-  await page.waitForURL(/\/w\/[^/]+\/dashboard$/, { timeout: 30_000 });
-
-  const organizationKey = new URL(page.url()).pathname.match(/^\/w\/([^/]+)\/dashboard$/)?.[1];
-  expect(organizationKey, `Could not extract organization key from ${page.url()}`).toBeTruthy();
-
-  return decodeURIComponent(organizationKey as string);
 };
 
 export const createApiKeyThroughUI = async (page: Page, options: CreateApiKeyOptions) => {
@@ -155,19 +132,4 @@ export const deleteApiKeyThroughUI = async (page: Page, keyName: string) => {
   await dialog.getByRole("button", { name: "Delete" }).click();
 
   await expectApiKeyRowHidden(page, keyName);
-};
-
-export const addExistingLocalAutomationUserAsWorkspaceMember = async (
-  page: Page,
-  options: AddWorkspaceMemberOptions
-) => {
-  await page.goto(routes.workspaceSettingsUsers(options.organizationKey));
-  await clickHydratedModalTrigger(page, "Add Member");
-
-  const dialog = getOpenModal(page, "Add Existing User");
-  await expect(dialog).toBeVisible();
-  await dialog.getByLabel("User ID").fill(options.userId);
-  await dialog.getByRole("button", { name: "Add" }).click();
-
-  await expect(page.getByText(options.email)).toBeVisible();
 };

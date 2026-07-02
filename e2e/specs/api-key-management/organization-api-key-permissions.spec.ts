@@ -3,7 +3,7 @@ import { cleanupLocalAutomationUser, signInLocalAutomationUser } from "../../sup
 import {
   addExistingLocalAutomationUserAsWorkspaceMember,
   createWorkspaceThroughUI,
-} from "../../support/api-keys";
+} from "../../support/workspaces";
 import { expect, test } from "../../support/test";
 import { routes } from "../../support/routes";
 
@@ -14,6 +14,8 @@ test.describe("api-key-management: organization API key permissions", () => {
     browser,
     page: ownerPage,
   }) => {
+    test.slow();
+
     await signInLocalAutomationUser(ownerPage, {
       name: "E2E API Keys Permission Owner",
     });

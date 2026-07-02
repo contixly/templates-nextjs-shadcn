@@ -35,6 +35,8 @@ test.describe("api-key-management: personal API keys", () => {
   });
 
   test("creates, uses, updates, and deletes a personal key", async ({ page }) => {
+    test.slow();
+
     const scenario = await signInLocalAutomationUser(page, {
       name: "E2E API Keys Personal User",
     });

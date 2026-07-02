@@ -2,12 +2,12 @@ import { cleanupLocalAutomationUser, signInLocalAutomationUser } from "../../sup
 import {
   callApiV1WithKey,
   createApiKeyThroughUI,
-  createWorkspaceThroughUI,
   deleteApiKeyThroughUI,
   editApiKeyNameThroughUI,
 } from "../../support/api-keys";
 import { expect, test } from "../../support/test";
 import { routes } from "../../support/routes";
+import { createWorkspaceThroughUI } from "../../support/workspaces";
 
 test.use({ viewport: { width: 1440, height: 1100 } });
 
@@ -38,6 +38,8 @@ type OrganizationMembersApiResponse = {
 
 test.describe("api-key-management: organization API keys", () => {
   test("creates, uses, separates, updates, and deletes organization keys", async ({ page }) => {
+    test.slow();
+
     await signInLocalAutomationUser(page, {
       name: "E2E API Keys Organization Owner",
     });

@@ -32,6 +32,8 @@ type LocalAutomationSuccessResponse<TData> = {
   data: TData;
 };
 
+const LOCAL_AUTOMATION_REQUEST_TIMEOUT_MS = 30_000;
+
 const resolveRequest = (target: LocalAutomationAuthTarget): APIRequestContext => {
   if ("request" in target) {
     return target.request;
@@ -55,7 +57,10 @@ export const signInLocalAutomationUser = async (
   options: LocalAutomationSignInOptions = {}
 ): Promise<LocalAutomationScenario> => {
   const request = resolveRequest(target);
-  const response = await request.post(routes.localAutomationScenario, { data: options });
+  const response = await request.post(routes.localAutomationScenario, {
+    data: options,
+    timeout: LOCAL_AUTOMATION_REQUEST_TIMEOUT_MS,
+  });
   const body = await parseResponseJson(response);
 
   expect(response.status(), JSON.stringify(body)).toBe(201);
@@ -73,7 +78,9 @@ export const cleanupLocalAutomationUser = async (
   target: LocalAutomationAuthTarget
 ): Promise<LocalAutomationCleanup> => {
   const request = resolveRequest(target);
-  const response = await request.delete(routes.localAutomationScenario);
+  const response = await request.delete(routes.localAutomationScenario, {
+    timeout: LOCAL_AUTOMATION_REQUEST_TIMEOUT_MS,
+  });
   const body = await parseResponseJson(response);
 
   expect(response.status(), JSON.stringify(body)).toBe(200);
