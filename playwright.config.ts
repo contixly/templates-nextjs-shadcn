@@ -1,5 +1,6 @@
 import { defineConfig, devices } from "@playwright/test";
 import { E2E_READY_ROUTE, resolveE2EBaseURL, resolveE2EURL } from "./e2e/support/config";
+import { AUTH_DISABLE_SESSION_COOKIE_CACHE_ENV_KEY } from "./src/server/auth/session-cookie-cache";
 
 const baseURL = resolveE2EBaseURL();
 const baseUrlConfig = new URL(baseURL);
@@ -32,6 +33,8 @@ export default defineConfig({
         reuseExistingServer: !process.env.CI,
         timeout: 120_000,
         env: {
+          [AUTH_DISABLE_SESSION_COOKIE_CACHE_ENV_KEY]:
+            process.env[AUTH_DISABLE_SESSION_COOKIE_CACHE_ENV_KEY] || "true",
           BETTER_AUTH_URL: process.env.BETTER_AUTH_URL || baseURL,
           LOCAL_AUTOMATION_AUTH_ENABLED: process.env.LOCAL_AUTOMATION_AUTH_ENABLED || "true",
           NEXT_PUBLIC_APP_BASE_URL: process.env.NEXT_PUBLIC_APP_BASE_URL || baseURL,

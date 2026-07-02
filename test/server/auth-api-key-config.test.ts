@@ -8,6 +8,7 @@ const apiKeyMock = jest.fn((configurations: unknown, options?: unknown) => ({
   options,
 }));
 const apiKeyDeleteManyMock = jest.fn();
+const originalDisableSessionCookieCache = process.env.AUTH_DISABLE_SESSION_COOKIE_CACHE;
 type PermissionMap = Record<string, readonly string[]>;
 const createAccessControlMock = jest.fn((statements: PermissionMap) => ({
   statements,
@@ -77,6 +78,15 @@ const loadAuthModule = async () => {
 };
 
 describe("Better Auth API key configuration", () => {
+  afterEach(() => {
+    if (originalDisableSessionCookieCache === undefined) {
+      delete process.env.AUTH_DISABLE_SESSION_COOKIE_CACHE;
+      return;
+    }
+
+    process.env.AUTH_DISABLE_SESSION_COOKIE_CACHE = originalDisableSessionCookieCache;
+  });
+
   it("registers user and organization API key configurations", async () => {
     await loadAuthModule();
 
@@ -144,6 +154,32 @@ describe("Better Auth API key configuration", () => {
     expect(authOptions.baseURL).toEqual(
       expect.objectContaining({
         fallback: "http://localhost:3000",
+      })
+    );
+  });
+
+  it("keeps Better Auth session cookie cache enabled by default", async () => {
+    delete process.env.AUTH_DISABLE_SESSION_COOKIE_CACHE;
+
+    await loadAuthModule();
+
+    const authOptions = betterAuthMock.mock.calls[0]?.[0];
+    expect(authOptions.session.cookieCache).toEqual(
+      expect.objectContaining({
+        enabled: true,
+      })
+    );
+  });
+
+  it("can disable Better Auth session cookie cache through server env", async () => {
+    process.env.AUTH_DISABLE_SESSION_COOKIE_CACHE = "true";
+
+    await loadAuthModule();
+
+    const authOptions = betterAuthMock.mock.calls[0]?.[0];
+    expect(authOptions.session.cookieCache).toEqual(
+      expect.objectContaining({
+        enabled: false,
       })
     );
   });

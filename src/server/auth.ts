@@ -21,6 +21,7 @@ import { YandexOAuth2ClientConfig } from "@server/auth/yandex-oauth2-client";
 import { apiKey } from "@better-auth/api-key";
 import { organizationAccessControl, organizationRoles } from "@server/auth/organization-access";
 import { deletePersonalApiKeysForUser } from "@server/auth/api-key-cleanup";
+import { isAuthSessionCookieCacheDisabled } from "@server/auth/session-cookie-cache";
 
 type BetterAuthApiMethod = (...args: unknown[]) => Promise<unknown>;
 
@@ -178,7 +179,7 @@ export const auth = betterAuth({
   ],
   session: {
     cookieCache: {
-      enabled: true,
+      enabled: !isAuthSessionCookieCacheDisabled(),
       maxAge: isProduction ? 5 * 60 : 60 * 60,
       strategy: "jwt", // "compact" or "jwt" or "jwe"
     },
