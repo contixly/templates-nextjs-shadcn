@@ -11,6 +11,8 @@ import { Field, FieldGroup, FieldLabel } from "@components/ui/field";
 import { Input } from "@components/ui/input";
 import { Textarea } from "@components/ui/textarea";
 import { updateWorkspace } from "@features/workspaces/actions/update-workspace";
+import { getOrganizationRouteKey } from "@features/organizations/organizations-context";
+import routes from "@features/routes";
 import { getWorkspaceAllowedEmailDomains } from "@features/workspaces/workspaces-domain-restrictions";
 import { translateWorkspaceErrorMessage } from "@features/workspaces/workspaces-errors";
 import {
@@ -94,12 +96,29 @@ export const WorkspaceSettingsForm = ({
       const result = await updateWorkspace(data);
 
       if (result.success) {
+        let nextSettingsPath: string | null = null;
+
         if (result.data) {
           reset(getDefaultValues(result.data));
+
+          const previousOrganizationKey = getOrganizationRouteKey(workspace);
+          const nextOrganizationKey = getOrganizationRouteKey(result.data);
+
+          if (nextOrganizationKey !== previousOrganizationKey) {
+            nextSettingsPath = routes.workspaces.pages.settings_workspace.path({
+              organizationKey: nextOrganizationKey,
+            });
+          }
         }
 
         toast.success(tWorkspaces("success"));
         onSuccess?.();
+
+        if (nextSettingsPath) {
+          router.replace(nextSettingsPath);
+          return;
+        }
+
         router.refresh();
         return;
       }
