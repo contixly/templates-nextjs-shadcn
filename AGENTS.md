@@ -85,7 +85,7 @@ This repository overrides the skill's cost-saving model guidance: use the newest
 available reasoning level for the coordinating agent and every implementer, spec reviewer, code-quality reviewer, and
 final reviewer subagent. If the current tool surface exposes model or reasoning settings, set them explicitly before
 dispatch; if it does not, state that the requested latest-model and highest-reasoning mode is being used to the extent
-the environment supports it.
+the environment supports it. Use only the standard speed for a selected model.
 
 Required flow:
 
