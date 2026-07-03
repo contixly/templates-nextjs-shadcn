@@ -132,9 +132,18 @@ export const switchWorkspaceFromSidebar = async (
   targetWorkspaceName: string,
   expectedPath: string | RegExp
 ) => {
-  await page.getByRole("button").filter({ hasText: currentWorkspaceName }).first().click();
-  await page.getByRole("menuitem", { name: new RegExp(escapeRegExp(targetWorkspaceName)) }).click();
-  await expect(page).toHaveURL(expectedPath);
+  const trigger = page.getByRole("button").filter({ hasText: currentWorkspaceName }).first();
+  const targetMenuItem = page.getByRole("menuitem", {
+    name: new RegExp(escapeRegExp(targetWorkspaceName)),
+  });
+
+  await expect(trigger).toBeVisible();
+  await trigger.click();
+  await expect(targetMenuItem).toBeVisible();
+  await targetMenuItem.click();
+  await expect(page).toHaveURL(expectedPath, {
+    timeout: WORKSPACE_NAVIGATION_TIMEOUT_MS,
+  });
 };
 
 export const switchWorkspaceFromBreadcrumb = async (
@@ -144,10 +153,18 @@ export const switchWorkspaceFromBreadcrumb = async (
   expectedPath: string | RegExp
 ) => {
   const breadcrumb = page.getByRole("navigation", { name: "breadcrumb" });
+  const trigger = breadcrumb.getByText(currentWorkspaceName, { exact: true });
+  const targetMenuItem = page.getByRole("menuitem", {
+    name: new RegExp(escapeRegExp(targetWorkspaceName)),
+  });
 
-  await breadcrumb.getByText(currentWorkspaceName, { exact: true }).click();
-  await page.getByRole("menuitem", { name: new RegExp(escapeRegExp(targetWorkspaceName)) }).click();
-  await expect(page).toHaveURL(expectedPath);
+  await expect(trigger).toBeVisible();
+  await trigger.click();
+  await expect(targetMenuItem).toBeVisible();
+  await targetMenuItem.click();
+  await expect(page).toHaveURL(expectedPath, {
+    timeout: WORKSPACE_NAVIGATION_TIMEOUT_MS,
+  });
 };
 
 export const addExistingLocalAutomationUserAsWorkspaceMember = async (
