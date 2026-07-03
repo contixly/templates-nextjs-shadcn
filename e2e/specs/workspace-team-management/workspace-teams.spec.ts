@@ -1,4 +1,5 @@
 import type { BrowserContext, Page } from "@playwright/test";
+import { createE2EBrowserContext } from "../../support/browser-context";
 import { cleanupLocalAutomationUser, signInLocalAutomationUser } from "../../support/local-auth";
 import { expect, test } from "../../support/test";
 import { routes } from "../../support/routes";
@@ -55,6 +56,7 @@ const cleanupSignedInContext = async (
 
 test.describe("workspace-team-management: workspace teams", () => {
   test("manages teams, membership, and read-only member access without active-team controls", async ({
+    baseURL,
     browser,
     page: ownerPage,
   }) => {
@@ -75,7 +77,7 @@ test.describe("workspace-team-management: workspace teams", () => {
       const teamName = `E2E Team ${suffix}`;
       const renamedTeamName = `E2E Team Renamed ${suffix}`;
 
-      memberContext = await browser.newContext();
+      memberContext = await createE2EBrowserContext(browser, baseURL);
       memberPage = await memberContext.newPage();
       const member = await signInLocalAutomationUser(memberPage, {
         name: "E2E Team Participant",

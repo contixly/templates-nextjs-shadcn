@@ -1,7 +1,8 @@
 import type { BrowserContext, Page } from "@playwright/test";
+import { createE2EBrowserContext } from "../../support/browser-context";
+import { resolveE2EBaseURL } from "../../support/config";
 import { cleanupLocalAutomationUser, signInLocalAutomationUser } from "../../support/local-auth";
 import { expect, test } from "../../support/test";
-import { resolveE2EBaseURL } from "../../support/config";
 import { routes } from "../../support/routes";
 
 test.use({ viewport: { width: 1440, height: 1100 } });
@@ -60,7 +61,7 @@ test.describe("account-session-management: account security", () => {
     let secondPage: Page | null = null;
 
     try {
-      secondContext = await browser.newContext({ baseURL: contextBaseURL });
+      secondContext = await createE2EBrowserContext(browser, contextBaseURL);
       secondPage = await secondContext.newPage();
       await signInExistingAutomationUser(secondPage, scenario, contextBaseURL);
 
@@ -125,7 +126,7 @@ test.describe("account-session-management: account security", () => {
     };
 
     try {
-      secondContext = await browser.newContext({ baseURL: contextBaseURL });
+      secondContext = await createE2EBrowserContext(browser, contextBaseURL);
       secondPage = await secondContext.newPage();
       await signInExistingAutomationUser(secondPage, scenario, contextBaseURL);
 

@@ -1,4 +1,5 @@
 import type { BrowserContext, Page } from "@playwright/test";
+import { createE2EBrowserContext } from "../../support/browser-context";
 import { cleanupLocalAutomationUser, signInLocalAutomationUser } from "../../support/local-auth";
 import { expect, test } from "../../support/test";
 import {
@@ -38,6 +39,7 @@ const cleanupSignedInContext = async (
 
 test.describe("workspace-invitation-management: invitation decisions", () => {
   test("lets invitees review, accept, and reject workspace invitations", async ({
+    baseURL,
     browser,
     page: ownerPage,
   }) => {
@@ -62,7 +64,7 @@ test.describe("workspace-invitation-management: invitation decisions", () => {
       const organizationKey = await createWorkspaceThroughUI(ownerPage, workspaceName);
       await expect(ownerPage.getByText("Total Revenue")).toBeVisible();
 
-      acceptContext = await browser.newContext();
+      acceptContext = await createE2EBrowserContext(browser, baseURL);
       acceptPage = await acceptContext.newPage();
       const acceptInvitee = await signInLocalAutomationUser(acceptPage, {
         name: "E2E Invitation Accept Invitee",
@@ -70,7 +72,7 @@ test.describe("workspace-invitation-management: invitation decisions", () => {
       acceptSignedIn = true;
       await verifyLocalAutomationInvitationRecipient(acceptPage, acceptInvitee);
 
-      rejectContext = await browser.newContext();
+      rejectContext = await createE2EBrowserContext(browser, baseURL);
       rejectPage = await rejectContext.newPage();
       const rejectInvitee = await signInLocalAutomationUser(rejectPage, {
         name: "E2E Invitation Reject Invitee",

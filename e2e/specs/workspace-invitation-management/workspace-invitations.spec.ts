@@ -1,4 +1,5 @@
 import type { BrowserContext, Page } from "@playwright/test";
+import { createE2EBrowserContext } from "../../support/browser-context";
 import { cleanupLocalAutomationUser, signInLocalAutomationUser } from "../../support/local-auth";
 import { expect, test } from "../../support/test";
 import {
@@ -59,6 +60,7 @@ const addExistingLocalAutomationUserAsWorkspaceAdmin = async (
 
 test.describe("workspace-invitation-management: invitations settings", () => {
   test("creates invitations, rejects duplicates and restricted domains, and denies regular members", async ({
+    baseURL,
     browser,
     page: ownerPage,
   }) => {
@@ -87,14 +89,14 @@ test.describe("workspace-invitation-management: invitations settings", () => {
       const invitedEmail = `workspace-invite-${suffix}@example.test`;
       const restrictedEmail = `workspace-invite-restricted-${suffix}@outside.test`;
 
-      adminContext = await browser.newContext();
+      adminContext = await createE2EBrowserContext(browser, baseURL);
       adminPage = await adminContext.newPage();
       const admin = await signInLocalAutomationUser(adminPage, {
         name: "E2E Workspace Invitations Admin",
       });
       adminSignedIn = true;
 
-      memberContext = await browser.newContext();
+      memberContext = await createE2EBrowserContext(browser, baseURL);
       memberPage = await memberContext.newPage();
       const member = await signInLocalAutomationUser(memberPage, {
         name: "E2E Workspace Invitations Member",

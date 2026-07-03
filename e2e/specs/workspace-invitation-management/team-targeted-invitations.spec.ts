@@ -1,4 +1,5 @@
 import type { BrowserContext, Page } from "@playwright/test";
+import { createE2EBrowserContext } from "../../support/browser-context";
 import { cleanupLocalAutomationUser, signInLocalAutomationUser } from "../../support/local-auth";
 import { expect, test } from "../../support/test";
 import {
@@ -66,6 +67,7 @@ const cleanupSignedInContext = async (
 
 test.describe("workspace-invitation-management: team-targeted invitations", () => {
   test("adds an invitee to the selected team when they accept", async ({
+    baseURL,
     browser,
     page: ownerPage,
   }) => {
@@ -90,7 +92,7 @@ test.describe("workspace-invitation-management: team-targeted invitations", () =
 
       await createWorkspaceTeamThroughUI(ownerPage, organizationKey, teamName);
 
-      inviteeContext = await browser.newContext();
+      inviteeContext = await createE2EBrowserContext(browser, baseURL);
       inviteePage = await inviteeContext.newPage();
       const invitee = await signInLocalAutomationUser(inviteePage, {
         name: "E2E Team Invitation Invitee",

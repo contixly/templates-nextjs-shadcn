@@ -15,14 +15,36 @@ type ApiKeyCreateDefaultsOptions = {
   defaultPresetLabel: string;
 };
 
-const parseJsonResponse = async (response: APIResponse) => {
-  const text = await response.text();
+const API_V1_COLD_ROUTE_RETRY_ATTEMPTS = 3;
+const API_V1_COLD_ROUTE_RETRY_DELAY_MS = 500;
 
+const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const parseJsonResponse = (response: APIResponse, text: string) => {
   try {
     return JSON.parse(text) as unknown;
   } catch {
     throw new Error(`Expected JSON response from ${response.url()}, got: ${text}`);
   }
+};
+
+const isJsonResponseBody = (text: string): boolean => {
+  try {
+    JSON.parse(text);
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+const isColdRouteNotFoundResponse = (response: APIResponse, text: string): boolean => {
+  const bodyStart = text.trimStart().toLowerCase();
+
+  return (
+    response.status() === 404 &&
+    !isJsonResponseBody(text) &&
+    (bodyStart.startsWith("<!doctype html") || bodyStart.startsWith("<html"))
+  );
 };
 
 const getVisibleApiKeyRow = (page: Page, keyName: string) =>
@@ -64,11 +86,7 @@ const openApiKeyRowActions = async (page: Page, keyName: string) => {
   await row.getByRole("button", { name: "Actions" }).click();
 };
 
-export const callApiV1WithKey = async <TBody = unknown>(
-  page: Page,
-  route: string,
-  apiKey: string
-): Promise<ApiV1Response<TBody>> => {
+const requestApiV1WithKey = async (page: Page, route: string, apiKey: string) => {
   const response = await page.request.get(route, {
     headers: {
       "x-api-key": apiKey,
@@ -76,9 +94,32 @@ export const callApiV1WithKey = async <TBody = unknown>(
   });
 
   return {
-    status: response.status(),
-    body: (await parseJsonResponse(response)) as TBody,
     response,
+    text: await response.text(),
+  };
+};
+
+export const callApiV1WithKey = async <TBody = unknown>(
+  page: Page,
+  route: string,
+  apiKey: string
+): Promise<ApiV1Response<TBody>> => {
+  let result = await requestApiV1WithKey(page, route, apiKey);
+
+  for (
+    let attempt = 1;
+    isColdRouteNotFoundResponse(result.response, result.text) &&
+    attempt < API_V1_COLD_ROUTE_RETRY_ATTEMPTS;
+    attempt += 1
+  ) {
+    await delay(API_V1_COLD_ROUTE_RETRY_DELAY_MS * attempt);
+    result = await requestApiV1WithKey(page, route, apiKey);
+  }
+
+  return {
+    status: result.response.status(),
+    body: parseJsonResponse(result.response, result.text) as TBody,
+    response: result.response,
   };
 };
 

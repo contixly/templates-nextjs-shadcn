@@ -1,4 +1,5 @@
 import type { BrowserContext, Page } from "@playwright/test";
+import { createE2EBrowserContext } from "../../support/browser-context";
 import { cleanupLocalAutomationUser, signInLocalAutomationUser } from "../../support/local-auth";
 import { expect, test } from "../../support/test";
 import { routes } from "../../support/routes";
@@ -34,6 +35,7 @@ const cleanupSignedInContext = async (
 
 test.describe("workspace-user-management: workspace users", () => {
   test("shows owner access, adds a member, updates their role, and keeps member access read-only", async ({
+    baseURL,
     browser,
     page: ownerPage,
   }) => {
@@ -67,7 +69,7 @@ test.describe("workspace-user-management: workspace users", () => {
       await expect(otherUsersRegion).toBeVisible();
       await expect(otherUsersRegion.getByText("No other workspace users")).toBeVisible();
 
-      memberContext = await browser.newContext();
+      memberContext = await createE2EBrowserContext(browser, baseURL);
       memberPage = await memberContext.newPage();
       const member = await signInLocalAutomationUser(memberPage, {
         name: "E2E Workspace Users Member",
@@ -128,6 +130,7 @@ test.describe("workspace-user-management: workspace users", () => {
   });
 
   test("shows domain restriction warning markers for outside-domain members", async ({
+    baseURL,
     browser,
     page: ownerPage,
   }) => {
@@ -153,7 +156,7 @@ test.describe("workspace-user-management: workspace users", () => {
         allowedEmailDomains: "example.com",
       });
 
-      outsideMemberContext = await browser.newContext();
+      outsideMemberContext = await createE2EBrowserContext(browser, baseURL);
       outsideMemberPage = await outsideMemberContext.newPage();
       const outsideMember = await signInLocalAutomationUser(outsideMemberPage, {
         name: "E2E Workspace Users Outside Domain",

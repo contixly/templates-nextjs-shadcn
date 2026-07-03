@@ -1,4 +1,5 @@
 import type { BrowserContext, Page } from "@playwright/test";
+import { createE2EBrowserContext } from "../../support/browser-context";
 import { expect, test } from "../../support/test";
 import { cleanupLocalAutomationUser, signInLocalAutomationUser } from "../../support/local-auth";
 import { routes } from "../../support/routes";
@@ -54,6 +55,7 @@ test.describe("workspace-settings-navigation: settings routes", () => {
   });
 
   test("shows invitations to owners and hides or denies them for regular members", async ({
+    baseURL,
     browser,
     page: ownerPage,
   }) => {
@@ -76,7 +78,7 @@ test.describe("workspace-settings-navigation: settings routes", () => {
       await expect(ownerPage.getByRole("heading", { level: 1, name: "Invitations" })).toBeVisible();
       await expect(ownerPage.getByText("Invitation activity")).toBeVisible();
 
-      const memberContext: BrowserContext = await browser.newContext();
+      const memberContext: BrowserContext = await createE2EBrowserContext(browser, baseURL);
       let memberPage: Page | null = null;
 
       try {

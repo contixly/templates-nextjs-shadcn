@@ -1,5 +1,6 @@
 import { type APIResponse, type BrowserContext, type Page } from "@playwright/test";
 import { callApiV1WithKey, createApiKeyThroughUI } from "../../support/api-keys";
+import { createE2EBrowserContext } from "../../support/browser-context";
 import {
   cleanupLocalAutomationUser,
   type LocalAutomationScenario,
@@ -235,6 +236,7 @@ test.describe("api-v1-api-key-access: API key contract", () => {
   });
 
   test("allows a personal organization-read-all key to read organization starter endpoints", async ({
+    baseURL,
     browser,
     page: ownerPage,
   }) => {
@@ -255,7 +257,7 @@ test.describe("api-v1-api-key-access: API key contract", () => {
       const teamName = `E2E API V1 Team ${suffix}`;
       const organizationKey = await createWorkspaceThroughUI(ownerPage, workspaceName);
 
-      memberContext = await browser.newContext();
+      memberContext = await createE2EBrowserContext(browser, baseURL);
       memberPage = await memberContext.newPage();
       const member = await signInLocalAutomationUser(memberPage, {
         name: "E2E API V1 Team Member",
@@ -398,6 +400,7 @@ test.describe("api-v1-api-key-access: API key contract", () => {
   });
 
   test("denies personal keys from reading non-member organizations", async ({
+    baseURL,
     browser,
     page: ownerPage,
   }) => {
@@ -422,7 +425,7 @@ test.describe("api-v1-api-key-access: API key contract", () => {
         additionalPresetLabels: ["Organization read all"],
       });
 
-      otherContext = await browser.newContext();
+      otherContext = await createE2EBrowserContext(browser, baseURL);
       otherPage = await otherContext.newPage();
       await signInLocalAutomationUser(otherPage, {
         name: "E2E API V1 Personal Boundary Other",

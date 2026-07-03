@@ -8,6 +8,9 @@ test.use({ viewport: { width: 1440, height: 1100 } });
 const getSettingsNavLink = (page: Page, name: string) =>
   page.locator("#main-content").getByRole("link", { name, exact: true });
 
+const loginProvidersDescription =
+  "Connect or disconnect the social providers available for sign-in.";
+
 const expectSettingsHeading = async (page: Page, name: string) => {
   const heading = page.getByRole("heading", { level: 1, name });
   const isColdNotFound = await page
@@ -111,9 +114,18 @@ test.describe("account-settings-management: account settings", () => {
       await expect(connectionsRegion).toBeVisible();
 
       const providerItems = connectionsRegion.locator('[data-slot="item"]');
-      await expect(providerItems.first()).toBeVisible();
+      const providerItemCount = await providerItems.count();
 
-      for (let index = 0; index < (await providerItems.count()); index += 1) {
+      if (providerItemCount === 0) {
+        await expect(connectionsRegion.getByText(loginProvidersDescription)).toBeVisible();
+        await expect(providerItems).toHaveCount(0);
+        await expect(
+          connectionsRegion.getByRole("button", { name: /^(Connect|Disconnect)$/ })
+        ).toHaveCount(0);
+        return;
+      }
+
+      for (let index = 0; index < providerItemCount; index += 1) {
         await expectProviderItemState(providerItems.nth(index));
       }
     } finally {

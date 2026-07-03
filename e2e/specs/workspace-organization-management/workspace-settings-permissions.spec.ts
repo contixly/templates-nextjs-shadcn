@@ -1,4 +1,5 @@
 import type { BrowserContext, Page } from "@playwright/test";
+import { createE2EBrowserContext } from "../../support/browser-context";
 import { cleanupLocalAutomationUser, signInLocalAutomationUser } from "../../support/local-auth";
 import { expect, test } from "../../support/test";
 import { routes } from "../../support/routes";
@@ -23,6 +24,7 @@ const cleanupMember = async (page: Page | null, context: BrowserContext | null) 
 
 test.describe("workspace-organization-management: settings permissions", () => {
   test("updates settings, enforces read-only member access, and applies domain restrictions", async ({
+    baseURL,
     browser,
     page: ownerPage,
   }) => {
@@ -55,7 +57,7 @@ test.describe("workspace-organization-management: settings permissions", () => {
       await expect(ownerPage.getByLabel("Allowed Email Domains")).toHaveValue("example.com");
       await expectNoDefaultWorkspaceUi(ownerPage);
 
-      restrictedMemberContext = await browser.newContext();
+      restrictedMemberContext = await createE2EBrowserContext(browser, baseURL);
       restrictedMemberPage = await restrictedMemberContext.newPage();
       const restrictedMember = await signInLocalAutomationUser(restrictedMemberPage, {
         name: "E2E Workspace Restricted Member",
@@ -86,7 +88,7 @@ test.describe("workspace-organization-management: settings permissions", () => {
       });
       await expect(ownerPage.getByLabel("Allowed Email Domains")).toHaveValue("");
 
-      unrestrictedMemberContext = await browser.newContext();
+      unrestrictedMemberContext = await createE2EBrowserContext(browser, baseURL);
       unrestrictedMemberPage = await unrestrictedMemberContext.newPage();
       const unrestrictedMember = await signInLocalAutomationUser(unrestrictedMemberPage, {
         name: "E2E Workspace Unrestricted Member",
