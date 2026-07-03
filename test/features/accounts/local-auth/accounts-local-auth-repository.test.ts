@@ -2,6 +2,8 @@
 
 const organizationFindManyMock = jest.fn();
 const organizationDeleteManyMock = jest.fn();
+const apiKeyDeleteManyMock = jest.fn();
+const prismaTransactionMock = jest.fn();
 
 jest.mock("@server/prisma", () => ({
   __esModule: true,
@@ -10,9 +12,14 @@ jest.mock("@server/prisma", () => ({
       findMany: (...args: unknown[]) => organizationFindManyMock(...args),
       deleteMany: (...args: unknown[]) => organizationDeleteManyMock(...args),
     },
+    apiKey: {
+      deleteMany: (...args: unknown[]) => apiKeyDeleteManyMock(...args),
+    },
+    $transaction: (...args: unknown[]) => prismaTransactionMock(...args),
   },
 }));
 
+import { API_KEY_ORGANIZATION_CONFIG_ID } from "@lib/api-key-config";
 import {
   deleteMemberlessOrganizationsByIds,
   deleteSoleMemberOrganizationsForUser,
@@ -23,6 +30,19 @@ describe("accounts local automation auth repository", () => {
   beforeEach(() => {
     organizationFindManyMock.mockReset();
     organizationDeleteManyMock.mockReset();
+    apiKeyDeleteManyMock.mockReset();
+    prismaTransactionMock.mockReset();
+    prismaTransactionMock.mockImplementation((callback) =>
+      callback({
+        organization: {
+          findMany: (...args: unknown[]) => organizationFindManyMock(...args),
+          deleteMany: (...args: unknown[]) => organizationDeleteManyMock(...args),
+        },
+        apiKey: {
+          deleteMany: (...args: unknown[]) => apiKeyDeleteManyMock(...args),
+        },
+      })
+    );
   });
 
   it("finds organizations where the user is the only member", async () => {
@@ -80,13 +100,18 @@ describe("accounts local automation auth repository", () => {
     expect(organizationDeleteManyMock).not.toHaveBeenCalled();
   });
 
-  it("deletes memberless organizations by id", async () => {
-    organizationDeleteManyMock.mockResolvedValue({ count: 1 });
-
-    await expect(deleteMemberlessOrganizationsByIds(["org_1", "org_2"])).resolves.toEqual({
+  it("deletes organization API keys for actually deleted memberless organization ids", async () => {
+    organizationFindManyMock.mockResolvedValue([{ id: "org_1" }, { id: "org_2" }]);
+    organizationDeleteManyMock.mockResolvedValueOnce({ count: 1 }).mockResolvedValueOnce({
       count: 1,
     });
-    expect(organizationDeleteManyMock).toHaveBeenCalledWith({
+    apiKeyDeleteManyMock.mockResolvedValue({ count: 2 });
+
+    await expect(deleteMemberlessOrganizationsByIds(["org_1", "org_2"])).resolves.toEqual({
+      count: 2,
+    });
+    expect(prismaTransactionMock).toHaveBeenCalledTimes(1);
+    expect(organizationFindManyMock).toHaveBeenCalledWith({
       where: {
         id: {
           in: ["org_1", "org_2"],
@@ -95,12 +120,77 @@ describe("accounts local automation auth repository", () => {
           none: {},
         },
       },
+      select: {
+        id: true,
+      },
     });
+    expect(organizationDeleteManyMock).toHaveBeenNthCalledWith(1, {
+      where: {
+        id: "org_1",
+        members: {
+          none: {},
+        },
+      },
+    });
+    expect(organizationDeleteManyMock).toHaveBeenNthCalledWith(2, {
+      where: {
+        id: "org_2",
+        members: {
+          none: {},
+        },
+      },
+    });
+    expect(apiKeyDeleteManyMock).toHaveBeenCalledWith({
+      where: {
+        configId: API_KEY_ORGANIZATION_CONFIG_ID,
+        referenceId: {
+          in: ["org_1", "org_2"],
+        },
+      },
+    });
+    expect(organizationDeleteManyMock.mock.invocationCallOrder[1]).toBeLessThan(
+      apiKeyDeleteManyMock.mock.invocationCallOrder[0]
+    );
+  });
+
+  it("does not delete organization API keys for candidates whose organization delete count is zero", async () => {
+    organizationFindManyMock.mockResolvedValue([{ id: "org_1" }, { id: "org_2" }]);
+    organizationDeleteManyMock.mockResolvedValueOnce({ count: 1 }).mockResolvedValueOnce({
+      count: 0,
+    });
+    apiKeyDeleteManyMock.mockResolvedValue({ count: 1 });
+
+    await expect(deleteMemberlessOrganizationsByIds(["org_1", "org_2"])).resolves.toEqual({
+      count: 1,
+    });
+
+    expect(apiKeyDeleteManyMock).toHaveBeenCalledWith({
+      where: {
+        configId: API_KEY_ORGANIZATION_CONFIG_ID,
+        referenceId: {
+          in: ["org_1"],
+        },
+      },
+    });
+  });
+
+  it("does not delete organization API keys when no candidates are actually deleted", async () => {
+    organizationFindManyMock.mockResolvedValue([{ id: "org_1" }]);
+    organizationDeleteManyMock.mockResolvedValue({ count: 0 });
+
+    await expect(deleteMemberlessOrganizationsByIds(["org_1"])).resolves.toEqual({
+      count: 0,
+    });
+
+    expect(apiKeyDeleteManyMock).not.toHaveBeenCalled();
+    expect(prismaTransactionMock).toHaveBeenCalledTimes(1);
   });
 
   it("skips memberless organization deletion for empty batches", async () => {
     await expect(deleteMemberlessOrganizationsByIds([])).resolves.toEqual({ count: 0 });
 
+    expect(prismaTransactionMock).not.toHaveBeenCalled();
     expect(organizationDeleteManyMock).not.toHaveBeenCalled();
+    expect(apiKeyDeleteManyMock).not.toHaveBeenCalled();
   });
 });

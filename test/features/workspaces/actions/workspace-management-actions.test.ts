@@ -87,6 +87,7 @@ jest.mock("@server/prisma", () => ({
 }));
 
 jest.mock("next/cache", () => ({
+  revalidatePath: jest.fn(),
   updateTag: jest.fn(),
 }));
 
@@ -109,6 +110,7 @@ import { createWorkspace } from "@features/workspaces/actions/create-workspace";
 import { deleteWorkspace } from "@features/workspaces/actions/delete-workspace";
 import { updateWorkspace } from "@features/workspaces/actions/update-workspace";
 import { updateTags } from "@lib/cache";
+import { revalidatePath } from "next/cache";
 
 const ORGANIZATION_ID = "d6qzollaqro6y66v7j52bhqo";
 const SECOND_ORGANIZATION_ID = "h6qzollaqro6y66v7j52bhqp";
@@ -131,6 +133,7 @@ describe("workspace management actions", () => {
     mockHeaders.mockReset();
     mockOrganizationUpdateMany.mockReset();
     (updateTags as jest.Mock).mockReset();
+    (revalidatePath as jest.Mock).mockReset();
 
     mockLoadCurrentUserId.mockResolvedValue("user-123");
     mockLoadRequestHeaders.mockResolvedValue(new Headers([["x-test", "1"]]));
@@ -200,6 +203,15 @@ describe("workspace management actions", () => {
       },
       headers: expect.any(Headers),
     });
+    expect(updateTags).toHaveBeenCalledWith([
+      "organizations_user_user-123",
+      `organization_${ORGANIZATION_ID}`,
+    ]);
+    expect((revalidatePath as jest.Mock).mock.calls).toEqual([
+      ["/workspaces"],
+      ["/w/acme-team/dashboard"],
+      ["/w/acme-team/settings/users"],
+    ]);
     expect(result).toEqual({
       success: true,
       data: expect.objectContaining({

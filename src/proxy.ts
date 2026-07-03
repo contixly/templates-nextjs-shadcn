@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import routes, { routesConfig } from "@features/routes";
 import { auth } from "@server/auth";
+import { getAuthSessionOptions } from "@server/auth/session-cookie-cache";
 import { createRouteMatcher } from "@lib/clerk/routes";
 import { detectOGBots, sanitizeRedirectPath } from "@lib/routes";
 
@@ -25,14 +26,12 @@ export default async function authMiddleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  const session = await auth.api.getSession({
-    headers: request.headers,
-  });
-
   // Early return for public routes - no session validation needed
   if (isPublicRoute(request) || isPublicApiRoute(request)) {
     return NextResponse.next();
   }
+
+  const session = await auth.api.getSession(getAuthSessionOptions(request.headers));
 
   // Handle protected API routes
   if (isProtectedApiRoute(request)) {

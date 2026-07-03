@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { HttpCodes } from "@typings/network";
 import { type CreateWorkspaceInput, createWorkspaceSchema } from "../workspaces-schemas";
 import { updateWorkspaceCache, WorkspaceWithCounts } from "../workspaces-types";
@@ -7,11 +8,13 @@ import { createProtectedActionWithInput } from "@lib/actions";
 import { auth } from "@server/auth";
 import { workspacesLogger } from "@features/workspaces/workspaces-logger";
 import { WORKSPACE_ERROR_KEYS } from "@features/workspaces/workspaces-errors";
+import routes from "@features/routes";
 import {
   findManyAccessibleOrganizationsByUserId,
   findWorkspaceDtoByIdAndUserId,
   generateOrganizationSlug,
 } from "@features/organizations/organizations-repository";
+import { getOrganizationRouteKey } from "@features/organizations/organizations-context";
 
 const isUniqueConstraintError = (error: unknown) => {
   const message = error instanceof Error ? error.message : String(error);
@@ -91,6 +94,19 @@ export const createWorkspace = createProtectedActionWithInput<
         },
       };
     }
+
+    const organizationKey = getOrganizationRouteKey(workspace);
+    revalidatePath(routes.workspaces.pages.workspaces.path());
+    revalidatePath(
+      routes.dashboard.pages.organization_dashboard.path({
+        organizationKey,
+      })
+    );
+    revalidatePath(
+      routes.workspaces.pages.settings_users.path({
+        organizationKey,
+      })
+    );
 
     return {
       success: true,

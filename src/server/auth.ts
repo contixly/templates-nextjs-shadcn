@@ -20,7 +20,13 @@ import { getConfiguredSocialProviderIds } from "@server/auth/social-providers";
 import { YandexOAuth2ClientConfig } from "@server/auth/yandex-oauth2-client";
 import { apiKey } from "@better-auth/api-key";
 import { organizationAccessControl, organizationRoles } from "@server/auth/organization-access";
+import {
+  API_KEY_HEADER_NAME,
+  API_KEY_ORGANIZATION_CONFIG_ID,
+  API_KEY_USER_CONFIG_ID,
+} from "@lib/api-key-config";
 import { deletePersonalApiKeysForUser } from "@server/auth/api-key-cleanup";
+import { isAuthSessionCookieCacheDisabled } from "@server/auth/session-cookie-cache";
 
 type BetterAuthApiMethod = (...args: unknown[]) => Promise<unknown>;
 
@@ -147,14 +153,14 @@ export const auth = betterAuth({
     apiKey(
       [
         {
-          configId: "user-keys",
-          apiKeyHeaders: "x-api-key",
+          configId: API_KEY_USER_CONFIG_ID,
+          apiKeyHeaders: API_KEY_HEADER_NAME,
           defaultPrefix: "user_",
           references: "user", // Default - owned by users
         },
         {
-          configId: "org-keys",
-          apiKeyHeaders: "x-api-key",
+          configId: API_KEY_ORGANIZATION_CONFIG_ID,
+          apiKeyHeaders: API_KEY_HEADER_NAME,
           defaultPrefix: "org_",
           references: "organization", // Owned by organizations
         },
@@ -178,7 +184,7 @@ export const auth = betterAuth({
   ],
   session: {
     cookieCache: {
-      enabled: true,
+      enabled: !isAuthSessionCookieCacheDisabled(),
       maxAge: isProduction ? 5 * 60 : 60 * 60,
       strategy: "jwt", // "compact" or "jwt" or "jwe"
     },

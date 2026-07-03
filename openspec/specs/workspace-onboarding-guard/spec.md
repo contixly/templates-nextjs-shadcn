@@ -1,7 +1,8 @@
 # workspace-onboarding-guard Specification
 
 ## Purpose
-TBD - created by archiving change replace-workspaces-with-organizations. Update Purpose after archive.
+Define the reusable onboarding guard shown to authenticated users who do not have access to any workspace.
+
 ## Requirements
 ### Requirement: Zero-Workspace Users Receive a Reusable Onboarding Guard
 The system MUST provide a reusable onboarding guard block for authenticated users who do not have access to any
@@ -9,19 +10,22 @@ workspace. The guard MUST keep workspace creation available and MUST expose an a
 future-placeholder control.
 
 #### Scenario: Welcome page offers workspace onboarding actions
-- **WHEN** an authenticated user with zero accessible workspaces opens the welcome page
+- **GIVEN** an authenticated user has zero accessible workspaces
+- **WHEN** the user opens the welcome page
 - **THEN** the page renders the onboarding guard block
 - **AND** the block offers an action to create a workspace
 - **AND** the block offers an invitation entry action instead of a disabled future-flow placeholder
 
 #### Scenario: Pending invitations are surfaced from the onboarding experience
-- **WHEN** an authenticated user with zero accessible workspaces opens the welcome page and has pending invitations
+- **GIVEN** an authenticated user has zero accessible workspaces and one or more pending invitations
+- **WHEN** the user opens the welcome page
 - **THEN** the onboarding experience exposes those invitations through the invitation entry action or adjacent invitation
   block
 - **AND** each invitation leads to the invitation decision surface
 
 #### Scenario: Organization-scoped routes render onboarding guard instead of app content
-- **WHEN** an authenticated user with zero accessible workspaces opens a route under `/:organizationId/...`
+- **GIVEN** an authenticated user has zero accessible workspaces
+- **WHEN** the user opens an organization-scoped route under `/w/:organizationKey/...`
 - **THEN** the route does not render organization-scoped application content
 - **AND** renders the onboarding guard block with the same invitation entry action
 
@@ -29,12 +33,13 @@ future-placeholder control.
 The system MUST keep non-organization global pages available even when the user has zero accessible workspaces.
 
 #### Scenario: Workspace management page remains accessible
-- **WHEN** an authenticated user with zero accessible workspaces opens `/workspaces`
+- **GIVEN** an authenticated user has zero accessible workspaces
+- **WHEN** the user opens `/workspaces`
 - **THEN** the page renders successfully
 - **AND** the user can start workspace creation from there
 
 #### Scenario: Account pages remain accessible
-- **WHEN** an authenticated user with zero accessible workspaces opens an account page
+- **GIVEN** an authenticated user has zero accessible workspaces
+- **WHEN** the user opens an account page
 - **THEN** the page renders successfully
 - **AND** the user is not redirected away by workspace guard logic
-

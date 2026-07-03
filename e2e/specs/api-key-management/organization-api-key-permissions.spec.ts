@@ -1,9 +1,10 @@
 import type { BrowserContext, Page } from "@playwright/test";
+import { createE2EBrowserContext } from "../../support/browser-context";
 import { cleanupLocalAutomationUser, signInLocalAutomationUser } from "../../support/local-auth";
 import {
   addExistingLocalAutomationUserAsWorkspaceMember,
   createWorkspaceThroughUI,
-} from "../../support/api-keys";
+} from "../../support/workspaces";
 import { expect, test } from "../../support/test";
 import { routes } from "../../support/routes";
 
@@ -11,9 +12,12 @@ test.use({ viewport: { width: 1440, height: 1100 } });
 
 test.describe("api-key-management: organization API key permissions", () => {
   test("hides and denies organization API key settings for members without apiKey read", async ({
+    baseURL,
     browser,
     page: ownerPage,
   }) => {
+    test.slow();
+
     await signInLocalAutomationUser(ownerPage, {
       name: "E2E API Keys Permission Owner",
     });
@@ -26,7 +30,7 @@ test.describe("api-key-management: organization API key permissions", () => {
         `E2E API Key Permissions ${Date.now()}`
       );
 
-      memberContext = await browser.newContext();
+      memberContext = await createE2EBrowserContext(browser, baseURL);
       memberPage = await memberContext.newPage();
       const memberScenario = await signInLocalAutomationUser(memberPage, {
         name: "E2E API Keys Permission Member",

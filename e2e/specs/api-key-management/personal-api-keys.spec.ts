@@ -4,6 +4,7 @@ import {
   createApiKeyThroughUI,
   deleteApiKeyThroughUI,
   editApiKeyNameThroughUI,
+  expectApiKeyCreateDialogDefaults,
 } from "../../support/api-keys";
 import { expect, test } from "../../support/test";
 import { routes } from "../../support/routes";
@@ -35,6 +36,8 @@ test.describe("api-key-management: personal API keys", () => {
   });
 
   test("creates, uses, updates, and deletes a personal key", async ({ page }) => {
+    test.slow();
+
     const scenario = await signInLocalAutomationUser(page, {
       name: "E2E API Keys Personal User",
     });
@@ -56,6 +59,10 @@ test.describe("api-key-management: personal API keys", () => {
         page.getByText("Organization keys act as a service principal for one organization.")
       ).toBeVisible();
       await expect(page.getByText("No API keys")).toBeVisible();
+
+      await expectApiKeyCreateDialogDefaults(page, {
+        defaultPresetLabel: "Basic read",
+      });
 
       const secret = await createApiKeyThroughUI(page, {
         name: keyName,

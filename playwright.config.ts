@@ -1,5 +1,6 @@
 import { defineConfig, devices } from "@playwright/test";
 import { E2E_READY_ROUTE, resolveE2EBaseURL, resolveE2EURL } from "./e2e/support/config";
+import { AUTH_DISABLE_SESSION_COOKIE_CACHE_ENV_KEY } from "./src/server/auth/session-cookie-cache";
 
 const baseURL = resolveE2EBaseURL();
 const baseUrlConfig = new URL(baseURL);
@@ -14,7 +15,7 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : undefined,
+  workers: 1,
   reporter: [["list"], ["html", { outputFolder: "playwright-report", open: "never" }]],
   outputDir: "test-results/playwright",
   use: {
@@ -29,9 +30,11 @@ export default defineConfig({
     ? {
         command: `npm run dev -- --hostname ${webServerHostname} --port ${webServerPort}`,
         url: webServerReadyURL,
-        reuseExistingServer: !process.env.CI,
+        reuseExistingServer: false,
         timeout: 120_000,
         env: {
+          [AUTH_DISABLE_SESSION_COOKIE_CACHE_ENV_KEY]:
+            process.env[AUTH_DISABLE_SESSION_COOKIE_CACHE_ENV_KEY] || "true",
           BETTER_AUTH_URL: process.env.BETTER_AUTH_URL || baseURL,
           LOCAL_AUTOMATION_AUTH_ENABLED: process.env.LOCAL_AUTOMATION_AUTH_ENABLED || "true",
           NEXT_PUBLIC_APP_BASE_URL: process.env.NEXT_PUBLIC_APP_BASE_URL || baseURL,

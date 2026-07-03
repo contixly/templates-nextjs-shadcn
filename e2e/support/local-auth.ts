@@ -32,6 +32,12 @@ type LocalAutomationSuccessResponse<TData> = {
   data: TData;
 };
 
+const LOCAL_AUTOMATION_REQUEST_TIMEOUT_MS = 30_000;
+const LOCAL_AUTOMATION_COLD_ROUTE_RETRY_ATTEMPTS = 3;
+const LOCAL_AUTOMATION_COLD_ROUTE_RETRY_DELAY_MS = 500;
+
+const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
 const resolveRequest = (target: LocalAutomationAuthTarget): APIRequestContext => {
   if ("request" in target) {
     return target.request;
@@ -40,9 +46,7 @@ const resolveRequest = (target: LocalAutomationAuthTarget): APIRequestContext =>
   return target;
 };
 
-const parseResponseJson = async (response: APIResponse) => {
-  const text = await response.text();
-
+const parseResponseJson = (response: APIResponse, text: string) => {
   try {
     return JSON.parse(text) as unknown;
   } catch {
@@ -50,15 +54,60 @@ const parseResponseJson = async (response: APIResponse) => {
   }
 };
 
+const isJsonResponseBody = (text: string): boolean => {
+  try {
+    JSON.parse(text);
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+const isColdRouteNotFoundResponse = (response: APIResponse, text: string): boolean => {
+  const bodyStart = text.trimStart().toLowerCase();
+
+  return (
+    response.status() === 404 &&
+    !isJsonResponseBody(text) &&
+    (bodyStart.startsWith("<!doctype html") || bodyStart.startsWith("<html"))
+  );
+};
+
+const postLocalAutomationScenario = async (
+  request: APIRequestContext,
+  options: LocalAutomationSignInOptions
+) => {
+  const response = await request.post(routes.localAutomationScenario, {
+    data: options,
+    timeout: LOCAL_AUTOMATION_REQUEST_TIMEOUT_MS,
+  });
+
+  return {
+    response,
+    text: await response.text(),
+  };
+};
+
 export const signInLocalAutomationUser = async (
   target: LocalAutomationAuthTarget,
   options: LocalAutomationSignInOptions = {}
 ): Promise<LocalAutomationScenario> => {
   const request = resolveRequest(target);
-  const response = await request.post(routes.localAutomationScenario, { data: options });
-  const body = await parseResponseJson(response);
+  let result = await postLocalAutomationScenario(request, options);
 
-  expect(response.status(), JSON.stringify(body)).toBe(201);
+  for (
+    let attempt = 1;
+    isColdRouteNotFoundResponse(result.response, result.text) &&
+    attempt < LOCAL_AUTOMATION_COLD_ROUTE_RETRY_ATTEMPTS;
+    attempt += 1
+  ) {
+    await delay(LOCAL_AUTOMATION_COLD_ROUTE_RETRY_DELAY_MS * attempt);
+    result = await postLocalAutomationScenario(request, options);
+  }
+
+  const body = parseResponseJson(result.response, result.text);
+
+  expect(result.response.status(), JSON.stringify(body)).toBe(201);
   expect(body).toMatchObject({
     success: true,
     data: {
@@ -73,8 +122,10 @@ export const cleanupLocalAutomationUser = async (
   target: LocalAutomationAuthTarget
 ): Promise<LocalAutomationCleanup> => {
   const request = resolveRequest(target);
-  const response = await request.delete(routes.localAutomationScenario);
-  const body = await parseResponseJson(response);
+  const response = await request.delete(routes.localAutomationScenario, {
+    timeout: LOCAL_AUTOMATION_REQUEST_TIMEOUT_MS,
+  });
+  const body = parseResponseJson(response, await response.text());
 
   expect(response.status(), JSON.stringify(body)).toBe(200);
   expect(body).toMatchObject({

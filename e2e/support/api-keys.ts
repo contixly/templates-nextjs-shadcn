@@ -1,5 +1,4 @@
-import { expect, type APIResponse, type Page } from "@playwright/test";
-import { routes } from "./routes";
+import { expect, type APIResponse, type Locator, type Page } from "@playwright/test";
 
 type ApiV1Response<TBody = unknown> = {
   status: number;
@@ -12,20 +11,40 @@ type CreateApiKeyOptions = {
   additionalPresetLabels?: string[];
 };
 
-type AddWorkspaceMemberOptions = {
-  organizationKey: string;
-  userId: string;
-  email: string;
+type ApiKeyCreateDefaultsOptions = {
+  defaultPresetLabel: string;
 };
 
-const parseJsonResponse = async (response: APIResponse) => {
-  const text = await response.text();
+const API_V1_COLD_ROUTE_RETRY_ATTEMPTS = 3;
+const API_V1_COLD_ROUTE_RETRY_DELAY_MS = 500;
 
+const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const parseJsonResponse = (response: APIResponse, text: string) => {
   try {
     return JSON.parse(text) as unknown;
   } catch {
     throw new Error(`Expected JSON response from ${response.url()}, got: ${text}`);
   }
+};
+
+const isJsonResponseBody = (text: string): boolean => {
+  try {
+    JSON.parse(text);
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+const isColdRouteNotFoundResponse = (response: APIResponse, text: string): boolean => {
+  const bodyStart = text.trimStart().toLowerCase();
+
+  return (
+    response.status() === 404 &&
+    !isJsonResponseBody(text) &&
+    (bodyStart.startsWith("<!doctype html") || bodyStart.startsWith("<html"))
+  );
 };
 
 const getVisibleApiKeyRow = (page: Page, keyName: string) =>
@@ -51,6 +70,15 @@ const clickHydratedModalTrigger = async (page: Page, name: string | RegExp) => {
 const getOpenModal = (page: Page, title: string) =>
   page.getByRole("alertdialog").filter({ hasText: title }).first();
 
+const getApiKeyCreateField = (dialog: Locator, label: string) =>
+  dialog.locator('[data-slot="field"]').filter({ hasText: label }).first();
+
+const getApiKeyPresetField = (dialog: Locator, presetLabel: string) =>
+  dialog
+    .locator('[data-slot="field"][data-orientation="horizontal"]')
+    .filter({ hasText: presetLabel })
+    .first();
+
 const openApiKeyRowActions = async (page: Page, keyName: string) => {
   const row = getVisibleApiKeyRow(page, keyName);
 
@@ -58,11 +86,7 @@ const openApiKeyRowActions = async (page: Page, keyName: string) => {
   await row.getByRole("button", { name: "Actions" }).click();
 };
 
-export const callApiV1WithKey = async <TBody = unknown>(
-  page: Page,
-  route: string,
-  apiKey: string
-): Promise<ApiV1Response<TBody>> => {
+const requestApiV1WithKey = async (page: Page, route: string, apiKey: string) => {
   const response = await page.request.get(route, {
     headers: {
       "x-api-key": apiKey,
@@ -70,26 +94,58 @@ export const callApiV1WithKey = async <TBody = unknown>(
   });
 
   return {
-    status: response.status(),
-    body: (await parseJsonResponse(response)) as TBody,
     response,
+    text: await response.text(),
   };
 };
 
-export const createWorkspaceThroughUI = async (page: Page, name: string) => {
-  await page.goto(routes.welcome);
-  await clickHydratedModalTrigger(page, "Create Workspace");
+export const callApiV1WithKey = async <TBody = unknown>(
+  page: Page,
+  route: string,
+  apiKey: string
+): Promise<ApiV1Response<TBody>> => {
+  let result = await requestApiV1WithKey(page, route, apiKey);
 
-  const dialog = getOpenModal(page, "Create New Workspace");
+  for (
+    let attempt = 1;
+    isColdRouteNotFoundResponse(result.response, result.text) &&
+    attempt < API_V1_COLD_ROUTE_RETRY_ATTEMPTS;
+    attempt += 1
+  ) {
+    await delay(API_V1_COLD_ROUTE_RETRY_DELAY_MS * attempt);
+    result = await requestApiV1WithKey(page, route, apiKey);
+  }
+
+  return {
+    status: result.response.status(),
+    body: parseJsonResponse(result.response, result.text) as TBody,
+    response: result.response,
+  };
+};
+
+export const expectApiKeyCreateDialogDefaults = async (
+  page: Page,
+  options: ApiKeyCreateDefaultsOptions
+) => {
+  await clickHydratedModalTrigger(page, "Create key");
+
+  const dialog = getOpenModal(page, "Create API key");
   await expect(dialog).toBeVisible();
-  await dialog.getByLabel("Workspace Name").fill(name);
-  await dialog.getByRole("button", { name: "Create" }).click();
-  await page.waitForURL(/\/w\/[^/]+\/dashboard$/, { timeout: 30_000 });
 
-  const organizationKey = new URL(page.url()).pathname.match(/^\/w\/([^/]+)\/dashboard$/)?.[1];
-  expect(organizationKey, `Could not extract organization key from ${page.url()}`).toBeTruthy();
+  await expect(dialog.locator('[role="checkbox"][aria-checked="true"]')).toHaveCount(1);
+  await expect(
+    getApiKeyPresetField(dialog, options.defaultPresetLabel).getByRole("checkbox")
+  ).toHaveAttribute("aria-checked", "true");
+  await expect(getApiKeyCreateField(dialog, "Expiration")).toContainText("30 days");
+  await expect(getApiKeyCreateField(dialog, "Window")).toContainText("1 hour");
+  await expect(dialog.getByLabel("Max requests")).toHaveValue("1000");
+  await expect(getApiKeyCreateField(dialog, "Rate limit").getByRole("switch")).toHaveAttribute(
+    "aria-checked",
+    "true"
+  );
 
-  return decodeURIComponent(organizationKey as string);
+  await dialog.getByRole("button", { name: "Cancel" }).click();
+  await expect(dialog).toBeHidden();
 };
 
 export const createApiKeyThroughUI = async (page: Page, options: CreateApiKeyOptions) => {
@@ -100,10 +156,7 @@ export const createApiKeyThroughUI = async (page: Page, options: CreateApiKeyOpt
   await dialog.getByLabel("Name").fill(options.name);
 
   for (const presetLabel of options.additionalPresetLabels ?? []) {
-    const presetField = dialog
-      .locator('[data-slot="field"][data-orientation="horizontal"]')
-      .filter({ hasText: presetLabel })
-      .first();
+    const presetField = getApiKeyPresetField(dialog, presetLabel);
     const checkbox = presetField.getByRole("checkbox");
 
     await expect(checkbox).toBeVisible();
@@ -155,19 +208,4 @@ export const deleteApiKeyThroughUI = async (page: Page, keyName: string) => {
   await dialog.getByRole("button", { name: "Delete" }).click();
 
   await expectApiKeyRowHidden(page, keyName);
-};
-
-export const addExistingLocalAutomationUserAsWorkspaceMember = async (
-  page: Page,
-  options: AddWorkspaceMemberOptions
-) => {
-  await page.goto(routes.workspaceSettingsUsers(options.organizationKey));
-  await clickHydratedModalTrigger(page, "Add Member");
-
-  const dialog = getOpenModal(page, "Add Existing User");
-  await expect(dialog).toBeVisible();
-  await dialog.getByLabel("User ID").fill(options.userId);
-  await dialog.getByRole("button", { name: "Add" }).click();
-
-  await expect(page.getByText(options.email)).toBeVisible();
 };

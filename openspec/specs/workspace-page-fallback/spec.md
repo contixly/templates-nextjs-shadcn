@@ -1,25 +1,29 @@
 # workspace-page-fallback Specification
 
 ## Purpose
-TBD - created by archiving change improve-workspace-page-fallback. Update Purpose after archive.
+Define how the workspace root route validates access before redirecting to the organization dashboard or rendering the forbidden state.
+
 ## Requirements
 ### Requirement: Workspace Route Redirects Only After Access Validation
 The `/w/:organizationKey` route MUST validate that the requested organization route key belongs to the current user before redirecting them to the slug-preferred organization dashboard URL.
 
 #### Scenario: Accessible organization redirects to the organization dashboard
-- **WHEN** an authenticated user opens `/w/:organizationKey` for an organization they can access
+- **GIVEN** an authenticated user can access an organization
+- **WHEN** the user opens `/w/:organizationKey` for that organization
 - **THEN** the route validates access by resolving that route key as an organization slug or ID
 - **AND** redirects the user to `/w/:organizationKey/dashboard` using the organization's slug when available
 
 #### Scenario: Inaccessible organization renders the forbidden state
-- **WHEN** an authenticated user opens `/w/:organizationKey` for an organization they cannot access
+- **GIVEN** an authenticated user cannot access an organization
+- **WHEN** the user opens `/w/:organizationKey` for that organization
 - **THEN** the route does not render a blank page
 - **AND** renders the application's forbidden experience
 
-### Requirement: Workspace Route Provides Route-Level Loading Feedback
-The `/w/:organizationKey` route MUST provide loading feedback through the App Router route-level loading convention.
+### Requirement: Workspace Route Does Not Expose Unvalidated Content
+The `/w/:organizationKey` route SHALL avoid rendering organization-scoped application content until organization access has resolved to either a dashboard redirect or the forbidden state.
 
-#### Scenario: Organization route is loading
-- **WHEN** the organization route is still resolving
-- **THEN** the route shows loading UI from `loading.tsx`
-- **AND** the page does not define its own full-route Suspense fallback
+#### Scenario: Organization route access is resolving
+- **GIVEN** an authenticated user opens `/w/:organizationKey`
+- **WHEN** the route is resolving organization access
+- **THEN** the route does not render organization dashboard content before access validation completes
+- **AND** the route eventually redirects to an accessible organization dashboard or renders the forbidden state

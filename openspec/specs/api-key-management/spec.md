@@ -50,6 +50,12 @@ The system SHALL expose an organization API key management page inside workspace
 - **THEN** the system renders the organization API key settings page
 - **AND** the page lists only API keys owned by that organization through the `org-keys` configuration
 
+#### Scenario: Stale organization route key redirects to canonical settings path
+- **GIVEN** an authenticated member opens organization API key settings with a stale or non-canonical organization route key
+- **WHEN** the system resolves the workspace settings context
+- **THEN** it redirects to `/w/[canonicalOrganizationKey]/settings/api-keys`
+- **AND** after redirect, it loads organization API key management data for the resolved canonical organization
+
 #### Scenario: Member without read permission opens organization API keys
 - **GIVEN** an authenticated member of an organization without `apiKey: ["read"]` permission
 - **WHEN** the member opens `/w/[organizationKey]/settings/api-keys`
@@ -86,6 +92,20 @@ The system SHALL explain the difference between personal and organization API ke
 ### Requirement: API Key Creation Uses Safe Server Actions
 The system SHALL create API keys only through protected server actions that validate input, authorize ownership, and pass server-controlled fields to Better Auth.
 
+#### Scenario: Create form uses owner-specific defaults
+- **GIVEN** an authenticated user opens a create API key form
+- **WHEN** the form is initialized for personal API keys
+- **THEN** it defaults permission presets to `basic-read`
+- **AND** it defaults expiration to `30d`
+- **AND** it defaults rate limiting to enabled with max `1000` and window `1h`
+
+#### Scenario: Organization create form uses organization defaults
+- **GIVEN** an authenticated member opens a create API key form for an organization
+- **WHEN** the form is initialized for organization API keys
+- **THEN** it defaults permission presets to `organization-read-all`
+- **AND** it defaults expiration to `30d`
+- **AND** it defaults rate limiting to enabled with max `1000` and window `1h`
+
 #### Scenario: Personal API key is created
 - **GIVEN** an authenticated user submits a valid personal API key create form
 - **WHEN** the server action creates the key
@@ -114,6 +134,56 @@ The system SHALL create API keys only through protected server actions that vali
 - **WHEN** the create action returns to the client
 - **THEN** the response includes the generated secret key value exactly for that create flow
 - **AND** list and update flows do not expose the secret key value
+
+### Requirement: Management Forms Enforce Concrete Validation
+The system SHALL validate API key management form input with concrete field boundaries before calling Better Auth mutations.
+
+#### Scenario: Name validation trims input
+- **GIVEN** a user submits an API key create or update form with a name value
+- **WHEN** the system validates the form input
+- **THEN** it trims the name
+- **AND** it requires at least one non-whitespace character
+- **AND** it rejects names longer than 32 characters
+
+#### Scenario: Permission preset validation protects stored scopes
+- **GIVEN** a user submits an API key create form or submits an update that replaces permission presets
+- **WHEN** the system validates the selected permission preset ids
+- **THEN** it requires at least one preset id
+- **AND** it rejects preset ids outside the configured API key permission presets
+- **AND** it does not persist any permission changes when preset validation fails
+
+#### Scenario: Expiration validation allows only configured options
+- **GIVEN** a user submits an API key create form or an update with an expiration value
+- **WHEN** the system validates the expiration
+- **THEN** it accepts only `never`, `7d`, `30d`, `90d`, or `365d`
+- **AND** it rejects any other expiration value
+
+#### Scenario: Rate-limit validation enforces configured bounds
+- **GIVEN** a user submits an API key create form or an update with rate-limit values
+- **WHEN** the system validates the rate-limit settings
+- **THEN** it accepts only `1m`, `1h`, or `1d` as the rate-limit window
+- **AND** it requires the rate-limit max to be an integer from 1 through 1,000,000
+- **AND** it rejects any rate-limit setting outside those bounds
+
+#### Scenario: Owner context validation separates personal and organization forms
+- **GIVEN** a user submits an API key create, update, or delete form
+- **WHEN** the form type is `organization`
+- **THEN** the system requires `organizationId`
+- **AND** organization authorization is evaluated against that organization id
+- **AND** the mutation is not attempted when `organizationId` is absent or invalid
+
+#### Scenario: Personal forms reject organization context
+- **GIVEN** a user submits an API key create, update, or delete form
+- **WHEN** the form type is `user`
+- **THEN** the system rejects any supplied `organizationId`
+- **AND** it rejects any supplied `organizationKey`
+- **AND** the mutation is not attempted with organization context
+
+#### Scenario: Update requests include at least one changed field
+- **GIVEN** a user submits an API key update request
+- **WHEN** the request contains no update field for name, presets, expiration, rate-limit settings, or enabled state
+- **THEN** the system rejects the request
+- **AND** no API key update is attempted
 
 ### Requirement: API Key Updates Are Authorized And Validated
 The system SHALL update API key metadata, enabled state, scopes, expiration, and rate-limit settings only through protected server actions.

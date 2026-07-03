@@ -1,6 +1,7 @@
 import "server-only";
 
 import { auth } from "@server/auth";
+import { getAuthSessionOptions } from "@server/auth/session-cookie-cache";
 import { headers } from "next/headers";
 import { cache } from "react";
 import type { UserSessionListItem } from "@features/accounts/accounts-types";
@@ -12,9 +13,7 @@ import type { UserSessionListItem } from "@features/accounts/accounts-types";
 export const loadRequestHeaders = cache(async () => headers());
 
 const loadSessionPayload = cache(async () =>
-  auth.api.getSession({
-    headers: await loadRequestHeaders(),
-  })
+  auth.api.getSession(getAuthSessionOptions(await loadRequestHeaders()))
 );
 
 export const loadCurrentSession = cache(async () => {

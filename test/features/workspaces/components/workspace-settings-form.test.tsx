@@ -7,6 +7,7 @@ import { toast } from "sonner";
 
 const WORKSPACE_ID = "d6qzollaqro6y66v7j52bhqo";
 const mockRefresh = jest.fn();
+const mockReplace = jest.fn();
 
 const settleFormValidation = async () => {
   await act(async () => {});
@@ -66,6 +67,7 @@ jest.mock("next-intl", () => ({
 jest.mock("next/navigation", () => ({
   useRouter: () => ({
     refresh: mockRefresh,
+    replace: mockReplace,
   }),
 }));
 
@@ -94,6 +96,7 @@ describe("WorkspaceSettingsForm", () => {
   beforeEach(() => {
     (updateWorkspace as jest.Mock).mockReset();
     mockRefresh.mockReset();
+    mockReplace.mockReset();
   });
 
   it("loads the current workspace name, slug, and allowed domains into the extracted page form", async () => {
@@ -257,7 +260,7 @@ describe("WorkspaceSettingsForm", () => {
     expect(toast.error).not.toHaveBeenCalled();
   });
 
-  it("refreshes the route and resets to the saved values after a successful update", async () => {
+  it("navigates to the canonical settings route and resets to the saved values after a slug update", async () => {
     (updateWorkspace as jest.Mock).mockResolvedValue({
       success: true,
       data: {
@@ -300,9 +303,10 @@ describe("WorkspaceSettingsForm", () => {
     });
 
     await waitFor(() => {
-      expect(mockRefresh).toHaveBeenCalled();
+      expect(mockReplace).toHaveBeenCalledWith("/w/renamed-workspace/settings/workspace");
     });
 
+    expect(mockRefresh).not.toHaveBeenCalled();
     expect(screen.getByDisplayValue("Renamed Workspace")).toBeInTheDocument();
     expect(screen.getByDisplayValue("renamed-workspace")).toBeInTheDocument();
   });

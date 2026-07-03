@@ -52,6 +52,8 @@ The project follows FSD principles. Each feature is self-contained in `src/featu
 - `npm run test` - Run all Jest tests.
 - `npm run test -- --testPathPatterns=<pattern>` - Run a single test file (e.g., `npm run test -- --testPathPatterns=workspaces`).
 - `npm run e2e` - Run Playwright E2E tests; by default this starts `npm run dev` on the configured Playwright base URL.
+- `PLAYWRIGHT_BASE_URL=http://127.0.0.1:3127 npm run e2e` - Run E2E tests against an explicit base URL; this is the default from `e2e/support/config.ts`.
+- `PLAYWRIGHT_START_SERVER=false npm run e2e` - Run E2E tests against an already running app; set `PLAYWRIGHT_BASE_URL` if it is not on the default origin.
 - `npm run e2e:install` - Install the Chromium browser used by local Playwright runs.
 - `npm run e2e:headed` - Run Playwright E2E tests in headed mode.
 - `npm run e2e:ui` - Open the Playwright UI runner.
@@ -74,11 +76,30 @@ behavior changes.
 OpenSpec-backed Playwright tests live in `e2e/specs/<capability>/`, mirroring `openspec/specs/<capability>/spec.md`.
 Keep quick reachability/browser checks in `e2e/smoke/`.
 
+## Mandatory Subagent-Driven Development
+
+For any code or documentation change in this repository, route execution through
+`superpowers:subagent-driven-development` in the current session.
+
+This repository overrides the skill's cost-saving model guidance: use the newest available model and the highest
+available reasoning level for the coordinating agent and every implementer, spec reviewer, code-quality reviewer, and
+final reviewer subagent. If the current tool surface exposes model or reasoning settings, set them explicitly before
+dispatch; if it does not, state that the requested latest-model and highest-reasoning mode is being used to the extent
+the environment supports it. Use only the standard speed for a selected model.
+
+Required flow:
+
+- Start from a concrete plan: OpenSpec proposal/tasks, task document, or concise in-turn task list.
+- Dispatch a fresh implementer subagent per task with complete curated context; do not make subagents reread the plan.
+- After each task, run spec compliance review first, then code-quality review, and loop fixes until both approve.
+- Do not proceed to the next task while either review has unresolved findings.
+- Stop only when blocked by missing user input, a blocker that cannot be resolved locally, or all tasks are complete.
+
 ## Local Automation Auth
 
 For local browser automation with Playwright, browser-use, or LLM-driven development agents, enable the local-only Better Auth automation flow:
 
-1. Set `LOCAL_AUTOMATION_AUTH_ENABLED=true` in the local environment. Never enable this flag in production. `npm run e2e` sets this default when Playwright starts the dev server itself.
+1. Set `LOCAL_AUTOMATION_AUTH_ENABLED=true` in the local environment. For tests that depend on fresh session reads, also set `AUTH_DISABLE_SESSION_COOKIE_CACHE=true`. Never enable local automation auth in production. `npm run e2e` sets both defaults when Playwright starts the dev server itself.
 2. Start the app with `npm run dev`.
 3. From the same browser/API context used by the scenario, create and sign in a new user. Prefer `signInLocalAutomationUser(page)` from `e2e/support/local-auth`:
 
@@ -211,3 +232,5 @@ All data access uses three-layer caching:
 
 - Jest is used for testing; test files live in `test/{feature_name}/{test_module}` (e.g. `test/server/` for server-side code).
 - Playwright E2E tests live under `e2e/`; `e2e/smoke/` is for quick browser smoke checks and `e2e/specs/` is for OpenSpec-backed scenarios. Jest ignores the `e2e/` tree.
+- E2E specs and smoke tests should import shared `test` and `expect` from `e2e/support/test`; it retries first-party cold-route 404s and fails on uncaught page errors or first-party 5xx responses.
+- Use E2E helpers from `e2e/support/routes`, `e2e/support/local-auth`, `e2e/support/workspaces`, and `e2e/support/invitations` instead of duplicating routes, auth setup, selectors, or workspace/invitation flow glue.

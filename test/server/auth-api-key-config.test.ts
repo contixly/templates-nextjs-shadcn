@@ -1,5 +1,18 @@
 /** @jest-environment node */
 
+import { readFile } from "fs/promises";
+import path from "path";
+import {
+  API_KEY_HEADER_NAME,
+  API_KEY_ORGANIZATION_CONFIG_ID,
+  API_KEY_USER_CONFIG_ID,
+} from "@lib/api-key-config";
+import {
+  API_KEY_HEADER_NAME as FEATURE_API_KEY_HEADER_NAME,
+  API_KEY_ORGANIZATION_CONFIG_ID as FEATURE_API_KEY_ORGANIZATION_CONFIG_ID,
+  API_KEY_USER_CONFIG_ID as FEATURE_API_KEY_USER_CONFIG_ID,
+} from "@features/api-keys/api-keys-types";
+
 const betterAuthMock = jest.fn((options) => ({ api: {}, options }));
 const organizationMock = jest.fn((options) => ({ id: "organization", options }));
 const apiKeyMock = jest.fn((configurations: unknown, options?: unknown) => ({
@@ -8,6 +21,7 @@ const apiKeyMock = jest.fn((configurations: unknown, options?: unknown) => ({
   options,
 }));
 const apiKeyDeleteManyMock = jest.fn();
+const originalDisableSessionCookieCache = process.env.AUTH_DISABLE_SESSION_COOKIE_CACHE;
 type PermissionMap = Record<string, readonly string[]>;
 const createAccessControlMock = jest.fn((statements: PermissionMap) => ({
   statements,
@@ -77,6 +91,44 @@ const loadAuthModule = async () => {
 };
 
 describe("Better Auth API key configuration", () => {
+  it("exposes the shared API key config identifiers used by auth and API key features", () => {
+    expect({
+      headerName: API_KEY_HEADER_NAME,
+      organizationConfigId: API_KEY_ORGANIZATION_CONFIG_ID,
+      userConfigId: API_KEY_USER_CONFIG_ID,
+    }).toEqual({
+      headerName: "x-api-key",
+      organizationConfigId: "org-keys",
+      userConfigId: "user-keys",
+    });
+    expect(FEATURE_API_KEY_HEADER_NAME).toBe(API_KEY_HEADER_NAME);
+    expect(FEATURE_API_KEY_ORGANIZATION_CONFIG_ID).toBe(API_KEY_ORGANIZATION_CONFIG_ID);
+    expect(FEATURE_API_KEY_USER_CONFIG_ID).toBe(API_KEY_USER_CONFIG_ID);
+  });
+
+  it("keeps cleanup modules on the shared auth API key config source", async () => {
+    const cleanupSources = [
+      "src/features/accounts/accounts-local-auth-repository.ts",
+      "src/server/auth/api-key-cleanup.ts",
+    ] as const;
+
+    for (const relativePath of cleanupSources) {
+      const source = await readFile(path.join(process.cwd(), relativePath), "utf8");
+
+      expect(source).toContain("@lib/api-key-config");
+      expect(source).not.toContain("@features/api-keys/api-keys-types");
+    }
+  });
+
+  afterEach(() => {
+    if (originalDisableSessionCookieCache === undefined) {
+      delete process.env.AUTH_DISABLE_SESSION_COOKIE_CACHE;
+      return;
+    }
+
+    process.env.AUTH_DISABLE_SESSION_COOKIE_CACHE = originalDisableSessionCookieCache;
+  });
+
   it("registers user and organization API key configurations", async () => {
     await loadAuthModule();
 
@@ -144,6 +196,32 @@ describe("Better Auth API key configuration", () => {
     expect(authOptions.baseURL).toEqual(
       expect.objectContaining({
         fallback: "http://localhost:3000",
+      })
+    );
+  });
+
+  it("keeps Better Auth session cookie cache enabled by default", async () => {
+    delete process.env.AUTH_DISABLE_SESSION_COOKIE_CACHE;
+
+    await loadAuthModule();
+
+    const authOptions = betterAuthMock.mock.calls[0]?.[0];
+    expect(authOptions.session.cookieCache).toEqual(
+      expect.objectContaining({
+        enabled: true,
+      })
+    );
+  });
+
+  it("can disable Better Auth session cookie cache through server env", async () => {
+    process.env.AUTH_DISABLE_SESSION_COOKIE_CACHE = "true";
+
+    await loadAuthModule();
+
+    const authOptions = betterAuthMock.mock.calls[0]?.[0];
+    expect(authOptions.session.cookieCache).toEqual(
+      expect.objectContaining({
+        enabled: false,
       })
     );
   });
