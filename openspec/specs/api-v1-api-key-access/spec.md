@@ -7,6 +7,13 @@ Define the external `/api/v1` API key authentication boundary, principal model, 
 ### Requirement: API V1 Uses API Key Authentication
 The system SHALL authenticate `/api/v1` route handlers with API keys rather than browser session cookies.
 
+#### Scenario: API v1 routes bypass session-protected proxy matching
+- **GIVEN** a request targets `/api/v1` or a nested `/api/v1` route
+- **WHEN** the session proxy classifies the request route
+- **THEN** the system MUST treat the route as a public API route at the session proxy layer
+- **AND** the system MUST NOT classify the route as a protected session API route
+- **AND** the route handler remains responsible for API key authentication
+
 #### Scenario: Valid API key authenticates a request
 - **GIVEN** a request to a `/api/v1` route includes a valid API key in the `x-api-key` header
 - **WHEN** the route handler verifies the key
@@ -14,7 +21,7 @@ The system SHALL authenticate `/api/v1` route handlers with API keys rather than
 - **AND** the route handler authorizes the request against that principal
 
 #### Scenario: Missing API key is rejected
-- **GIVEN** a request to a `/api/v1` route does not include `x-api-key`
+- **GIVEN** a request to a `/api/v1` route omits `x-api-key` or provides a blank or whitespace-only `x-api-key` value
 - **WHEN** the route handler verifies the request
 - **THEN** the system returns an unauthorized API error with code `api_key_missing`
 
@@ -48,6 +55,30 @@ The system SHALL resolve verified API keys into either a user principal or an or
 - **WHEN** route code handles the request
 - **THEN** authorization decisions are made from the API key principal
 - **AND** active browser organization session state is not used to determine API key access
+
+### Requirement: API Key Verifier Applies Config Results Deterministically
+The system SHALL verify API keys against configured API key sources in a deterministic order and normalize handled verifier outcomes.
+
+#### Scenario: User key configuration is checked before organization key configuration
+- **GIVEN** a request to a `/api/v1` route includes an API key
+- **WHEN** the route handler verifies the key
+- **THEN** the system MUST check the `user-keys` configuration before the `org-keys` configuration
+
+#### Scenario: Invalid key outcome continues to next configuration
+- **GIVEN** a verifier configuration reports an invalid API key outcome
+- **WHEN** another configured API key source remains unchecked
+- **THEN** the system MUST continue verification with the next configured source
+
+#### Scenario: Rate-limit outcome short-circuits verification
+- **GIVEN** a verifier configuration reports a rate-limit outcome
+- **WHEN** the route handler verifies the key
+- **THEN** the system MUST stop checking further configurations
+- **AND** the system returns a too-many-requests API error with code `api_key_rate_limited`
+
+#### Scenario: Permission failures normalize after checked configurations
+- **GIVEN** one or more checked verifier configurations report a permission failure
+- **WHEN** no checked configuration resolves a valid API key principal
+- **THEN** the system returns a forbidden API error with code `api_key_permission_denied`
 
 ### Requirement: Personal Keys Use User Membership For Organization Access
 The system SHALL allow a personal API key to access organization-scoped `/api/v1` data only when the owning user is a current member of the organization in the path.
@@ -116,8 +147,16 @@ The system SHALL provide starter read-only `/api/v1` endpoints that prove the AP
 #### Scenario: API key principal metadata is returned
 - **GIVEN** an API key has `{ basic: ["read"] }` permission
 - **WHEN** it sends `GET /api/v1/me`
-- **THEN** the system returns the principal type, non-secret key metadata, and stored permissions
+- **THEN** the system returns a `data.principal` object with `type`, nullable `userId`, and nullable `organizationId`
+- **AND** the system returns a `data.key` object with `id`, `start`, and `configId`
+- **AND** the system returns `data.permissions` from the principal permissions
 - **AND** the response does not include the API key secret value
+
+#### Scenario: API key principal metadata defaults nullish permissions
+- **GIVEN** an API key has `{ basic: ["read"] }` permission
+- **AND** the resolved principal has nullish stored permissions
+- **WHEN** it sends `GET /api/v1/me`
+- **THEN** the system returns `data.permissions` as `{}`
 
 #### Scenario: Accessible organizations are returned
 - **GIVEN** an API key has `{ organization: ["read"] }` permission
