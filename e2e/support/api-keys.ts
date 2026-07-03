@@ -1,4 +1,4 @@
-import { expect, type APIResponse, type Page } from "@playwright/test";
+import { expect, type APIResponse, type Locator, type Page } from "@playwright/test";
 
 type ApiV1Response<TBody = unknown> = {
   status: number;
@@ -9,6 +9,10 @@ type ApiV1Response<TBody = unknown> = {
 type CreateApiKeyOptions = {
   name: string;
   additionalPresetLabels?: string[];
+};
+
+type ApiKeyCreateDefaultsOptions = {
+  defaultPresetLabel: string;
 };
 
 const parseJsonResponse = async (response: APIResponse) => {
@@ -44,6 +48,15 @@ const clickHydratedModalTrigger = async (page: Page, name: string | RegExp) => {
 const getOpenModal = (page: Page, title: string) =>
   page.getByRole("alertdialog").filter({ hasText: title }).first();
 
+const getApiKeyCreateField = (dialog: Locator, label: string) =>
+  dialog.locator('[data-slot="field"]').filter({ hasText: label }).first();
+
+const getApiKeyPresetField = (dialog: Locator, presetLabel: string) =>
+  dialog
+    .locator('[data-slot="field"][data-orientation="horizontal"]')
+    .filter({ hasText: presetLabel })
+    .first();
+
 const openApiKeyRowActions = async (page: Page, keyName: string) => {
   const row = getVisibleApiKeyRow(page, keyName);
 
@@ -69,6 +82,31 @@ export const callApiV1WithKey = async <TBody = unknown>(
   };
 };
 
+export const expectApiKeyCreateDialogDefaults = async (
+  page: Page,
+  options: ApiKeyCreateDefaultsOptions
+) => {
+  await clickHydratedModalTrigger(page, "Create key");
+
+  const dialog = getOpenModal(page, "Create API key");
+  await expect(dialog).toBeVisible();
+
+  await expect(dialog.locator('[role="checkbox"][aria-checked="true"]')).toHaveCount(1);
+  await expect(
+    getApiKeyPresetField(dialog, options.defaultPresetLabel).getByRole("checkbox")
+  ).toHaveAttribute("aria-checked", "true");
+  await expect(getApiKeyCreateField(dialog, "Expiration")).toContainText("30 days");
+  await expect(getApiKeyCreateField(dialog, "Window")).toContainText("1 hour");
+  await expect(dialog.getByLabel("Max requests")).toHaveValue("1000");
+  await expect(getApiKeyCreateField(dialog, "Rate limit").getByRole("switch")).toHaveAttribute(
+    "aria-checked",
+    "true"
+  );
+
+  await dialog.getByRole("button", { name: "Cancel" }).click();
+  await expect(dialog).toBeHidden();
+};
+
 export const createApiKeyThroughUI = async (page: Page, options: CreateApiKeyOptions) => {
   await clickHydratedModalTrigger(page, "Create key");
 
@@ -77,10 +115,7 @@ export const createApiKeyThroughUI = async (page: Page, options: CreateApiKeyOpt
   await dialog.getByLabel("Name").fill(options.name);
 
   for (const presetLabel of options.additionalPresetLabels ?? []) {
-    const presetField = dialog
-      .locator('[data-slot="field"][data-orientation="horizontal"]')
-      .filter({ hasText: presetLabel })
-      .first();
+    const presetField = getApiKeyPresetField(dialog, presetLabel);
     const checkbox = presetField.getByRole("checkbox");
 
     await expect(checkbox).toBeVisible();

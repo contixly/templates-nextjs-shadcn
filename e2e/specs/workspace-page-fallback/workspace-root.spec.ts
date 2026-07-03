@@ -49,6 +49,7 @@ test.describe("workspace-page-fallback: workspace root", () => {
 
       await expect(page.getByText("403")).toBeVisible();
       await expect(page.getByText("Oops! You are not authorized!")).toBeVisible();
+      await expect(page.getByText("Total Revenue")).toHaveCount(0);
     } finally {
       await cleanupLocalAutomationUser(page);
     }

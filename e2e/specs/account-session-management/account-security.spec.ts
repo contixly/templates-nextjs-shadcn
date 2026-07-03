@@ -98,4 +98,96 @@ test.describe("account-session-management: account security", () => {
       }
     }
   });
+
+  test("revokes all other sessions while preserving the current session through the UI", async ({
+    browser,
+    page: ownerPage,
+    baseURL,
+  }) => {
+    test.slow();
+
+    const scenario = await signInLocalAutomationUser(ownerPage, {
+      name: "E2E Account Session Bulk Owner",
+    });
+    const contextBaseURL = resolveE2EBaseURL(baseURL);
+    let secondContext: BrowserContext | null = null;
+    let secondPage: Page | null = null;
+    let testError: unknown = null;
+    let cleanupError: unknown = null;
+
+    const cleanupScenario = async () => {
+      try {
+        await cleanupLocalAutomationUser(ownerPage);
+      } catch {
+        await signInExistingAutomationUser(ownerPage, scenario, contextBaseURL);
+        await cleanupLocalAutomationUser(ownerPage);
+      }
+    };
+
+    try {
+      secondContext = await browser.newContext({ baseURL: contextBaseURL });
+      secondPage = await secondContext.newPage();
+      await signInExistingAutomationUser(secondPage, scenario, contextBaseURL);
+
+      await secondPage.goto(routes.accountSecurity);
+      await expect(
+        secondPage.getByRole("heading", { level: 1, name: "Security & Sessions" })
+      ).toBeVisible();
+
+      await ownerPage.goto(routes.accountSecurity);
+      await expect(
+        ownerPage.getByRole("heading", { level: 1, name: "Security & Sessions" })
+      ).toBeVisible();
+
+      const sessionsRegion = ownerPage.getByRole("region", { name: "Active Sessions" });
+      await expect(sessionsRegion).toBeVisible();
+      await expect(sessionsRegion.getByText("Current session", { exact: true })).toBeVisible();
+
+      const revokeAllButton = sessionsRegion.getByRole("button", {
+        name: "Revoke all other sessions",
+      });
+      await expect(revokeAllButton).toBeVisible();
+      await revokeAllButton.click();
+      await expect(ownerPage.getByText("Session revoked successfully")).toBeVisible();
+
+      await expect(ownerPage).toHaveURL(new URL(routes.accountSecurity, contextBaseURL).toString());
+      await expect(
+        ownerPage.getByRole("heading", { level: 1, name: "Security & Sessions" })
+      ).toBeVisible();
+      await expect(sessionsRegion).toBeVisible();
+      await expect(sessionsRegion.getByText("Current session", { exact: true })).toBeVisible();
+      await expect(revokeAllButton).toHaveCount(0);
+      await expect(sessionsRegion.getByRole("button", { name: "Revoke session" })).toHaveCount(0);
+
+      await secondPage.goto(routes.accountSecurity);
+      await expect(secondPage).toHaveURL(/\/auth\/login/);
+      await expect(
+        secondPage.getByRole("heading", { level: 1, name: "Security & Sessions" })
+      ).toHaveCount(0);
+    } catch (error) {
+      testError = error;
+    } finally {
+      if (secondContext) {
+        try {
+          await secondContext.close();
+        } catch (error) {
+          cleanupError ??= error;
+        }
+      }
+
+      try {
+        await cleanupScenario();
+      } catch (error) {
+        cleanupError ??= error;
+      }
+    }
+
+    if (testError) {
+      throw testError;
+    }
+
+    if (cleanupError) {
+      throw cleanupError;
+    }
+  });
 });

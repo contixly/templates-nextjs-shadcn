@@ -4,6 +4,7 @@ import {
   createApiKeyThroughUI,
   deleteApiKeyThroughUI,
   editApiKeyNameThroughUI,
+  expectApiKeyCreateDialogDefaults,
 } from "../../support/api-keys";
 import { expect, test } from "../../support/test";
 import { routes } from "../../support/routes";
@@ -69,6 +70,10 @@ test.describe("api-key-management: organization API keys", () => {
         routes.personalApiKeys
       );
 
+      await expectApiKeyCreateDialogDefaults(page, {
+        defaultPresetLabel: "Organization read all",
+      });
+
       const organizationSecret = await createApiKeyThroughUI(page, {
         name: organizationKeyName,
         additionalPresetLabels: ["Basic read"],
@@ -94,6 +99,11 @@ test.describe("api-key-management: organization API keys", () => {
       });
       const organizationId = meResponse.body.data.principal.organizationId as string;
       expect(organizationId).toBeTruthy();
+
+      await page.goto(routes.workspaceSettingsApiKeys(organizationId));
+      await expect(page).toHaveURL(routes.workspaceSettingsApiKeys(organizationKey));
+      await expect(page.getByRole("heading", { level: 1, name: "API Keys" })).toBeVisible();
+      await expect(page.getByText(organizationKeyName, { exact: true })).toBeVisible();
 
       const organizationsResponse = await callApiV1WithKey<OrganizationsApiResponse>(
         page,

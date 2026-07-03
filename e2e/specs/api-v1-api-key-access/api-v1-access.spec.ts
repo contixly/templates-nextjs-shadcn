@@ -177,6 +177,10 @@ test.describe("api-v1-api-key-access: API key contract", () => {
       expect(missing.status).toBe(401);
       expectApiError(missing.body, "api_key_missing");
 
+      const blank = await callApiV1WithKey<ApiErrorEnvelope>(page, routes.apiV1Me, "   ");
+      expect(blank.status).toBe(401);
+      expectApiError(blank.body, "api_key_missing");
+
       const invalid = await callApiV1WithKey<ApiErrorEnvelope>(
         page,
         routes.apiV1Me,

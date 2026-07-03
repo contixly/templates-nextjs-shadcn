@@ -6,9 +6,13 @@ export const routes = {
   login: appRoutes.accounts.pages.login.path(),
   welcome: appRoutes.accounts.pages.welcome.path(),
   dashboard: appRoutes.dashboard.pages.application_dashboard.path(),
+  userSettingsRoot: appRoutes.accounts.pages.user.path(),
+  accountProfile: appRoutes.accounts.pages.profile.path(),
+  accountConnections: appRoutes.accounts.pages.connections.path(),
   accountSecurity: appRoutes.accounts.pages.security.path(),
   personalApiKeys: appRoutes.accounts.pages.api_keys.path(),
   accountInvitations: appRoutes.accounts.pages.invitations.path(),
+  accountDanger: appRoutes.accounts.pages.danger.path(),
   invitationDecision: (invitationId: string) =>
     appRoutes.accounts.pages.invitation.path({ invitationId }),
   workspaces: appRoutes.workspaces.pages.workspaces.path(),
