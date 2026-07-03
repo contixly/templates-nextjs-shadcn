@@ -16,6 +16,35 @@ Run the suite:
 npm run e2e
 ```
 
+By default Playwright starts the dev server and sets the local automation auth
+environment needed by the suite. It does not reuse a server that is already
+running on the configured port; stop that process or use the explicit reused
+server flow below.
+
+To reuse an already-running server, start that server with the same local-only
+auth settings before running Playwright:
+
+```bash
+LOCAL_AUTOMATION_AUTH_ENABLED=true \
+  AUTH_DISABLE_SESSION_COOKIE_CACHE=true \
+  BETTER_AUTH_URL=http://127.0.0.1:3127 \
+  NEXT_PUBLIC_APP_BASE_URL=http://127.0.0.1:3127 \
+  npm run dev -- --hostname 127.0.0.1 --port 3127
+```
+
+`AUTH_DISABLE_SESSION_COOKIE_CACHE=true` must be set on the app server itself for
+reused-server runs and on the Playwright command as an explicit guard:
+
+```bash
+AUTH_DISABLE_SESSION_COOKIE_CACHE=true \
+  PLAYWRIGHT_START_SERVER=false \
+  PLAYWRIGHT_BASE_URL=http://127.0.0.1:3127 \
+  npm run e2e
+```
+
+Playwright cannot add server env to a process it did not start, and
+session-revocation specs require fresh Better Auth session reads.
+
 ## Layout
 
 - `smoke/` contains small UI smoke checks that prove the app can render and navigate.

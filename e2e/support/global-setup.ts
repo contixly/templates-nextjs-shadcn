@@ -1,4 +1,5 @@
 import type { FullConfig } from "@playwright/test";
+import { AUTH_DISABLE_SESSION_COOKIE_CACHE_ENV_KEY } from "../../src/server/auth/session-cookie-cache";
 import { E2E_ROUTES_TO_WARM, resolveE2EBaseURL, resolveE2EURL } from "./config";
 
 const READY_TIMEOUT_MS = 60_000;
@@ -11,6 +12,18 @@ const resolveBaseURL = (config: FullConfig) => {
   const configuredBaseURL = config.projects[0]?.use.baseURL;
 
   return resolveE2EBaseURL(typeof configuredBaseURL === "string" ? configuredBaseURL : undefined);
+};
+
+type ReusableServerSessionCacheEnv = Record<string, string | undefined>;
+
+export const assertReusableServerSessionCacheEnv = (env: ReusableServerSessionCacheEnv) => {
+  if (env.PLAYWRIGHT_START_SERVER !== "false") return;
+  if (env[AUTH_DISABLE_SESSION_COOKIE_CACHE_ENV_KEY] === "true") return;
+
+  throw new Error(
+    `PLAYWRIGHT_START_SERVER=false requires ${AUTH_DISABLE_SESSION_COOKIE_CACHE_ENV_KEY}=true on the Playwright command and the already-running app server. ` +
+      `Restart the reused server and rerun Playwright with ${AUTH_DISABLE_SESSION_COOKIE_CACHE_ENV_KEY}=true so session revocation checks read fresh Better Auth sessions.`
+  );
 };
 
 const waitForRoute = async (baseURL: string, route: string) => {
@@ -43,6 +56,8 @@ const waitForRoute = async (baseURL: string, route: string) => {
 };
 
 export default async function globalSetup(config: FullConfig) {
+  assertReusableServerSessionCacheEnv(process.env);
+
   const baseURL = resolveBaseURL(config);
 
   for (const [index, route] of E2E_ROUTES_TO_WARM.entries()) {

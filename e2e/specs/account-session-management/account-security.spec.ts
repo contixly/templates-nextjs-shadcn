@@ -55,13 +55,14 @@ test.describe("account-session-management: account security", () => {
     const scenario = await signInLocalAutomationUser(ownerPage, {
       name: "E2E Account Session Owner",
     });
+    const contextBaseURL = resolveE2EBaseURL(baseURL);
     let secondContext: BrowserContext | null = null;
     let secondPage: Page | null = null;
 
     try {
-      secondContext = await browser.newContext();
+      secondContext = await browser.newContext({ baseURL: contextBaseURL });
       secondPage = await secondContext.newPage();
-      await signInExistingAutomationUser(secondPage, scenario, baseURL);
+      await signInExistingAutomationUser(secondPage, scenario, contextBaseURL);
 
       await secondPage.goto(routes.accountSecurity);
       await expect(

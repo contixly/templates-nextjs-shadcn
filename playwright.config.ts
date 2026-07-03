@@ -30,7 +30,7 @@ export default defineConfig({
     ? {
         command: `npm run dev -- --hostname ${webServerHostname} --port ${webServerPort}`,
         url: webServerReadyURL,
-        reuseExistingServer: !process.env.CI,
+        reuseExistingServer: false,
         timeout: 120_000,
         env: {
           [AUTH_DISABLE_SESSION_COOKIE_CACHE_ENV_KEY]:
