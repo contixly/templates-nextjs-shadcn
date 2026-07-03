@@ -1,5 +1,6 @@
 import "server-only";
 
+import { API_KEY_ORGANIZATION_CONFIG_ID } from "@lib/api-key-config";
 import prisma from "@server/prisma";
 
 export const findSoleMemberOrganizationIdsForUser = async (userId: string) => {
@@ -56,14 +57,51 @@ export const deleteMemberlessOrganizationsByIds = async (organizationIds: string
     return { count: 0 };
   }
 
-  return prisma.organization.deleteMany({
-    where: {
-      id: {
-        in: organizationIds,
+  return prisma.$transaction(async (transaction) => {
+    const memberlessOrganizations = await transaction.organization.findMany({
+      where: {
+        id: {
+          in: organizationIds,
+        },
+        members: {
+          none: {},
+        },
       },
-      members: {
-        none: {},
+      select: {
+        id: true,
       },
-    },
+    });
+
+    const deletedOrganizationIds: string[] = [];
+
+    for (const organization of memberlessOrganizations) {
+      const deletedOrganization = await transaction.organization.deleteMany({
+        where: {
+          id: organization.id,
+          members: {
+            none: {},
+          },
+        },
+      });
+
+      if (deletedOrganization.count > 0) {
+        deletedOrganizationIds.push(organization.id);
+      }
+    }
+
+    if (deletedOrganizationIds.length === 0) {
+      return { count: 0 };
+    }
+
+    await transaction.apiKey.deleteMany({
+      where: {
+        configId: API_KEY_ORGANIZATION_CONFIG_ID,
+        referenceId: {
+          in: deletedOrganizationIds,
+        },
+      },
+    });
+
+    return { count: deletedOrganizationIds.length };
   });
 };

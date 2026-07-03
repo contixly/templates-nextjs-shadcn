@@ -4,7 +4,7 @@ import {
   API_KEY_ORGANIZATION_CONFIG_ID,
   API_KEY_USER_CONFIG_ID,
   type ApiKeyConfigId,
-} from "@features/api-keys/api-keys-types";
+} from "@lib/api-key-config";
 import prisma from "@server/prisma";
 
 const deleteApiKeysByReference = (configId: ApiKeyConfigId, referenceId: string) =>

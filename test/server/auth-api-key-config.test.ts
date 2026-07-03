@@ -1,5 +1,18 @@
 /** @jest-environment node */
 
+import { readFile } from "fs/promises";
+import path from "path";
+import {
+  API_KEY_HEADER_NAME,
+  API_KEY_ORGANIZATION_CONFIG_ID,
+  API_KEY_USER_CONFIG_ID,
+} from "@lib/api-key-config";
+import {
+  API_KEY_HEADER_NAME as FEATURE_API_KEY_HEADER_NAME,
+  API_KEY_ORGANIZATION_CONFIG_ID as FEATURE_API_KEY_ORGANIZATION_CONFIG_ID,
+  API_KEY_USER_CONFIG_ID as FEATURE_API_KEY_USER_CONFIG_ID,
+} from "@features/api-keys/api-keys-types";
+
 const betterAuthMock = jest.fn((options) => ({ api: {}, options }));
 const organizationMock = jest.fn((options) => ({ id: "organization", options }));
 const apiKeyMock = jest.fn((configurations: unknown, options?: unknown) => ({
@@ -78,6 +91,35 @@ const loadAuthModule = async () => {
 };
 
 describe("Better Auth API key configuration", () => {
+  it("exposes the shared API key config identifiers used by auth and API key features", () => {
+    expect({
+      headerName: API_KEY_HEADER_NAME,
+      organizationConfigId: API_KEY_ORGANIZATION_CONFIG_ID,
+      userConfigId: API_KEY_USER_CONFIG_ID,
+    }).toEqual({
+      headerName: "x-api-key",
+      organizationConfigId: "org-keys",
+      userConfigId: "user-keys",
+    });
+    expect(FEATURE_API_KEY_HEADER_NAME).toBe(API_KEY_HEADER_NAME);
+    expect(FEATURE_API_KEY_ORGANIZATION_CONFIG_ID).toBe(API_KEY_ORGANIZATION_CONFIG_ID);
+    expect(FEATURE_API_KEY_USER_CONFIG_ID).toBe(API_KEY_USER_CONFIG_ID);
+  });
+
+  it("keeps cleanup modules on the shared auth API key config source", async () => {
+    const cleanupSources = [
+      "src/features/accounts/accounts-local-auth-repository.ts",
+      "src/server/auth/api-key-cleanup.ts",
+    ] as const;
+
+    for (const relativePath of cleanupSources) {
+      const source = await readFile(path.join(process.cwd(), relativePath), "utf8");
+
+      expect(source).toContain("@lib/api-key-config");
+      expect(source).not.toContain("@features/api-keys/api-keys-types");
+    }
+  });
+
   afterEach(() => {
     if (originalDisableSessionCookieCache === undefined) {
       delete process.env.AUTH_DISABLE_SESSION_COOKIE_CACHE;

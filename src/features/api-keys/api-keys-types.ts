@@ -1,10 +1,17 @@
 import type { ActionResult } from "@typings/actions";
+import {
+  API_KEY_HEADER_NAME,
+  API_KEY_ORGANIZATION_CONFIG_ID,
+  API_KEY_USER_CONFIG_ID,
+  type ApiKeyConfigId,
+} from "@lib/api-key-config";
 
-export const API_KEY_USER_CONFIG_ID = "user-keys" as const;
-export const API_KEY_ORGANIZATION_CONFIG_ID = "org-keys" as const;
-export const API_KEY_HEADER_NAME = "x-api-key" as const;
-
-export type ApiKeyConfigId = typeof API_KEY_USER_CONFIG_ID | typeof API_KEY_ORGANIZATION_CONFIG_ID;
+export {
+  API_KEY_HEADER_NAME,
+  API_KEY_ORGANIZATION_CONFIG_ID,
+  API_KEY_USER_CONFIG_ID,
+  type ApiKeyConfigId,
+};
 export type ApiKeyOwnerType = "user" | "organization";
 export type ApiKeyStatus = "active" | "disabled" | "expired";
 
