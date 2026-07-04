@@ -76,25 +76,6 @@ behavior changes.
 OpenSpec-backed Playwright tests live in `e2e/specs/<capability>/`, mirroring `openspec/specs/<capability>/spec.md`.
 Keep quick reachability/browser checks in `e2e/smoke/`.
 
-## Mandatory Subagent-Driven Development
-
-For any code or documentation change in this repository, route execution through
-`superpowers:subagent-driven-development` in the current session.
-
-This repository overrides the skill's cost-saving model guidance: use the newest available model and the highest
-available reasoning level for the coordinating agent and every implementer, spec reviewer, code-quality reviewer, and
-final reviewer subagent. If the current tool surface exposes model or reasoning settings, set them explicitly before
-dispatch; if it does not, state that the requested latest-model and highest-reasoning mode is being used to the extent
-the environment supports it. Use only the standard speed for a selected model.
-
-Required flow:
-
-- Start from a concrete plan: OpenSpec proposal/tasks, task document, or concise in-turn task list.
-- Dispatch a fresh implementer subagent per task with complete curated context; do not make subagents reread the plan.
-- After each task, run spec compliance review first, then code-quality review, and loop fixes until both approve.
-- Do not proceed to the next task while either review has unresolved findings.
-- Stop only when blocked by missing user input, a blocker that cannot be resolved locally, or all tasks are complete.
-
 ## Local Automation Auth
 
 For local browser automation with Playwright, browser-use, or LLM-driven development agents, enable the local-only Better Auth automation flow:
