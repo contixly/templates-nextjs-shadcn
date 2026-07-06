@@ -1,6 +1,7 @@
 import { ComponentType } from "react";
 import { Metadata } from "next";
 import type { MDXProps } from "mdx/types";
+import type { AppLocale } from "@/src/i18n/config";
 
 export type DocumentsSystemStatus = "draft" | "review" | "published" | "archived";
 export type DocumentsSystemStatusTone = "default" | "draft" | "review" | "archived";
@@ -29,10 +30,36 @@ export type DocumentsSystemEnvironment = "local" | "production";
 
 export const CACHE_DocumentsSystemTag = (id: string) => `documents_system_${id}`;
 
+export type DocumentsSystemContentLocale = AppLocale;
+
+export type DocumentsSystemParsedContentPath = {
+  sourcePath: string;
+  canonicalSourcePath: string;
+  canonicalUrl: string;
+  contentLocale: DocumentsSystemContentLocale;
+  explicitLocale?: DocumentsSystemContentLocale;
+  hasExplicitLocale: boolean;
+};
+
+export type DocumentsSystemDocumentVariant = {
+  url: string;
+  slug: string[];
+  sourcePath: string;
+  canonicalSourcePath: string;
+  contentLocale: DocumentsSystemContentLocale;
+  hasExplicitLocale: boolean;
+  meta: DocumentsSystemMetadata;
+};
+
 export type DocumentInfo = {
   url: string;
   slug: string[];
   sourcePath: string;
+  canonicalSourcePath: string;
+  requestedLocale: AppLocale;
+  contentLocale: DocumentsSystemContentLocale;
+  isLocaleFallback: boolean;
+  availableLocales: DocumentsSystemContentLocale[];
   meta: DocumentsSystemMetadata;
 };
 
