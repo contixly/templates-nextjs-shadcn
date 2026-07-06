@@ -255,7 +255,15 @@ export const documentsSystemTools = {
   buildStaticParams: (documents: DocumentInfo[]) =>
     documents
       .filter((document) => document.url !== "index")
-      .map((document) => ({ slug: document.slug })),
+      .map((document) => {
+        if (document.slug.some((segment) => /\.(en|ru)$/iu.test(segment))) {
+          throw new Error(
+            `Documents-system static params must use canonical slugs without locale suffixes: ${document.slug.join("/")}`
+          );
+        }
+
+        return { slug: document.slug };
+      }),
 
   buildPageNavigation: (
     documents: DocumentInfo[],

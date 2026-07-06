@@ -4,7 +4,6 @@ import {
   DocumentInfo,
   DocumentsSystemBrokenLink,
   DocumentsSystemExtractedLink,
-  DocumentsSystemLinkIndex,
   DocumentsSystemResolvedLink,
 } from "./documents-system-types";
 
@@ -15,6 +14,31 @@ const MARKDOWN_REFERENCE_DEFINITION_PATTERN =
 const MDX_HREF_PATTERN =
   /\bhref=(?:"([^"]+)"|'([^']+)'|\{`([^`]+)`\}|\{"([^"]+)"\}|\{'([^']+)'\})/g;
 const HTTP_URL_PATTERN = /^https?:\/\//iu;
+
+type DocumentsSystemLinkTargetDocument = Pick<DocumentInfo, "meta" | "url" | "sourcePath">;
+type DocumentsSystemLinkSourceDocument = Pick<DocumentInfo, "sourcePath">;
+
+type DocumentsSystemLinkIndexFor<TDocument extends DocumentsSystemLinkTargetDocument> = {
+  allByUrl: Map<string, TDocument>;
+  productionVisibleByUrl: Map<string, TDocument>;
+};
+
+type DocumentsSystemResolvedLinkFor<TDocument extends DocumentsSystemLinkTargetDocument> =
+  | {
+      state: "valid" | "unpublished";
+      href: string;
+      targetUrl: string;
+      target: TDocument;
+    }
+  | {
+      state: "broken";
+      href: string;
+      targetUrl: string;
+    }
+  | {
+      state: "external" | "ignored";
+      href: string;
+    };
 
 const trimTrailingSlash = (value: string) =>
   value.length > 1 ? value.replace(/\/+$/u, "") : value;
@@ -58,11 +82,11 @@ export const normalizeDocumentsSystemHref = (href: string): string | undefined =
   return normalizeDocumentsSystemPathname(decodePathname(withoutQuery));
 };
 
-export const buildDocumentsSystemLinkIndex = (
-  allDocuments: DocumentInfo[]
-): DocumentsSystemLinkIndex => {
-  const allByUrl = new Map<string, DocumentInfo>();
-  const productionVisibleByUrl = new Map<string, DocumentInfo>();
+export const buildDocumentsSystemLinkIndex = <TDocument extends DocumentsSystemLinkTargetDocument>(
+  allDocuments: TDocument[]
+): DocumentsSystemLinkIndexFor<TDocument> => {
+  const allByUrl = new Map<string, TDocument>();
+  const productionVisibleByUrl = new Map<string, TDocument>();
 
   allDocuments.forEach((document) => {
     allByUrl.set(document.url, document);
@@ -75,10 +99,10 @@ export const buildDocumentsSystemLinkIndex = (
   return { allByUrl, productionVisibleByUrl };
 };
 
-export const resolveDocumentsSystemLink = (
+export const resolveDocumentsSystemLink = <TDocument extends DocumentsSystemLinkTargetDocument>(
   href: string,
-  index: DocumentsSystemLinkIndex
-): DocumentsSystemResolvedLink => {
+  index: DocumentsSystemLinkIndexFor<TDocument>
+): DocumentsSystemResolvedLinkFor<TDocument> => {
   const targetUrl = normalizeDocumentsSystemHref(href);
 
   if (!targetUrl) {
@@ -142,11 +166,12 @@ export const extractDocumentsSystemLinks = (
 };
 
 export const validateDocumentsSystemLinks = (
-  sourceDocuments: Array<Pick<DocumentInfo, "sourcePath">>,
+  sourceDocuments: DocumentsSystemLinkSourceDocument[],
   sourceByPath: Map<string, string>,
-  targetDocuments: DocumentInfo[] = sourceDocuments as DocumentInfo[]
+  targetDocuments?: DocumentsSystemLinkTargetDocument[]
 ): DocumentsSystemBrokenLink[] => {
-  const index = buildDocumentsSystemLinkIndex(targetDocuments);
+  const linkTargets = targetDocuments ?? (sourceDocuments as DocumentsSystemLinkTargetDocument[]);
+  const index = buildDocumentsSystemLinkIndex(linkTargets);
   const brokenLinks: DocumentsSystemBrokenLink[] = [];
 
   sourceDocuments.forEach((document) => {

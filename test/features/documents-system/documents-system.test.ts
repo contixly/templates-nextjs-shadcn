@@ -10,8 +10,12 @@ import {
   loadDocumentsSystemRegistry,
   resolveDocumentsSystemRegistryDocuments,
 } from "@features/documents-system/documents-system-actions";
-import { validateDocumentsSystemLinks } from "@features/documents-system/documents-system-link-tools";
+import {
+  buildDocumentsSystemLinkIndex,
+  validateDocumentsSystemLinks,
+} from "@features/documents-system/documents-system-link-tools";
 import { searchDocumentsSystemIndex } from "@features/documents-system/documents-system-search-tools";
+import { documentsSystemTools } from "@features/documents-system/documents-system-tools";
 import type {
   DocumentsSystemDocumentVariant,
   DocumentsSystemMetadata,
@@ -183,15 +187,76 @@ describe("documents system", () => {
     });
 
     it("throws on duplicate variants for one canonical URL and locale", () => {
-      expect(() =>
+      let thrown: unknown;
+
+      try {
         resolveDocumentsSystemRegistryDocuments(
           [
             registryVariant("general/authoring/sample.mdx", "en", "Sample"),
             registryVariant("general/authoring/sample.en.mdx", "en", "Sample duplicate"),
           ],
           "en"
-        )
-      ).toThrow("Duplicate documents-system content locale");
+        );
+      } catch (error) {
+        thrown = error;
+      }
+
+      expect(thrown).toBeInstanceOf(Error);
+      expect((thrown as Error).message).toContain("Duplicate documents-system content locale");
+      expect((thrown as Error).message).toContain("Canonical URL: general/authoring/sample");
+      expect((thrown as Error).message).toContain("Locale: en");
+      expect((thrown as Error).message).toContain("general/authoring/sample.mdx");
+      expect((thrown as Error).message).toContain("general/authoring/sample.en.mdx");
+    });
+
+    it("builds link targets from canonical document URLs", () => {
+      const registry = resolveDocumentsSystemRegistryDocuments(
+        [
+          registryVariant("general/authoring/sample.ru.mdx", "ru", "Возможности документации"),
+          {
+            ...registryVariant(
+              "general/authoring/how-to-write-docs.ru.md",
+              "ru",
+              "Как писать документацию"
+            ),
+            url: "general/authoring/how-to-write-docs",
+            slug: ["general", "authoring", "how-to-write-docs"],
+            canonicalSourcePath: "general/authoring/how-to-write-docs.md",
+          },
+        ],
+        "ru"
+      );
+
+      const index = buildDocumentsSystemLinkIndex(registry);
+
+      expect(index.allByUrl.has("general/authoring/sample")).toBe(true);
+      expect(index.allByUrl.has("general/authoring/sample.ru")).toBe(false);
+    });
+
+    it("builds static params from canonical slugs without locale suffixes", () => {
+      const documents = resolveDocumentsSystemRegistryDocuments(
+        [registryVariant("general/authoring/sample.ru.mdx", "ru", "Возможности документации")],
+        "ru"
+      );
+
+      expect(documentsSystemTools.buildStaticParams(documents)).toEqual([
+        { slug: ["general", "authoring", "sample"] },
+      ]);
+    });
+
+    it("rejects static params with locale-suffixed slug segments", () => {
+      const [document] = resolveDocumentsSystemRegistryDocuments(
+        [registryVariant("general/authoring/sample.ru.mdx", "ru", "Возможности документации")],
+        "ru"
+      );
+
+      expect(() =>
+        documentsSystemTools.buildStaticParams([
+          { ...document, slug: ["general", "authoring", "sample.ru"] },
+        ])
+      ).toThrow(
+        "Documents-system static params must use canonical slugs without locale suffixes: general/authoring/sample.ru"
+      );
     });
   });
 });
