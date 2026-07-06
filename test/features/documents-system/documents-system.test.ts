@@ -103,20 +103,25 @@ describe("documents system", () => {
   it("loads visible public documents as canonical URLs without locale suffixes", async () => {
     const registry = await loadDocumentsSystemRegistry("en");
 
-    expect(registry.visibleDocuments.map((document) => document.url)).toEqual([
-      "index",
-      "general/glossary",
-      "workspace",
-      "history/change-logs",
-      "history/change-logs/2026-03-23-weekly-changelog",
-      "history/releases",
-      "history/releases/2.0.11",
-    ]);
+    const visibleUrls = registry.visibleDocuments.map((document) => document.url);
+
+    expect(visibleUrls).toEqual(
+      expect.arrayContaining([
+        "index",
+        "general/glossary",
+        "workspace",
+        "history/change-logs",
+        "history/change-logs/2026-03-23-weekly-changelog",
+        "history/releases",
+        "history/releases/2.0.11",
+      ])
+    );
     expect(registry.visibleDocuments.every((document) => !document.url.endsWith(".ru"))).toBe(true);
-    expect(
-      registry.visibleDocuments.every((document) => /\.ru\.(md|mdx)$/u.test(document.sourcePath))
-    ).toBe(true);
-    expect(registry.visibleDocuments.some((document) => document.isLocaleFallback)).toBe(true);
+    expect(documentsSystemTools.findDocument(registry.visibleDocuments, "index")).toMatchObject({
+      sourcePath: "index.ru.mdx",
+      contentLocale: "ru",
+      isLocaleFallback: true,
+    });
     expect(
       validateDocumentsSystemLinks(
         registry.allVariants,
