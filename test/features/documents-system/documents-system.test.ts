@@ -118,6 +118,15 @@ describe("documents system", () => {
         "history/change-logs/2026-05-04-weekly-changelog",
         "history/change-logs/2026-07-06-weekly-changelog",
         "history/releases",
+        "history/releases/0.0.1",
+        "history/releases/0.0.2",
+        "history/releases/0.0.3",
+        "history/releases/0.0.4",
+        "history/releases/0.0.5",
+        "history/releases/0.0.6",
+        "history/releases/0.0.7",
+        "history/releases/0.0.8",
+        "history/releases/0.0.9",
         "history/releases/0.0.10",
       ])
     );

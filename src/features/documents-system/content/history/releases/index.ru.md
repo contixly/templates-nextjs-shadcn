@@ -29,16 +29,16 @@ API-доступ, локализация, безопасность и прове
 
 | Версия | Основная тема |
 | ------ | ------------- |
-| v0.0.10 | E2E-покрытие и надежность automation-сценариев. |
-| v0.0.9 | Personal и organization API-ключи, `/api/v1`, scopes, expiration и rate limits. |
-| v0.0.8 | Local automation auth, Playwright E2E и hooks для invitation policy. |
-| v0.0.7 | Redis/Valkey-backed кеширование, streaming skeletons и показ только настроенных OAuth-провайдеров. |
-| v0.0.6 | Better Auth Teams, team-targeted invitations и управление командами workspace. |
-| v0.0.5 | Ограничения приглашений по email-доменам и предупреждения для участников вне политики. |
-| v0.0.4 | Security hardening, безопасные redirects, приватность приглашений и защита session data. |
-| v0.0.3 | Workspace на базе Better Auth Organizations, invitations, роли и settings surfaces. |
-| v0.0.2 | Локализация через `next-intl`, переводы UI и локализованные metadata. |
-| v0.0.1 | Первая публичная основа шаблона Next.js приложения. |
+| [v0.0.10](/docs/history/releases/0.0.10) | E2E-покрытие и надежность automation-сценариев. |
+| [v0.0.9](/docs/history/releases/0.0.9) | Personal и organization API-ключи, `/api/v1`, scopes, expiration и rate limits. |
+| [v0.0.8](/docs/history/releases/0.0.8) | Local automation auth, Playwright E2E и hooks для invitation policy. |
+| [v0.0.7](/docs/history/releases/0.0.7) | Redis/Valkey-backed кеширование, streaming skeletons и показ только настроенных OAuth-провайдеров. |
+| [v0.0.6](/docs/history/releases/0.0.6) | Better Auth Teams, team-targeted invitations и управление командами workspace. |
+| [v0.0.5](/docs/history/releases/0.0.5) | Ограничения приглашений по email-доменам и предупреждения для участников вне политики. |
+| [v0.0.4](/docs/history/releases/0.0.4) | Security hardening, безопасные redirects, приватность приглашений и защита session data. |
+| [v0.0.3](/docs/history/releases/0.0.3) | Workspace на базе Better Auth Organizations, invitations, роли и settings surfaces. |
+| [v0.0.2](/docs/history/releases/0.0.2) | Локализация через `next-intl`, переводы UI и локализованные metadata. |
+| [v0.0.1](/docs/history/releases/0.0.1) | Первая публичная основа шаблона Next.js приложения. |
 
 ## Как читать историю
 
