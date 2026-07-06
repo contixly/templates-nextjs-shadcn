@@ -19,6 +19,16 @@ import type {
 import { loadMessages } from "@/src/i18n/messages";
 
 describe("documents system", () => {
+  const previousDefaultLocale = process.env.PUBLIC_DEFAULT_LOCALE;
+
+  afterEach(() => {
+    if (previousDefaultLocale === undefined) {
+      delete process.env.PUBLIC_DEFAULT_LOCALE;
+    } else {
+      process.env.PUBLIC_DEFAULT_LOCALE = previousDefaultLocale;
+    }
+  });
+
   const baseRegistryMeta = (title: string): DocumentsSystemMetadata => ({
     title,
     description: `${title} description`,
@@ -45,6 +55,24 @@ describe("documents system", () => {
 
   it("is registered in application routes", () => {
     expect(routes.documents_system.pages.home.path()).toBe("/docs");
+  });
+
+  it("defaults registry locale to en when PUBLIC_DEFAULT_LOCALE is empty or invalid", async () => {
+    for (const defaultLocale of ["", "de"]) {
+      process.env.PUBLIC_DEFAULT_LOCALE = defaultLocale;
+
+      await jest.isolateModulesAsync(async () => {
+        const { loadDocumentsSystemRegistry: loadIsolatedDocumentsSystemRegistry } =
+          await import("@features/documents-system/documents-system-actions");
+
+        const registry = await loadIsolatedDocumentsSystemRegistry();
+
+        expect(registry.locale).toBe("en");
+        expect(new Set(registry.allDocuments.map((document) => document.requestedLocale))).toEqual(
+          new Set(["en"])
+        );
+      });
+    }
   });
 
   it("loads visible public documents without broken internal links", async () => {

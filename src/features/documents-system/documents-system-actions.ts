@@ -5,14 +5,17 @@ import { join } from "node:path";
 import { cacheLife, cacheTag } from "next/cache";
 import { glob } from "glob";
 import matter from "gray-matter";
-import { locales, resolveAppLocale } from "@/src/i18n/config";
+import { locales } from "@/src/i18n/config";
 import type { AppLocale } from "@/src/i18n/config";
 import {
   assertNoBrokenDocumentsSystemLinks,
   buildDocumentsSystemLinkIndex,
   validateDocumentsSystemLinks,
 } from "./documents-system-link-tools";
-import { parseDocumentsSystemContentPath } from "./documents-system-locale-tools";
+import {
+  parseDocumentsSystemContentPath,
+  resolveDocumentsSystemDefaultContentLocale,
+} from "./documents-system-locale-tools";
 import { DOCUMENTS_SYSTEM_LOG_SCOPE } from "./documents-system-consts";
 import { getDocumentsSystemEnvironment } from "./documents-system-runtime";
 import {
@@ -93,7 +96,7 @@ const findPreferredVariant = (
   variants: DocumentsSystemDocumentVariant[],
   requestedLocale: AppLocale
 ) => {
-  const defaultLocale = resolveAppLocale();
+  const defaultLocale = resolveDocumentsSystemDefaultContentLocale();
 
   return (
     variants.find((variant) => variant.contentLocale === requestedLocale) ??
@@ -213,7 +216,7 @@ const readDocumentFiles = async (): Promise<{
 };
 
 const buildDocumentsSystemRegistry = async (
-  locale: AppLocale = resolveAppLocale()
+  locale: AppLocale = resolveDocumentsSystemDefaultContentLocale()
 ): Promise<DocumentsSystemRegistry> => {
   const loaded = await readDocumentFiles();
   const allDocuments = resolveDocumentsSystemRegistryDocuments(loaded.variants, locale);
@@ -247,7 +250,7 @@ const assignDocumentsSystemRegistryCache = (registry: DocumentsSystemRegistry) =
 };
 
 export async function loadDocumentsSystemRegistry(
-  locale: AppLocale = resolveAppLocale()
+  locale: AppLocale = resolveDocumentsSystemDefaultContentLocale()
 ): Promise<DocumentsSystemRegistry> {
   if (shouldCacheDocuments && documentsRegistryByLocale.has(locale)) {
     return documentsRegistryByLocale.get(locale)!;
@@ -260,7 +263,7 @@ export async function loadDocumentsSystemRegistry(
 }
 
 export async function loadAllDocuments(
-  locale: AppLocale = resolveAppLocale()
+  locale: AppLocale = resolveDocumentsSystemDefaultContentLocale()
 ): Promise<DocumentInfo[]> {
   if (shouldCacheDocuments && allDocumentsByLocale.has(locale)) {
     return allDocumentsByLocale.get(locale)!;
@@ -272,7 +275,7 @@ export async function loadAllDocuments(
 }
 
 export async function loadDocuments(
-  locale: AppLocale = resolveAppLocale()
+  locale: AppLocale = resolveDocumentsSystemDefaultContentLocale()
 ): Promise<DocumentInfo[]> {
   if (shouldCacheDocuments && visibleDocumentsByLocale.has(locale)) {
     return visibleDocumentsByLocale.get(locale)!;
@@ -284,7 +287,7 @@ export async function loadDocuments(
 }
 
 export async function getDocumentsSystemLinkIndex(
-  locale: AppLocale = resolveAppLocale()
+  locale: AppLocale = resolveDocumentsSystemDefaultContentLocale()
 ): Promise<DocumentsSystemLinkIndex> {
   if (shouldCacheDocuments && documentsLinkIndexByLocale.has(locale)) {
     return documentsLinkIndexByLocale.get(locale)!;
@@ -304,7 +307,7 @@ export async function getDocumentsSystemSourceByPath(): Promise<Map<string, stri
 }
 
 export async function getCachedDocumentsSystemRegistry(
-  locale: AppLocale = resolveAppLocale()
+  locale: AppLocale = resolveDocumentsSystemDefaultContentLocale()
 ): Promise<DocumentsSystemRegistry> {
   "use cache";
   cacheLife("hours");
@@ -314,7 +317,7 @@ export async function getCachedDocumentsSystemRegistry(
 }
 
 export async function getCachedAllDocuments(
-  locale: AppLocale = resolveAppLocale()
+  locale: AppLocale = resolveDocumentsSystemDefaultContentLocale()
 ): Promise<DocumentInfo[]> {
   "use cache";
   cacheLife("hours");
@@ -324,7 +327,7 @@ export async function getCachedAllDocuments(
 }
 
 export async function getCachedDocuments(
-  locale: AppLocale = resolveAppLocale()
+  locale: AppLocale = resolveDocumentsSystemDefaultContentLocale()
 ): Promise<DocumentInfo[]> {
   "use cache";
   cacheLife("hours");
@@ -334,7 +337,7 @@ export async function getCachedDocuments(
 }
 
 export async function getCachedDocumentsSystemLinkIndex(
-  locale: AppLocale = resolveAppLocale()
+  locale: AppLocale = resolveDocumentsSystemDefaultContentLocale()
 ): Promise<DocumentsSystemLinkIndex> {
   "use cache";
   cacheLife("hours");
