@@ -129,21 +129,31 @@ describe("documents system", () => {
   it("loads authoring pages from matching english and russian variants", async () => {
     const enRegistry = await loadDocumentsSystemRegistry("en");
     const ruRegistry = await loadDocumentsSystemRegistry("ru");
+    const findDocument = (url: string) => ({
+      en: enRegistry.allDocuments.find((document) => document.url === url),
+      ru: ruRegistry.allDocuments.find((document) => document.url === url),
+    });
 
-    const enSample = enRegistry.allDocuments.find(
-      (document) => document.url === "general/authoring/sample"
-    );
-    const ruSample = ruRegistry.allDocuments.find(
-      (document) => document.url === "general/authoring/sample"
-    );
+    const sample = findDocument("general/authoring/sample");
+    const howToWriteDocs = findDocument("general/authoring/how-to-write-docs");
 
-    expect(enSample).toMatchObject({
+    expect(sample.en).toMatchObject({
       sourcePath: "general/authoring/sample.en.mdx",
       contentLocale: "en",
       isLocaleFallback: false,
     });
-    expect(ruSample).toMatchObject({
+    expect(sample.ru).toMatchObject({
       sourcePath: "general/authoring/sample.ru.mdx",
+      contentLocale: "ru",
+      isLocaleFallback: false,
+    });
+    expect(howToWriteDocs.en).toMatchObject({
+      sourcePath: "general/authoring/how-to-write-docs.en.md",
+      contentLocale: "en",
+      isLocaleFallback: false,
+    });
+    expect(howToWriteDocs.ru).toMatchObject({
+      sourcePath: "general/authoring/how-to-write-docs.ru.md",
       contentLocale: "ru",
       isLocaleFallback: false,
     });
