@@ -1,0 +1,80 @@
+import { Metadata } from "next";
+import { notFound } from "next/navigation";
+import {
+  getCachedDocumentsSystemRegistry,
+  importDocumentModule,
+} from "@features/documents-system/documents-system-actions";
+import { getDocumentsSystemEnvironment } from "@features/documents-system/documents-system-runtime";
+import { documentsSystemTools } from "@features/documents-system/documents-system-tools";
+import { createDocumentsMdxComponents } from "@features/documents-system/ui/mdx/documents-mdx-components";
+import { DocumentsSystemPage } from "@features/documents-system/ui/page/documents-system-page";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string[] }>;
+}): Promise<Metadata | null> {
+  const { slug } = await params;
+  const currentPath = slug.join("/");
+  const registry = await getCachedDocumentsSystemRegistry();
+  const document = documentsSystemTools.findDocument(registry.visibleDocuments, currentPath);
+
+  if (!document) {
+    return null;
+  }
+
+  const imageUrl = `/docs/og/${currentPath}`;
+
+  return {
+    title: document.meta.title,
+    description: document.meta.description,
+    openGraph: {
+      title: document.meta.title,
+      description: document.meta.description,
+      images: [imageUrl],
+    },
+    twitter: {
+      title: document.meta.title,
+      description: document.meta.description,
+      images: [imageUrl],
+    },
+  };
+}
+
+export async function generateStaticParams() {
+  const registry = await getCachedDocumentsSystemRegistry();
+
+  return documentsSystemTools.buildStaticParams(registry.visibleDocuments);
+}
+
+export default async function DocumentsSystemDocumentPage({
+  params,
+}: {
+  params: Promise<{ slug: string[] }>;
+}) {
+  const { slug } = await params;
+  const currentPath = slug.join("/");
+  const registry = await getCachedDocumentsSystemRegistry();
+  const document = documentsSystemTools.findDocument(registry.visibleDocuments, currentPath);
+
+  if (!document) {
+    notFound();
+  }
+
+  const { default: DocumentContent } = await importDocumentModule(document);
+  const navigation = documentsSystemTools.buildPageNavigation(
+    registry.visibleDocuments,
+    currentPath,
+  );
+  const mdxComponents = createDocumentsMdxComponents({
+    source: document,
+    index: registry.linkIndex,
+    environment: getDocumentsSystemEnvironment(),
+  });
+
+  return (
+    <DocumentsSystemPage document={document} navigation={navigation}>
+      <DocumentContent components={mdxComponents} />
+    </DocumentsSystemPage>
+  );
+}

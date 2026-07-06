@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import createMDX from "@next/mdx";
 import createNextIntlPlugin from "next-intl/plugin";
 import { fileURLToPath } from "node:url";
 
@@ -59,6 +60,7 @@ const isrCacheHandlerPath = fileURLToPath(
 
 const nextConfig: NextConfig = {
   cacheComponents: true,
+  pageExtensions: ["ts", "tsx", "js", "jsx", "md", "mdx"],
 
   cacheHandler: isrCacheHandlerPath,
   cacheHandlers: {
@@ -94,4 +96,11 @@ const nextConfig: NextConfig = {
   output: "standalone",
 };
 
-export default withNextIntl(nextConfig);
+const withMDX = createMDX({
+  extension: /\.(md|mdx)$/,
+  options: {
+    remarkPlugins: ["remark-frontmatter", "remark-gfm"],
+  },
+});
+
+export default withNextIntl(withMDX(nextConfig));
