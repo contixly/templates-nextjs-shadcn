@@ -12,6 +12,7 @@ const withNextIntl = createNextIntlPlugin({
       "./src/messages/features/api-keys.en.json",
       "./src/messages/features/application.en.json",
       "./src/messages/features/dashboard.en.json",
+      "./src/messages/features/documents-system.en.json",
     ],
   },
 });

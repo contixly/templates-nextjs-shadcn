@@ -1,6 +1,7 @@
 import { IconMenu3 } from "@tabler/icons-react";
 import React from "react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { cn } from "@lib/utils";
 import { DocumentsSystemPageMenuItem } from "./documents-system-page-scroll-spy";
 
@@ -11,11 +12,13 @@ export const DocumentsSystemPageMenu = ({
   menuItems: DocumentsSystemPageMenuItem[];
   activeHref?: string;
 }) => {
+  const t = useTranslations("documentsSystem.ui.page");
+
   return (
     <div className="text-muted-foreground sticky top-9 flex max-h-[calc(100vh-4rem)] w-full flex-col self-start overflow-y-auto text-sm">
       <p className="mb-3 flex h-6 items-center gap-1 text-xs">
         <IconMenu3 size={16} />
-        На этой странице
+        {t("tocTitle")}
       </p>
       <div
         className={cn("flex flex-col gap-1", {

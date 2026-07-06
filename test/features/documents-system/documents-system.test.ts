@@ -3,6 +3,7 @@ jest.mock("next/cache", () => ({
   cacheTag: jest.fn(),
 }));
 
+import { readFile } from "node:fs/promises";
 import routes from "@features/routes";
 import {
   getCachedDocumentsSystemRegistry,
@@ -10,6 +11,7 @@ import {
 } from "@features/documents-system/documents-system-actions";
 import { validateDocumentsSystemLinks } from "@features/documents-system/documents-system-link-tools";
 import { searchDocumentsSystemIndex } from "@features/documents-system/documents-system-search-tools";
+import { loadMessages } from "@/src/i18n/messages";
 
 describe("documents system", () => {
   it("is registered in application routes", () => {
@@ -65,5 +67,25 @@ describe("documents system", () => {
       title: "Глоссарий",
       href: "/docs/general/glossary",
     });
+  });
+
+  it("loads documents-system UI messages for supported locales", async () => {
+    const enMessages = await loadMessages("en");
+    const ruMessages = await loadMessages("ru");
+
+    expect(enMessages).toHaveProperty("documentsSystem.ui.search.openLabel", "Search docs");
+    expect(ruMessages).toHaveProperty(
+      "documentsSystem.ui.search.openLabel",
+      "Поиск по документации"
+    );
+  });
+
+  it("does not render the global documentation shortcut inside the documentation header", async () => {
+    const source = await readFile(
+      "src/features/documents-system/ui/documents-system-header.tsx",
+      "utf8"
+    );
+
+    expect(source).not.toContain("DocumentationRootLink");
   });
 });

@@ -8,19 +8,13 @@ import {
   IconUser,
 } from "@tabler/icons-react";
 import React, { CSSProperties, ReactNode } from "react";
+import { useLocale, useTranslations } from "next-intl";
 import { cn } from "@lib/utils";
 import {
   DocumentsSystemMetadata,
   DocumentsSystemStatus,
   DocumentsSystemStatusTone,
 } from "@features/documents-system/documents-system-types";
-
-const STATUS_LABEL: Record<DocumentsSystemStatus, string> = {
-  draft: "Черновик",
-  review: "На проверке",
-  published: "Опубликовано",
-  archived: "В архиве",
-};
 
 const STATUS_DOT_CLASS: Record<DocumentsSystemStatus, string> = {
   draft: "bg-amber-500",
@@ -46,10 +40,10 @@ const META_CELL_TONE_CLASS: Record<DocumentsSystemStatusTone, string> = {
   archived: "bg-muted/60",
 };
 
-const formatEditedAt = (value: string): string => {
+const formatEditedAt = (value: string, locale: string): string => {
   const parsed = new Date(value);
   if (Number.isNaN(parsed.getTime())) return value;
-  return new Intl.DateTimeFormat("ru-RU", {
+  return new Intl.DateTimeFormat(locale, {
     day: "numeric",
     month: "short",
     year: "numeric",
@@ -95,6 +89,9 @@ export const DocumentsSystemPageMeta = ({
   statusTone: DocumentsSystemStatusTone;
   hiddenInProduction?: boolean;
 }) => {
+  const locale = useLocale();
+  const tMeta = useTranslations("documentsSystem.ui.page.meta");
+  const tStatus = useTranslations("documentsSystem.ui.page.status");
   const status = meta.status;
   const showStatus = statusTone !== "default";
 
@@ -102,15 +99,25 @@ export const DocumentsSystemPageMeta = ({
 
   if (meta.editedAt) {
     secondaryMetaItems.push(
-      <MetaItem key="edited-at" icon={<IconEdit size={14} />} label="Изменено" tone={statusTone}>
-        {formatEditedAt(meta.editedAt)}
+      <MetaItem
+        key="edited-at"
+        icon={<IconEdit size={14} />}
+        label={tMeta("editedAt")}
+        tone={statusTone}
+      >
+        {formatEditedAt(meta.editedAt, locale)}
       </MetaItem>
     );
   }
 
   if (meta.author) {
     secondaryMetaItems.push(
-      <MetaItem key="author" icon={<IconUser size={14} />} label="Автор" tone={statusTone}>
+      <MetaItem
+        key="author"
+        icon={<IconUser size={14} />}
+        label={tMeta("author")}
+        tone={statusTone}
+      >
         {meta.author}
       </MetaItem>
     );
@@ -118,7 +125,12 @@ export const DocumentsSystemPageMeta = ({
 
   if (meta.version) {
     secondaryMetaItems.push(
-      <MetaItem key="version" icon={<IconGitBranch size={14} />} label="Версия" tone={statusTone}>
+      <MetaItem
+        key="version"
+        icon={<IconGitBranch size={14} />}
+        label={tMeta("version")}
+        tone={statusTone}
+      >
         <span className="font-mono">v{meta.version}</span>
       </MetaItem>
     );
@@ -126,7 +138,12 @@ export const DocumentsSystemPageMeta = ({
 
   if (meta.reading) {
     secondaryMetaItems.push(
-      <MetaItem key="reading" icon={<IconClock size={14} />} label="Время чтения" tone={statusTone}>
+      <MetaItem
+        key="reading"
+        icon={<IconClock size={14} />}
+        label={tMeta("reading")}
+        tone={statusTone}
+      >
         {meta.reading}
       </MetaItem>
     );
@@ -136,11 +153,11 @@ export const DocumentsSystemPageMeta = ({
     secondaryMetaItems.push(
       <div key="status" className={cn(META_CELL_CLASS, META_CELL_TONE_CLASS[statusTone])}>
         <span className="text-muted-foreground text-[10.5px] font-medium tracking-[0.06em] uppercase">
-          Статус
+          {tMeta("status")}
         </span>
         <span className="bg-background text-foreground inline-flex w-fit items-center gap-1.5 rounded-full border px-2 py-0.5 text-[11px] font-medium tracking-wide uppercase">
           <span className={cn("size-1.5 rounded-full", STATUS_DOT_CLASS[status])} />
-          {STATUS_LABEL[status]}
+          {tStatus(status)}
         </span>
       </div>
     );
@@ -151,11 +168,11 @@ export const DocumentsSystemPageMeta = ({
       <MetaItem
         key="hidden-in-production"
         icon={<IconEyeOff size={14} />}
-        label="Видимость"
+        label={tMeta("visibility")}
         tone={statusTone}
         valueClassName="whitespace-normal break-words"
       >
-        Скрыто в prod
+        {tMeta("hiddenInProduction")}
       </MetaItem>
     );
   }
@@ -169,7 +186,7 @@ export const DocumentsSystemPageMeta = ({
       <div className="bg-border grid grid-cols-1 gap-px sm:grid-cols-2">
         <MetaItem
           icon={<IconFolder size={14} />}
-          label="Раздел"
+          label={tMeta("section")}
           className={!meta.purpose ? "sm:col-span-2" : undefined}
           tone={statusTone}
           valueClassName="whitespace-normal break-words"
@@ -179,7 +196,7 @@ export const DocumentsSystemPageMeta = ({
         {meta.purpose && (
           <MetaItem
             icon={<IconTarget size={14} />}
-            label="Назначение"
+            label={tMeta("purpose")}
             tone={statusTone}
             valueClassName="whitespace-normal break-words"
           >

@@ -4,6 +4,7 @@ import Link from "@components/ui/custom/animated-link";
 import { Button } from "@components/ui/button";
 import { IconHome } from "@tabler/icons-react";
 import { ThemeSwitcher } from "@components/application/theme/theme-switcher";
+import { DocumentationRootLink } from "@components/application/documentation-root-link";
 import { useTranslations } from "next-intl";
 
 export default function SimpleLayout({
@@ -23,6 +24,7 @@ export default function SimpleLayout({
                 <IconHome />
               </Link>
             </Button>
+            <DocumentationRootLink />
             <ThemeSwitcher />
           </div>
         </div>

@@ -105,6 +105,7 @@
     },
     "navigation": {
       "dashboard": "Дашборд",
+      "documentation": "Документация",
       "getHelp": "Помощь",
       "goToDashboard": "Перейти в дашборд",
       "getStarted": "Начать"

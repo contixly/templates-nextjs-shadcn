@@ -2,6 +2,7 @@
 
 import { IconCheck, IconLink } from "@tabler/icons-react";
 import React, { useCallback, useEffect, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import { ButtonWithTooltip } from "@components/ui/custom/button-with-tooltip";
 import { DOCUMENTS_SYSTEM_LOG_SCOPE } from "@features/documents-system/documents-system-consts";
 
@@ -23,6 +24,7 @@ export const DocumentsHeadingShareButton = ({
   headingId: string;
   label: string;
 }) => {
+  const t = useTranslations("documentsSystem.ui.headingShare");
   const [isCopied, setIsCopied] = useState(false);
   const copiedTimerRef = useRef<number | undefined>(undefined);
 
@@ -62,10 +64,10 @@ export const DocumentsHeadingShareButton = ({
 
   return (
     <ButtonWithTooltip
-      aria-label={`Скопировать ссылку на раздел ${label}`}
+      aria-label={t("copyAria", { label })}
       className="text-muted-foreground hover:text-foreground mt-0.5 opacity-70 hover:opacity-100 focus-visible:opacity-100"
       size="icon"
-      tooltipContent={isCopied ? "Ссылка скопирована" : "Скопировать ссылку"}
+      tooltipContent={isCopied ? t("copied") : t("copy")}
       type="button"
       variant="ghost"
       onClick={copyHeadingUrl}

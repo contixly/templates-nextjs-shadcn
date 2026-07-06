@@ -38,7 +38,7 @@ export default async function DocumentsSystemHomePage() {
     registry.visibleDocuments,
     DOCUMENT_URL,
   );
-  const mdxComponents = createDocumentsMdxComponents({
+  const mdxComponents = await createDocumentsMdxComponents({
     source: document,
     index: registry.linkIndex,
     environment: getDocumentsSystemEnvironment(),

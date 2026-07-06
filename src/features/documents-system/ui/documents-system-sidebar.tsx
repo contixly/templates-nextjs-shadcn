@@ -19,6 +19,7 @@ import { usePathname } from "next/navigation";
 import { IconBook2, IconChevronRight, IconEyeOff } from "@tabler/icons-react";
 import * as React from "react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { cn } from "@lib/utils";
 import type {
   DocumentsSystemParentStatusMix,
@@ -81,6 +82,7 @@ export const DocumentsSystemSidebar = ({
   ...props
 }: React.ComponentProps<typeof Sidebar> & { menu: DocumentsSystemSidebarGroup[] }) => {
   const activePathname = usePathname();
+  const t = useTranslations("documentsSystem.ui.sidebar");
 
   return (
     <Sidebar {...props}>
@@ -93,7 +95,7 @@ export const DocumentsSystemSidebar = ({
                   <IconBook2 className="size-4" />
                 </div>
                 <div className="flex flex-col gap-0.5 leading-none">
-                  <span className="font-medium">Документация</span>
+                  <span className="font-medium">{t("title")}</span>
                   <span>v1.0.0</span>
                 </div>
               </div>
@@ -159,7 +161,7 @@ export const DocumentsSystemSidebar = ({
                                       <span
                                         className="inline-flex size-4 shrink-0 items-center justify-center text-rose-600 dark:text-rose-300"
                                         data-hidden-in-production-icon="true"
-                                        title="Скрыто в prod"
+                                        title={t("hiddenInProduction")}
                                       >
                                         <IconEyeOff aria-hidden="true" className="size-3.5" />
                                       </span>

@@ -3,6 +3,7 @@
 import { IconFileText, IconSearch, IconTextCaption } from "@tabler/icons-react";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Button } from "@components/ui/button";
 import {
   Command,
@@ -55,6 +56,7 @@ type SearchStatus = "idle" | "success" | "error";
 
 export const DocumentsSystemSearch = ({ className }: { className?: string }) => {
   const router = useRouter();
+  const t = useTranslations("documentsSystem.ui.search");
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<DocumentsSystemSearchResponse>(emptySearchResponse);
@@ -164,15 +166,15 @@ export const DocumentsSystemSearch = ({ className }: { className?: string }) => 
 
   const error = status === "error";
   const emptyMessage = useMemo(
-    () => (query.trim() ? "Ничего не найдено" : "Документы не найдены"),
-    [query]
+    () => (query.trim() ? t("emptyResults") : t("emptyQuery")),
+    [query, t]
   );
   const resultsBlocked = pending && hasResults;
 
   return (
     <>
       <Button
-        aria-label="Открыть поиск по документации"
+        aria-label={t("openLabel")}
         className={cn(
           "text-muted-foreground h-9 w-9 justify-center px-0 sm:w-auto sm:min-w-24 sm:px-3 xl:w-[min(22rem,calc(100vw-8rem))] xl:justify-start",
           className
@@ -183,7 +185,7 @@ export const DocumentsSystemSearch = ({ className }: { className?: string }) => 
       >
         <IconSearch className="sm:hidden xl:block" data-icon="inline-start" />
         <span className="hidden min-w-0 flex-1 truncate text-left xl:block">
-          Поиск по документации...
+          {t("placeholder")}
         </span>
         <KbdGroup className="hidden sm:inline-flex xl:ml-auto">
           <Kbd>Ctrl/⌘</Kbd>
@@ -194,13 +196,13 @@ export const DocumentsSystemSearch = ({ className }: { className?: string }) => 
       <Dialog open={open} onOpenChange={handleOpenChange}>
         <DialogContent className="overflow-hidden p-0 sm:max-w-2xl" showCloseButton={false}>
           <DialogHeader className="sr-only">
-            <DialogTitle>Поиск по документации</DialogTitle>
-            <DialogDescription>Поиск страниц и разделов документации</DialogDescription>
+            <DialogTitle>{t("title")}</DialogTitle>
+            <DialogDescription>{t("description")}</DialogDescription>
           </DialogHeader>
 
           <Command shouldFilter={false} loop>
             <CommandInput
-              placeholder="Поиск по документации..."
+              placeholder={t("placeholder")}
               value={query}
               onValueChange={handleQueryChange}
             />
@@ -213,14 +215,14 @@ export const DocumentsSystemSearch = ({ className }: { className?: string }) => 
                   aria-disabled={pending || undefined}
                   className={cn("text-muted-foreground px-4 py-6 text-sm", pending && "opacity-60")}
                 >
-                  Поиск временно недоступен
+                  {t("unavailable")}
                 </div>
               )}
 
               {!error && !hasResults && <CommandEmpty>{emptyMessage}</CommandEmpty>}
 
               {!error && results.pages.length > 0 && (
-                <CommandGroup heading="Страницы">
+                <CommandGroup heading={t("pages")}>
                   {results.pages.map((page) => (
                     <CommandItem
                       disabled={resultsBlocked}
@@ -246,7 +248,7 @@ export const DocumentsSystemSearch = ({ className }: { className?: string }) => 
               )}
 
               {!error && results.headings.length > 0 && (
-                <CommandGroup heading="Разделы на страницах">
+                <CommandGroup heading={t("headings")}>
                   {results.headings.map((heading) => (
                     <CommandItem
                       disabled={resultsBlocked}

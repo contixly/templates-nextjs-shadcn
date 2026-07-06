@@ -1,6 +1,7 @@
 import { IconArrowLeft, IconArrowRight } from "@tabler/icons-react";
 import React from "react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { ButtonGroup } from "@components/ui/button-group";
 import { ButtonWithTooltip } from "@components/ui/custom/button-with-tooltip";
 import type { DocumentsSystemPageNavigation } from "@features/documents-system/documents-system-types";
@@ -10,6 +11,7 @@ export const DocumentsSystemPageActionsTop = ({
 }: {
   navigation: DocumentsSystemPageNavigation;
 }) => {
+  const t = useTranslations("documentsSystem.ui.page");
   const { prev, next } = navigation;
 
   if (!prev && !next) {
@@ -21,7 +23,7 @@ export const DocumentsSystemPageActionsTop = ({
       <ButtonGroup className="items-center">
         {prev ? (
           <ButtonWithTooltip asChild variant="outline" tooltipContent={prev.title}>
-            <Link href={prev.href} aria-label="Previous document">
+            <Link href={prev.href} aria-label={t("previousDocument")}>
               <IconArrowLeft />
             </Link>
           </ButtonWithTooltip>
@@ -29,7 +31,7 @@ export const DocumentsSystemPageActionsTop = ({
           <ButtonWithTooltip
             variant="outline"
             disabled
-            aria-label="Previous document"
+            aria-label={t("previousDocument")}
             tooltipContent={undefined}
           >
             <IconArrowLeft />
@@ -37,7 +39,7 @@ export const DocumentsSystemPageActionsTop = ({
         )}
         {next ? (
           <ButtonWithTooltip asChild variant="outline" tooltipContent={next.title}>
-            <Link href={next.href} aria-label="Next document">
+            <Link href={next.href} aria-label={t("nextDocument")}>
               <IconArrowRight />
             </Link>
           </ButtonWithTooltip>
@@ -45,7 +47,7 @@ export const DocumentsSystemPageActionsTop = ({
           <ButtonWithTooltip
             variant="outline"
             disabled
-            aria-label="Next document"
+            aria-label={t("nextDocument")}
             tooltipContent={undefined}
           >
             <IconArrowRight />

@@ -62,18 +62,18 @@ const DOCUMENT_LINK_CARD_DISABLED_CLASS =
   "cursor-not-allowed border-border/70 bg-muted/35 text-muted-foreground opacity-75";
 const DOCUMENT_LINK_CARD_MARKER_CLASS =
   "inline-flex shrink-0 rounded border border-border bg-muted px-1.5 py-0.5 text-[10px] leading-none font-medium text-muted-foreground";
-const DOCUMENT_LINK_CARD_MARKER_LABELS: Record<
-  Extract<DocumentsSystemResolvedLink["state"], "broken" | "unpublished">,
-  string
-> = {
-  broken: "Ссылка сломана",
-  unpublished: "Еще не готово",
-};
 
 type DocumentLinkCardState = Extract<
   DocumentsSystemResolvedLink["state"],
   "broken" | "unpublished"
 >;
+
+export type DocumentsSystemLinkStateLabels = Record<DocumentLinkCardState, string>;
+
+const DEFAULT_DOCUMENT_LINK_CARD_MARKER_LABELS: DocumentsSystemLinkStateLabels = {
+  broken: "Broken link",
+  unpublished: "Not ready yet",
+};
 
 type DocumentLinkCardProps = {
   href: string;
@@ -81,22 +81,29 @@ type DocumentLinkCardProps = {
   children?: ReactNode;
   className?: string;
   linkContext?: DocumentsSystemLinkRenderContext;
+  stateLabels?: DocumentsSystemLinkStateLabels;
 };
 
-const DocumentLinkCardMarker = ({ state }: { state: DocumentLinkCardState }) => (
-  <span className={DOCUMENT_LINK_CARD_MARKER_CLASS}>{DOCUMENT_LINK_CARD_MARKER_LABELS[state]}</span>
-);
+const DocumentLinkCardMarker = ({
+  state,
+  labels = DEFAULT_DOCUMENT_LINK_CARD_MARKER_LABELS,
+}: {
+  state: DocumentLinkCardState;
+  labels?: DocumentsSystemLinkStateLabels;
+}) => <span className={DOCUMENT_LINK_CARD_MARKER_CLASS}>{labels[state]}</span>;
 
 const DocumentLinkCardContent = ({
   title,
   children,
   state,
   disabled,
+  stateLabels,
 }: {
   title: string;
   children?: ReactNode;
   state?: DocumentLinkCardState;
   disabled?: boolean;
+  stateLabels?: DocumentsSystemLinkStateLabels;
 }) => (
   <>
     <span className="min-w-0">
@@ -109,7 +116,7 @@ const DocumentLinkCardContent = ({
         >
           {title}
         </span>
-        {state && <DocumentLinkCardMarker state={state} />}
+        {state && <DocumentLinkCardMarker state={state} labels={stateLabels} />}
       </span>
       {children && (
         <span
@@ -139,6 +146,7 @@ const ClickableDocumentLinkCard = ({
   children,
   className,
   state,
+  stateLabels,
 }: Omit<DocumentLinkCardProps, "linkContext"> & {
   state?: Extract<DocumentLinkCardState, "unpublished">;
 }) => (
@@ -147,7 +155,7 @@ const ClickableDocumentLinkCard = ({
     className={cn(DOCUMENT_LINK_CARD_LAYOUT_CLASS, DOCUMENT_LINK_CARD_INTERACTIVE_CLASS, className)}
     data-docs-link-state={state}
   >
-    <DocumentLinkCardContent title={title} state={state}>
+    <DocumentLinkCardContent title={title} state={state} stateLabels={stateLabels}>
       {children}
     </DocumentLinkCardContent>
   </Link>
@@ -158,6 +166,7 @@ const DisabledDocumentLinkCard = ({
   children,
   className,
   state,
+  stateLabels,
 }: Omit<DocumentLinkCardProps, "href" | "linkContext"> & {
   state: DocumentLinkCardState;
 }) => (
@@ -166,7 +175,7 @@ const DisabledDocumentLinkCard = ({
     className={cn(DOCUMENT_LINK_CARD_LAYOUT_CLASS, DOCUMENT_LINK_CARD_DISABLED_CLASS, className)}
     data-docs-link-state={state}
   >
-    <DocumentLinkCardContent title={title} state={state} disabled>
+    <DocumentLinkCardContent title={title} state={state} stateLabels={stateLabels} disabled>
       {children}
     </DocumentLinkCardContent>
   </span>
@@ -178,6 +187,7 @@ export const DocumentLinkCard = ({
   children,
   className,
   linkContext,
+  stateLabels,
 }: DocumentLinkCardProps) => {
   if (linkContext) {
     const resolved = resolveDocumentsSystemLink(href, linkContext.index);
@@ -185,7 +195,12 @@ export const DocumentLinkCard = ({
     if (resolved.state === "unpublished") {
       if (linkContext.environment === "production") {
         return (
-          <DisabledDocumentLinkCard title={title} className={className} state="unpublished">
+          <DisabledDocumentLinkCard
+            title={title}
+            className={className}
+            state="unpublished"
+            stateLabels={stateLabels}
+          >
             {children}
           </DisabledDocumentLinkCard>
         );
@@ -197,6 +212,7 @@ export const DocumentLinkCard = ({
           title={title}
           className={className}
           state="unpublished"
+          stateLabels={stateLabels}
         >
           {children}
         </ClickableDocumentLinkCard>
@@ -213,7 +229,12 @@ export const DocumentLinkCard = ({
       }
 
       return (
-        <DisabledDocumentLinkCard title={title} className={className} state="broken">
+        <DisabledDocumentLinkCard
+          title={title}
+          className={className}
+          state="broken"
+          stateLabels={stateLabels}
+        >
           {children}
         </DisabledDocumentLinkCard>
       );
@@ -221,7 +242,12 @@ export const DocumentLinkCard = ({
   }
 
   return (
-    <ClickableDocumentLinkCard href={href} title={title} className={className}>
+    <ClickableDocumentLinkCard
+      href={href}
+      title={title}
+      className={className}
+      stateLabels={stateLabels}
+    >
       {children}
     </ClickableDocumentLinkCard>
   );

@@ -2,6 +2,7 @@ import { IconAlertTriangle, IconCircleCheck, IconInfoCircle } from "@tabler/icon
 import React, { ComponentPropsWithoutRef, ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 import type { MDXComponents } from "mdx/types";
 import { Badge } from "@components/ui/badge";
 import { Tabs as BaseTabs, TabsContent, TabsList, TabsTrigger } from "@components/ui/tabs";
@@ -21,6 +22,7 @@ import type {
   DocumentsSystemResolvedLink,
 } from "@features/documents-system/documents-system-types";
 import { DocumentLinkCard, DocumentLinkGrid, DocumentLinkGroup } from "./documents-link-grid";
+import type { DocumentsSystemLinkStateLabels } from "./documents-link-grid";
 import { DocumentsHeadingShareButton } from "./documents-heading-share-button";
 
 const DOCUMENTS_INLINE_LINK_CLASS =
@@ -31,16 +33,41 @@ const DOCUMENTS_DISABLED_INLINE_LINK_CLASS = cn(
 );
 const DOCUMENTS_LINK_MARKER_CLASS =
   "ml-1 inline-flex rounded border border-border bg-muted px-1 py-0.5 align-baseline text-[10px] leading-none font-medium text-muted-foreground no-underline";
-const DOCUMENTS_LINK_MARKER_LABELS: Record<
-  Extract<DocumentsSystemResolvedLink["state"], "broken" | "unpublished">,
-  string
-> = {
-  broken: "Ссылка сломана",
-  unpublished: "Еще не готово",
+
+type DocumentsMdxUiLabels = {
+  footnotes: string;
+  linkStates: DocumentsSystemLinkStateLabels;
+  code: {
+    copy: string;
+    copied: string;
+    tooltip: string;
+  };
+  mdx: {
+    folder: string;
+    file: string;
+  };
+};
+
+const DEFAULT_DOCUMENTS_MDX_UI_LABELS: DocumentsMdxUiLabels = {
+  footnotes: "Footnotes",
+  linkStates: {
+    broken: "Broken link",
+    unpublished: "Not ready yet",
+  },
+  code: {
+    copy: "Copy",
+    copied: "Copied",
+    tooltip: "Copy",
+  },
+  mdx: {
+    folder: "dir",
+    file: "file",
+  },
 };
 
 type DocumentsInlineLinkProps = ComponentPropsWithoutRef<"a"> & {
   linkContext?: DocumentsSystemLinkRenderContext;
+  stateLabels?: DocumentsSystemLinkStateLabels;
 };
 type DisabledDocumentsInlineSpanProps = ComponentPropsWithoutRef<"span"> &
   Partial<
@@ -60,16 +87,20 @@ type DisabledDocumentsInlineSpanProps = ComponentPropsWithoutRef<"span"> &
 
 const DocumentsLinkMarker = ({
   state,
+  labels = DEFAULT_DOCUMENTS_MDX_UI_LABELS.linkStates,
 }: {
   state: Extract<DocumentsSystemResolvedLink["state"], "broken" | "unpublished">;
-}) => <span className={DOCUMENTS_LINK_MARKER_CLASS}>{DOCUMENTS_LINK_MARKER_LABELS[state]}</span>;
+  labels?: DocumentsSystemLinkStateLabels;
+}) => <span className={DOCUMENTS_LINK_MARKER_CLASS}>{labels[state]}</span>;
 
 const DisabledDocumentsInlineLink = ({
   state,
   children,
+  stateLabels,
   ...props
 }: ComponentPropsWithoutRef<"a"> & {
   state: Extract<DocumentsSystemResolvedLink["state"], "broken" | "unpublished">;
+  stateLabels?: DocumentsSystemLinkStateLabels;
 }) => {
   const spanProps = { ...props } as DisabledDocumentsInlineSpanProps;
   const { className } = spanProps;
@@ -94,12 +125,18 @@ const DisabledDocumentsInlineLink = ({
       {...spanProps}
     >
       {children}
-      <DocumentsLinkMarker state={state} />
+      <DocumentsLinkMarker state={state} labels={stateLabels} />
     </span>
   );
 };
 
-const ExternalLink = ({ href = "", children, linkContext, ...props }: DocumentsInlineLinkProps) => {
+const ExternalLink = ({
+  href = "",
+  children,
+  linkContext,
+  stateLabels,
+  ...props
+}: DocumentsInlineLinkProps) => {
   const isFootnoteRef = "data-footnote-ref" in props;
   const isFootnoteBackref = "data-footnote-backref" in props;
 
@@ -140,7 +177,12 @@ const ExternalLink = ({ href = "", children, linkContext, ...props }: DocumentsI
     if (resolved.state === "unpublished") {
       if (linkContext.environment === "production") {
         return (
-          <DisabledDocumentsInlineLink href={href} state="unpublished" {...props}>
+          <DisabledDocumentsInlineLink
+            href={href}
+            state="unpublished"
+            stateLabels={stateLabels}
+            {...props}
+          >
             {children}
           </DisabledDocumentsInlineLink>
         );
@@ -154,7 +196,7 @@ const ExternalLink = ({ href = "", children, linkContext, ...props }: DocumentsI
           {...props}
         >
           {children}
-          <DocumentsLinkMarker state="unpublished" />
+          <DocumentsLinkMarker state="unpublished" labels={stateLabels} />
         </Link>
       );
     }
@@ -169,7 +211,12 @@ const ExternalLink = ({ href = "", children, linkContext, ...props }: DocumentsI
       }
 
       return (
-        <DisabledDocumentsInlineLink href={href} state="broken" {...props}>
+        <DisabledDocumentsInlineLink
+          href={href}
+          state="broken"
+          stateLabels={stateLabels}
+          {...props}
+        >
           {children}
         </DisabledDocumentsInlineLink>
       );
@@ -268,11 +315,19 @@ export const Files = ({ children }: { children: ReactNode }) => (
   <div className="bg-background my-4 rounded-lg border p-3 font-mono text-[13px]">{children}</div>
 );
 
-export const Folder = ({ name, children }: { name: string; children?: ReactNode }) => (
+export const Folder = ({
+  name,
+  children,
+  markerLabel = DEFAULT_DOCUMENTS_MDX_UI_LABELS.mdx.folder,
+}: {
+  name: string;
+  children?: ReactNode;
+  markerLabel?: string;
+}) => (
   <div>
     <div className="flex items-center gap-2 py-1">
       <Badge variant="outline" className="px-1.5 py-0 text-[10px] tracking-wider uppercase">
-        dir
+        {markerLabel}
       </Badge>
       <span>{name}/</span>
     </div>
@@ -280,10 +335,16 @@ export const Folder = ({ name, children }: { name: string; children?: ReactNode 
   </div>
 );
 
-export const File = ({ name }: { name: string }) => (
+export const File = ({
+  name,
+  markerLabel = DEFAULT_DOCUMENTS_MDX_UI_LABELS.mdx.file,
+}: {
+  name: string;
+  markerLabel?: string;
+}) => (
   <div className="flex items-center gap-2 py-1">
     <Badge variant="secondary" className="px-1.5 py-0 text-[10px] tracking-wider uppercase">
-      file
+      {markerLabel}
     </Badge>
     <span>{name}</span>
   </div>
@@ -430,210 +491,242 @@ const getCodeBlockText = (children: ReactNode): string =>
     })
     .join(" ");
 
-export const documentsMdxComponents = {
-  h1: ({ children, ...props }) => (
-    <h1 className="hidden" {...props}>
-      {children}
-    </h1>
-  ),
-  h2: ({ children, id, ...props }) => {
-    const headingId = id ?? slugifyDocumentHeading(children);
-    const isFootnoteLabel = id === "footnote-label";
-    const label = getDocumentHeadingText(children) || headingId;
-
-    return (
-      <h2
-        id={headingId}
-        className={cn(
-          "text-foreground scroll-m-20 font-semibold tracking-tight",
-          isFootnoteLabel
-            ? "text-muted-foreground mt-0 mb-2 text-[11px] tracking-wider uppercase"
-            : "group border-muted-foreground/50 mt-10 flex items-center gap-3 border-b border-dashed pb-0 text-[22px] first:mt-0"
-        )}
-        {...props}
-      >
-        {isFootnoteLabel ? (
-          "Сноски"
-        ) : (
-          <>
-            <span className="min-w-0 flex-1">{children}</span>
-            <DocumentsHeadingShareButton headingId={headingId} label={label} />
-          </>
-        )}
-      </h2>
-    );
-  },
-  h3: ({ children, id, ...props }) => {
-    const headingId = id ?? slugifyDocumentHeading(children);
-
-    return (
-      <h3
-        id={headingId}
-        className="text-foreground mt-7 scroll-m-20 text-lg font-semibold tracking-tight"
-        {...props}
-      >
+const createDocumentsMdxComponentMap = (
+  linkContext?: DocumentsSystemLinkRenderContext,
+  labels: DocumentsMdxUiLabels = DEFAULT_DOCUMENTS_MDX_UI_LABELS
+): MDXComponents =>
+  ({
+    h1: ({ children, ...props }) => (
+      <h1 className="hidden" {...props}>
         {children}
-      </h3>
-    );
-  },
-  p: ({ children, ...props }) => (
-    <p className="text-foreground mt-4 leading-7" {...props}>
-      {children}
-    </p>
-  ),
-  ul: ({ children, className, ...props }) => {
-    const isTaskList = typeof className === "string" && className.includes("contains-task-list");
-    return (
-      <ul
+      </h1>
+    ),
+    h2: ({ children, id, ...props }) => {
+      const headingId = id ?? slugifyDocumentHeading(children);
+      const isFootnoteLabel = id === "footnote-label";
+      const label = getDocumentHeadingText(children) || headingId;
+
+      return (
+        <h2
+          id={headingId}
+          className={cn(
+            "text-foreground scroll-m-20 font-semibold tracking-tight",
+            isFootnoteLabel
+              ? "text-muted-foreground mt-0 mb-2 text-[11px] tracking-wider uppercase"
+              : "group border-muted-foreground/50 mt-10 flex items-center gap-3 border-b border-dashed pb-0 text-[22px] first:mt-0"
+          )}
+          {...props}
+        >
+          {isFootnoteLabel ? (
+            labels.footnotes
+          ) : (
+            <>
+              <span className="min-w-0 flex-1">{children}</span>
+              <DocumentsHeadingShareButton headingId={headingId} label={label} />
+            </>
+          )}
+        </h2>
+      );
+    },
+    h3: ({ children, id, ...props }) => {
+      const headingId = id ?? slugifyDocumentHeading(children);
+
+      return (
+        <h3
+          id={headingId}
+          className="text-foreground mt-7 scroll-m-20 text-lg font-semibold tracking-tight"
+          {...props}
+        >
+          {children}
+        </h3>
+      );
+    },
+    p: ({ children, ...props }) => (
+      <p className="text-foreground mt-4 leading-7" {...props}>
+        {children}
+      </p>
+    ),
+    ul: ({ children, className, ...props }) => {
+      const isTaskList = typeof className === "string" && className.includes("contains-task-list");
+      return (
+        <ul
+          className={cn(
+            "text-foreground marker:text-muted-foreground mt-4 space-y-1.5",
+            isTaskList ? "ml-0 list-none" : "ml-6 list-disc",
+            className
+          )}
+          {...props}
+        >
+          {children}
+        </ul>
+      );
+    },
+    ol: ({ children, className, ...props }) => (
+      <ol
         className={cn(
-          "text-foreground marker:text-muted-foreground mt-4 space-y-1.5",
-          isTaskList ? "ml-0 list-none" : "ml-6 list-disc",
+          "text-foreground marker:text-muted-foreground mt-4 ml-6 list-decimal space-y-1.5",
           className
         )}
         {...props}
       >
         {children}
-      </ul>
-    );
-  },
-  ol: ({ children, className, ...props }) => (
-    <ol
-      className={cn(
-        "text-foreground marker:text-muted-foreground mt-4 ml-6 list-decimal space-y-1.5",
-        className
-      )}
-      {...props}
-    >
-      {children}
-    </ol>
-  ),
-  li: ({ children, className, ...props }) => {
-    const isTaskListItem = typeof className === "string" && className.includes("task-list-item");
-    return (
-      <li
-        className={cn("leading-7", isTaskListItem && "flex items-baseline gap-2", className)}
-        {...props}
-      >
-        {children}
-      </li>
-    );
-  },
-  input: ({ className, type, ...props }) => {
-    if (type === "checkbox") {
+      </ol>
+    ),
+    li: ({ children, className, ...props }) => {
+      const isTaskListItem = typeof className === "string" && className.includes("task-list-item");
       return (
-        <input
-          type="checkbox"
-          className={cn(
-            "relative size-3.5 shrink-0 translate-y-[3px] cursor-default appearance-none",
-            "border-border bg-background rounded-[3px] border",
-            "checked:border-foreground checked:bg-foreground",
-            "checked:before:absolute checked:before:top-[1px] checked:before:left-[4px]",
-            "checked:before:h-[7px] checked:before:w-[3px] checked:before:rotate-45",
-            "checked:before:border-r-[1.5px] checked:before:border-b-[1.5px]",
-            "checked:before:border-background checked:before:content-['']",
-            "disabled:opacity-100",
-            className
-          )}
+        <li
+          className={cn("leading-7", isTaskListItem && "flex items-baseline gap-2", className)}
           {...props}
-        />
+        >
+          {children}
+        </li>
       );
-    }
-    return <input type={type} className={className} {...props} />;
-  },
-  del: ({ children, ...props }) => (
-    <del className="text-muted-foreground" {...props}>
-      {children}
-    </del>
-  ),
-  section: ({ children, className, ...props }) => {
-    if ("data-footnotes" in props) {
+    },
+    input: ({ className, type, ...props }) => {
+      if (type === "checkbox") {
+        return (
+          <input
+            type="checkbox"
+            className={cn(
+              "relative size-3.5 shrink-0 translate-y-[3px] cursor-default appearance-none",
+              "border-border bg-background rounded-[3px] border",
+              "checked:border-foreground checked:bg-foreground",
+              "checked:before:absolute checked:before:top-[1px] checked:before:left-[4px]",
+              "checked:before:h-[7px] checked:before:w-[3px] checked:before:rotate-45",
+              "checked:before:border-r-[1.5px] checked:before:border-b-[1.5px]",
+              "checked:before:border-background checked:before:content-['']",
+              "disabled:opacity-100",
+              className
+            )}
+            {...props}
+          />
+        );
+      }
+      return <input type={type} className={className} {...props} />;
+    },
+    del: ({ children, ...props }) => (
+      <del className="text-muted-foreground" {...props}>
+        {children}
+      </del>
+    ),
+    section: ({ children, className, ...props }) => {
+      if ("data-footnotes" in props) {
+        return (
+          <section className={cn("mt-12 border-t pt-6 text-sm", className)} {...props}>
+            {children}
+          </section>
+        );
+      }
       return (
-        <section className={cn("mt-12 border-t pt-6 text-sm", className)} {...props}>
+        <section className={className} {...props}>
           {children}
         </section>
       );
-    }
-    return (
-      <section className={className} {...props}>
+    },
+    a: (props) => (
+      <ExternalLink {...props} linkContext={linkContext} stateLabels={labels.linkStates} />
+    ),
+    blockquote: ({ children, ...props }) => (
+      <blockquote className="text-muted-foreground mt-4 border-l-2 pl-4 italic" {...props}>
         {children}
-      </section>
-    );
-  },
-  a: ExternalLink,
-  blockquote: ({ children, ...props }) => (
-    <blockquote className="text-muted-foreground mt-4 border-l-2 pl-4 italic" {...props}>
-      {children}
-    </blockquote>
-  ),
-  table: ({ children, ...props }) => (
-    <div className="my-6 w-full overflow-x-auto">
-      <table className="w-full border-collapse text-sm" {...props}>
+      </blockquote>
+    ),
+    table: ({ children, ...props }) => (
+      <div className="my-6 w-full overflow-x-auto">
+        <table className="w-full border-collapse text-sm" {...props}>
+          {children}
+        </table>
+      </div>
+    ),
+    th: ({ children, ...props }) => (
+      <th className="border px-3 py-2 text-left font-medium" {...props}>
         {children}
-      </table>
-    </div>
-  ),
-  th: ({ children, ...props }) => (
-    <th className="border px-3 py-2 text-left font-medium" {...props}>
-      {children}
-    </th>
-  ),
-  td: ({ children, ...props }) => (
-    <td className="text-muted-foreground border px-3 py-2" {...props}>
-      {children}
-    </td>
-  ),
-  code: ({ children, className, ...props }) => {
-    const isCodeBlock = typeof className === "string" && className.startsWith("language-");
-    if (isCodeBlock) {
+      </th>
+    ),
+    td: ({ children, ...props }) => (
+      <td className="text-muted-foreground border px-3 py-2" {...props}>
+        {children}
+      </td>
+    ),
+    code: ({ children, className, ...props }) => {
+      const isCodeBlock = typeof className === "string" && className.startsWith("language-");
+      if (isCodeBlock) {
+        return (
+          <code className={cn("font-mono", className)} {...props}>
+            {children}
+          </code>
+        );
+      }
       return (
-        <code className={cn("font-mono", className)} {...props}>
+        <code
+          className={cn("bg-muted rounded px-1.5 py-0.5 font-mono text-sm", className)}
+          {...props}
+        >
           {children}
         </code>
       );
-    }
-    return (
-      <code
-        className={cn("bg-muted rounded px-1.5 py-0.5 font-mono text-sm", className)}
-        {...props}
-      >
-        {children}
-      </code>
-    );
-  },
-  pre: ({ children, className, ...props }) => {
-    const code = getCodeBlockText(children);
+    },
+    pre: ({ children, className, ...props }) => {
+      const code = getCodeBlockText(children);
 
-    return (
-      <div className="bg-muted/40 my-4 overflow-hidden rounded-lg border">
-        <div className="border-border bg-background/60 flex items-center justify-end border-b px-2 py-1">
-          <CopyButtonWithTooltip variant="ghost" size="sm" content={code} />
+      return (
+        <div className="bg-muted/40 my-4 overflow-hidden rounded-lg border">
+          <div className="border-border bg-background/60 flex items-center justify-end border-b px-2 py-1">
+            <CopyButtonWithTooltip
+              variant="ghost"
+              size="sm"
+              content={code}
+              copyLabel={labels.code.copy}
+              copiedLabel={labels.code.copied}
+              tooltipContent={labels.code.tooltip}
+            />
+          </div>
+          <div className="overflow-x-auto px-6 py-4">
+            <pre className={cn("font-mono text-[12.5px] leading-relaxed", className)} {...props}>
+              {children}
+            </pre>
+          </div>
         </div>
-        <div className="overflow-x-auto px-6 py-4">
-          <pre className={cn("font-mono text-[12.5px] leading-relaxed", className)} {...props}>
-            {children}
-          </pre>
-        </div>
-      </div>
-    );
-  },
-  img: DocumentImage,
-  Callout,
-  Steps,
-  Step,
-  Files,
-  Folder,
-  File,
-  Tabs,
-  Tab,
-  DocumentLinkGrid,
-  DocumentLinkGroup,
-  DocumentLinkCard,
-} satisfies MDXComponents;
+      );
+    },
+    img: DocumentImage,
+    Callout,
+    Steps,
+    Step,
+    Files,
+    Folder: (props) => <Folder {...props} markerLabel={labels.mdx.folder} />,
+    File: (props) => <File {...props} markerLabel={labels.mdx.file} />,
+    Tabs,
+    Tab,
+    DocumentLinkGrid,
+    DocumentLinkGroup,
+    DocumentLinkCard: (props) => (
+      <DocumentLinkCard {...props} linkContext={linkContext} stateLabels={labels.linkStates} />
+    ),
+  }) satisfies MDXComponents;
 
-export const createDocumentsMdxComponents = (
+export const documentsMdxComponents = createDocumentsMdxComponentMap();
+
+export const createDocumentsMdxComponents = async (
   linkContext: DocumentsSystemLinkRenderContext
-): MDXComponents => ({
-  ...documentsMdxComponents,
-  a: (props) => <ExternalLink {...props} linkContext={linkContext} />,
-  DocumentLinkCard: (props) => <DocumentLinkCard {...props} linkContext={linkContext} />,
-});
+): Promise<MDXComponents> => {
+  const t = await getTranslations("documentsSystem.ui");
+
+  return createDocumentsMdxComponentMap(linkContext, {
+    footnotes: t("page.footnotes"),
+    linkStates: {
+      broken: t("links.broken"),
+      unpublished: t("links.unpublished"),
+    },
+    code: {
+      copy: t("code.copy"),
+      copied: t("code.copied"),
+      tooltip: t("code.copyTooltip"),
+    },
+    mdx: {
+      folder: t("mdx.folder"),
+      file: t("mdx.file"),
+    },
+  });
+};
