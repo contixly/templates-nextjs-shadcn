@@ -4,6 +4,7 @@ import { SidebarInset, SidebarProvider } from "@components/ui/sidebar";
 import { getTFromCookie } from "@lib/cookies";
 import { SIDEBAR_COOKIE_KEY } from "@lib/environment";
 import { getCachedDocuments } from "@features/documents-system/documents-system-actions";
+import { DOCUMENTS_SYSTEM_SCROLL_CONTAINER_ATTRIBUTE } from "@features/documents-system/documents-system-consts";
 import { getDocumentsSystemEnvironment } from "@features/documents-system/documents-system-runtime";
 import { documentsSystemTools } from "@features/documents-system/documents-system-tools";
 import { DocumentsSystemHeader } from "@features/documents-system/ui/documents-system-header";
@@ -27,9 +28,14 @@ const DocumentsSystemShell = ({
 }: DocumentsSystemShellProps) => (
   <SidebarProvider defaultOpen={defaultOpen} style={documentsSidebarStyle}>
     <DocumentsSystemSidebar menu={sidebarMenu} />
-    <SidebarInset className="flex h-screen flex-col overflow-y-auto">
+    <SidebarInset
+      className="flex h-screen flex-col overflow-y-auto"
+      {...{ [DOCUMENTS_SYSTEM_SCROLL_CONTAINER_ATTRIBUTE]: "" }}
+    >
       <DocumentsSystemHeader />
-      <div className="min-w-0">{children}</div>
+      <div id="main-content" className="min-w-0" tabIndex={-1}>
+        {children}
+      </div>
     </SidebarInset>
   </SidebarProvider>
 );

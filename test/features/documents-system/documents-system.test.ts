@@ -262,6 +262,12 @@ describe("documents system", () => {
     expect(source).not.toContain("DocumentationRootLink");
   });
 
+  it("restores the root skip-link target inside the documentation shell", async () => {
+    const source = await readFile("src/app/(public)/(documents-system)/layout.tsx", "utf8");
+
+    expect(source).toContain('id="main-content"');
+  });
+
   it("indexes the selected locale document title for search", () => {
     const documents = resolveDocumentsSystemRegistryDocuments(
       [

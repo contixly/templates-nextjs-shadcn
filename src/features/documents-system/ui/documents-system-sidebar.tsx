@@ -23,6 +23,7 @@ import { useTranslations } from "next-intl";
 import { cn } from "@lib/utils";
 import type {
   DocumentsSystemParentStatusMix,
+  DocumentsSystemSidebarParent,
   DocumentsSystemSidebarGroup,
   DocumentsSystemStatusTone,
 } from "@features/documents-system/documents-system-types";
@@ -77,6 +78,92 @@ const StatusStripes = ({
   );
 };
 
+const DocumentsSystemSidebarParentMenu = ({
+  item,
+  activePathname,
+  hiddenInProductionLabel,
+}: {
+  item: DocumentsSystemSidebarParent;
+  activePathname: string;
+  hiddenInProductionLabel: string;
+}) => {
+  const hasActiveChild = item.items.some((child) => child.href === activePathname);
+  const [open, setOpen] = React.useState(hasActiveChild);
+  const controlledOpen = open || hasActiveChild;
+
+  React.useEffect(() => {
+    if (hasActiveChild) {
+      setOpen(true);
+    }
+  }, [hasActiveChild]);
+
+  return (
+    <Collapsible open={controlledOpen} onOpenChange={setOpen} className="group/collapsible">
+      <SidebarMenuItem>
+        {item.items.length > 0 && (
+          <CollapsibleTrigger asChild>
+            <SidebarMenuButton
+              data-status-mix={item.statusMix}
+              className={cn(
+                "text-sidebar-foreground h-auto min-h-8 items-start px-2 py-1.5 text-sm leading-5 font-medium",
+                "[&>span]:min-w-0 [&>span]:flex-1 [&>span]:break-words [&>span]:whitespace-normal"
+              )}
+            >
+              <span>{item.label}</span>
+              <StatusStripes
+                stripes={PARENT_STATUS_MIX_STRIPES[item.statusMix]}
+                className="mt-0.5"
+              />
+              <IconChevronRight className="mt-0.5 shrink-0 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+            </SidebarMenuButton>
+          </CollapsibleTrigger>
+        )}
+        {item.items.length > 0 && (
+          <CollapsibleContent>
+            <SidebarMenuSub className="mx-3 border-l border-dashed px-0 py-1.5">
+              {item.items.map((child) => (
+                <SidebarMenuSubItem key={child.href}>
+                  <SidebarMenuSubButton
+                    asChild
+                    isActive={child.href === activePathname}
+                    data-status-tone={child.statusTone}
+                    data-hidden-in-production={child.hiddenInProduction ? "true" : "false"}
+                    className={cn(
+                      "text-sidebar-foreground/65 relative ml-1.5 h-auto min-h-7 items-start rounded-none py-1.5 pr-2 pl-4 text-[13px] leading-5 break-words whitespace-normal",
+                      "data-[active=true]:bg-sidebar-primary/10 data-[active=true]:text-sidebar-accent-foreground data-[active=true]:font-medium"
+                    )}
+                  >
+                    <Link href={child.href}>
+                      <div className="flex min-w-0 flex-1 flex-wrap items-center gap-1.5">
+                        <span className="min-w-0 flex-1 break-words whitespace-normal">
+                          {child.label}
+                        </span>
+                        {child.hiddenInProduction && (
+                          <span
+                            className="inline-flex size-4 shrink-0 items-center justify-center text-rose-600 dark:text-rose-300"
+                            data-hidden-in-production-icon="true"
+                            title={hiddenInProductionLabel}
+                          >
+                            <IconEyeOff aria-hidden="true" className="size-3.5" />
+                          </span>
+                        )}
+                        <StatusStripes
+                          stripes={LINK_STATUS_TONE_STRIPES[child.statusTone]}
+                          className="h-4"
+                        />
+                      </div>
+                    </Link>
+                  </SidebarMenuSubButton>
+                </SidebarMenuSubItem>
+              ))}
+            </SidebarMenuSub>
+          </CollapsibleContent>
+        )}
+      </SidebarMenuItem>
+    </Collapsible>
+  );
+};
+
 export const DocumentsSystemSidebar = ({
   menu,
   ...props
@@ -111,75 +198,12 @@ export const DocumentsSystemSidebar = ({
                 {group.label}
               </SidebarGroupLabel>
               {group.items.map((item) => (
-                <Collapsible
+                <DocumentsSystemSidebarParentMenu
                   key={item.label}
-                  defaultOpen={item.items.some((child) => child.href === activePathname)}
-                  className="group/collapsible"
-                >
-                  <SidebarMenuItem>
-                    {item.items.length > 0 && (
-                      <CollapsibleTrigger asChild>
-                        <SidebarMenuButton
-                          data-status-mix={item.statusMix}
-                          className={cn(
-                            "text-sidebar-foreground h-auto min-h-8 items-start px-2 py-1.5 text-sm leading-5 font-medium",
-                            "[&>span]:min-w-0 [&>span]:flex-1 [&>span]:break-words [&>span]:whitespace-normal"
-                          )}
-                        >
-                          <span>{item.label}</span>
-                          <StatusStripes
-                            stripes={PARENT_STATUS_MIX_STRIPES[item.statusMix]}
-                            className="mt-0.5"
-                          />
-                          <IconChevronRight className="mt-0.5 shrink-0 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
-                        </SidebarMenuButton>
-                      </CollapsibleTrigger>
-                    )}
-                    {item.items.length > 0 && (
-                      <CollapsibleContent>
-                        <SidebarMenuSub className="mx-3 border-l border-dashed px-0 py-1.5">
-                          {item.items.map((child) => (
-                            <SidebarMenuSubItem key={child.href}>
-                              <SidebarMenuSubButton
-                                asChild
-                                isActive={child.href === activePathname}
-                                data-status-tone={child.statusTone}
-                                data-hidden-in-production={
-                                  child.hiddenInProduction ? "true" : "false"
-                                }
-                                className={cn(
-                                  "text-sidebar-foreground/65 relative ml-1.5 h-auto min-h-7 items-start rounded-none py-1.5 pr-2 pl-4 text-[13px] leading-5 break-words whitespace-normal",
-                                  "data-[active=true]:bg-sidebar-primary/10 data-[active=true]:text-sidebar-accent-foreground data-[active=true]:font-medium"
-                                )}
-                              >
-                                <Link href={child.href}>
-                                  <div className="flex min-w-0 flex-1 flex-wrap items-center gap-1.5">
-                                    <span className="min-w-0 flex-1 break-words whitespace-normal">
-                                      {child.label}
-                                    </span>
-                                    {child.hiddenInProduction && (
-                                      <span
-                                        className="inline-flex size-4 shrink-0 items-center justify-center text-rose-600 dark:text-rose-300"
-                                        data-hidden-in-production-icon="true"
-                                        title={t("hiddenInProduction")}
-                                      >
-                                        <IconEyeOff aria-hidden="true" className="size-3.5" />
-                                      </span>
-                                    )}
-                                    <StatusStripes
-                                      stripes={LINK_STATUS_TONE_STRIPES[child.statusTone]}
-                                      className="h-4"
-                                    />
-                                  </div>
-                                </Link>
-                              </SidebarMenuSubButton>
-                            </SidebarMenuSubItem>
-                          ))}
-                        </SidebarMenuSub>
-                      </CollapsibleContent>
-                    )}
-                  </SidebarMenuItem>
-                </Collapsible>
+                  item={item}
+                  activePathname={activePathname}
+                  hiddenInProductionLabel={t("hiddenInProduction")}
+                />
               ))}
             </SidebarMenu>
           </SidebarGroup>
