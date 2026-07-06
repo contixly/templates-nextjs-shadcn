@@ -5,17 +5,21 @@ import { join } from "node:path";
 import { cacheLife, cacheTag } from "next/cache";
 import { glob } from "glob";
 import matter from "gray-matter";
+import { locales, resolveAppLocale } from "@/src/i18n/config";
+import type { AppLocale } from "@/src/i18n/config";
 import {
   assertNoBrokenDocumentsSystemLinks,
   buildDocumentsSystemLinkIndex,
   validateDocumentsSystemLinks,
 } from "./documents-system-link-tools";
+import { parseDocumentsSystemContentPath } from "./documents-system-locale-tools";
 import { DOCUMENTS_SYSTEM_LOG_SCOPE } from "./documents-system-consts";
 import { getDocumentsSystemEnvironment } from "./documents-system-runtime";
 import {
   CACHE_DocumentsSystemTag,
   DocumentInfo,
   DocumentModule,
+  DocumentsSystemDocumentVariant,
   DocumentsSystemLinkIndex,
   DocumentsSystemMetadata,
 } from "./documents-system-types";
@@ -24,15 +28,17 @@ import { documentsSystemTools } from "./documents-system-tools";
 export type DocumentsSystemRegistry = {
   allDocuments: DocumentInfo[];
   visibleDocuments: DocumentInfo[];
+  allVariants: DocumentsSystemDocumentVariant[];
   sourceByPath: Map<string, string>;
   linkIndex: DocumentsSystemLinkIndex;
+  locale: AppLocale;
 };
 
-let allDocuments: DocumentInfo[] | undefined = undefined;
-let visibleDocuments: DocumentInfo[] | undefined = undefined;
 let documentsSourceByPath: Map<string, string> | undefined = undefined;
-let documentsLinkIndex: DocumentsSystemLinkIndex | undefined = undefined;
-let documentsRegistry: DocumentsSystemRegistry | undefined = undefined;
+const allDocumentsByLocale = new Map<AppLocale, DocumentInfo[]>();
+const visibleDocumentsByLocale = new Map<AppLocale, DocumentInfo[]>();
+const documentsLinkIndexByLocale = new Map<AppLocale, DocumentsSystemLinkIndex>();
+const documentsRegistryByLocale = new Map<AppLocale, DocumentsSystemRegistry>();
 const documentsSystemEnvironment = getDocumentsSystemEnvironment();
 const shouldCacheDocuments = documentsSystemEnvironment !== "local";
 const shouldAssertBrokenLinks =
@@ -80,8 +86,79 @@ const computeEditedAt = (absPath: string): string => {
   return value;
 };
 
+const sortLocales = (values: Iterable<AppLocale>) =>
+  [...values].sort((left, right) => locales.indexOf(left) - locales.indexOf(right));
+
+const findPreferredVariant = (
+  variants: DocumentsSystemDocumentVariant[],
+  requestedLocale: AppLocale
+) => {
+  const defaultLocale = resolveAppLocale();
+
+  return (
+    variants.find((variant) => variant.contentLocale === requestedLocale) ??
+    variants.find((variant) => !variant.hasExplicitLocale) ??
+    variants.find((variant) => variant.contentLocale === defaultLocale) ??
+    sortLocales(variants.map((variant) => variant.contentLocale))
+      .map((locale) => variants.find((variant) => variant.contentLocale === locale))
+      .find((variant): variant is DocumentsSystemDocumentVariant => Boolean(variant))
+  );
+};
+
+export const resolveDocumentsSystemRegistryDocuments = (
+  variants: DocumentsSystemDocumentVariant[],
+  requestedLocale: AppLocale
+): DocumentInfo[] => {
+  const variantsByUrl = new Map<string, DocumentsSystemDocumentVariant[]>();
+
+  variants.forEach((variant) => {
+    const urlVariants = variantsByUrl.get(variant.url) ?? [];
+    const duplicate = urlVariants.find(
+      (candidate) => candidate.contentLocale === variant.contentLocale
+    );
+
+    if (duplicate) {
+      throw new Error(
+        [
+          "Duplicate documents-system content locale.",
+          `Canonical URL: ${variant.url}`,
+          `Locale: ${variant.contentLocale}`,
+          `Files: ${duplicate.sourcePath}, ${variant.sourcePath}`,
+        ].join("\n")
+      );
+    }
+
+    urlVariants.push(variant);
+    variantsByUrl.set(variant.url, urlVariants);
+  });
+
+  return documentsSystemTools.sortDocuments(
+    [...variantsByUrl.values()].map((urlVariants) => {
+      const selected = findPreferredVariant(urlVariants, requestedLocale);
+
+      if (!selected) {
+        throw new Error("Documents-system canonical URL has no variants.");
+      }
+
+      const availableLocales = sortLocales(urlVariants.map((variant) => variant.contentLocale));
+
+      return {
+        url: selected.url,
+        slug: selected.slug,
+        sourcePath: selected.sourcePath,
+        canonicalSourcePath: selected.canonicalSourcePath,
+        requestedLocale,
+        contentLocale: selected.contentLocale,
+        isLocaleFallback: selected.contentLocale !== requestedLocale,
+        availableLocales,
+        meta: selected.meta,
+      };
+    })
+  );
+};
+
 const readDocumentFiles = async (): Promise<{
-  documents: DocumentInfo[];
+  variants: DocumentsSystemDocumentVariant[];
   sourceByPath: Map<string, string>;
 }> => {
   const paths = await glob("content/**/*.{md,mdx}", {
@@ -102,95 +179,118 @@ const readDocumentFiles = async (): Promise<{
         return undefined;
       }
 
-      const sourcePath = path.replace(/^content\//, "");
-      sourceByPath.set(sourcePath, parsed.content);
+      const parsedPath = parseDocumentsSystemContentPath(path);
+      sourceByPath.set(parsedPath.sourcePath, parsed.content);
 
       const enrichedMeta: DocumentsSystemMetadata = {
         ...meta,
-        source: meta.source ?? sourcePath,
+        source: meta.source ?? parsedPath.sourcePath,
         reading: meta.reading ?? computeReading(parsed.content),
         editedAt: meta.editedAt ?? computeEditedAt(absPath),
       };
-      const url = documentsSystemTools.normalizeDocumentUrl(path);
 
-      const info: DocumentInfo = {
-        url,
-        slug: documentsSystemTools.documentUrlToSlug(url),
-        sourcePath,
+      const info: DocumentsSystemDocumentVariant = {
+        url: parsedPath.canonicalUrl,
+        slug: documentsSystemTools.documentUrlToSlug(parsedPath.canonicalUrl),
+        sourcePath: parsedPath.sourcePath,
+        canonicalSourcePath: parsedPath.canonicalSourcePath,
+        contentLocale: parsedPath.contentLocale,
+        hasExplicitLocale: parsedPath.hasExplicitLocale,
         meta: enrichedMeta,
       };
       return info;
     })
   );
 
-  const sortedDocuments = documentsSystemTools.sortDocuments(
-    loaded.filter((document): document is DocumentInfo => Boolean(document))
+  const sortedVariants = documentsSystemTools.sortDocuments(
+    loaded.filter((document): document is DocumentsSystemDocumentVariant => Boolean(document))
   );
 
   return {
-    documents: sortedDocuments,
+    variants: sortedVariants,
     sourceByPath,
   };
 };
 
-const buildDocumentsSystemRegistry = async (): Promise<DocumentsSystemRegistry> => {
+const buildDocumentsSystemRegistry = async (
+  locale: AppLocale = resolveAppLocale()
+): Promise<DocumentsSystemRegistry> => {
   const loaded = await readDocumentFiles();
-  const linkIndex = buildDocumentsSystemLinkIndex(loaded.documents);
-  const filteredDocuments = loaded.documents.filter((document) =>
+  const allDocuments = resolveDocumentsSystemRegistryDocuments(loaded.variants, locale);
+  const linkIndex = buildDocumentsSystemLinkIndex(allDocuments);
+  const filteredDocuments = allDocuments.filter((document) =>
     documentsSystemTools.isDocumentVisible(document.meta, documentsSystemEnvironment)
   );
 
   if (shouldAssertBrokenLinks) {
     assertNoBrokenDocumentsSystemLinks(
-      validateDocumentsSystemLinks(loaded.documents, loaded.sourceByPath)
+      validateDocumentsSystemLinks(loaded.variants, loaded.sourceByPath, allDocuments)
     );
   }
 
   return {
-    allDocuments: loaded.documents,
+    allDocuments,
     visibleDocuments: filteredDocuments,
+    allVariants: loaded.variants,
     sourceByPath: loaded.sourceByPath,
     linkIndex,
+    locale,
   };
 };
 
 const assignDocumentsSystemRegistryCache = (registry: DocumentsSystemRegistry) => {
-  allDocuments = registry.allDocuments;
-  visibleDocuments = registry.visibleDocuments;
+  allDocumentsByLocale.set(registry.locale, registry.allDocuments);
+  visibleDocumentsByLocale.set(registry.locale, registry.visibleDocuments);
   documentsSourceByPath = registry.sourceByPath;
-  documentsLinkIndex = registry.linkIndex;
-  documentsRegistry = registry;
+  documentsLinkIndexByLocale.set(registry.locale, registry.linkIndex);
+  documentsRegistryByLocale.set(registry.locale, registry);
 };
 
-export async function loadDocumentsSystemRegistry(): Promise<DocumentsSystemRegistry> {
-  if (shouldCacheDocuments && documentsRegistry) return documentsRegistry;
+export async function loadDocumentsSystemRegistry(
+  locale: AppLocale = resolveAppLocale()
+): Promise<DocumentsSystemRegistry> {
+  if (shouldCacheDocuments && documentsRegistryByLocale.has(locale)) {
+    return documentsRegistryByLocale.get(locale)!;
+  }
 
-  const registry = await buildDocumentsSystemRegistry();
+  const registry = await buildDocumentsSystemRegistry(locale);
   assignDocumentsSystemRegistryCache(registry);
 
   return registry;
 }
 
-export async function loadAllDocuments(): Promise<DocumentInfo[]> {
-  if (shouldCacheDocuments && allDocuments) return allDocuments;
+export async function loadAllDocuments(
+  locale: AppLocale = resolveAppLocale()
+): Promise<DocumentInfo[]> {
+  if (shouldCacheDocuments && allDocumentsByLocale.has(locale)) {
+    return allDocumentsByLocale.get(locale)!;
+  }
 
-  const registry = await loadDocumentsSystemRegistry();
+  const registry = await loadDocumentsSystemRegistry(locale);
 
   return registry.allDocuments;
 }
 
-export async function loadDocuments(): Promise<DocumentInfo[]> {
-  if (shouldCacheDocuments && visibleDocuments) return visibleDocuments;
+export async function loadDocuments(
+  locale: AppLocale = resolveAppLocale()
+): Promise<DocumentInfo[]> {
+  if (shouldCacheDocuments && visibleDocumentsByLocale.has(locale)) {
+    return visibleDocumentsByLocale.get(locale)!;
+  }
 
-  const registry = await loadDocumentsSystemRegistry();
+  const registry = await loadDocumentsSystemRegistry(locale);
 
   return registry.visibleDocuments;
 }
 
-export async function getDocumentsSystemLinkIndex(): Promise<DocumentsSystemLinkIndex> {
-  if (shouldCacheDocuments && documentsLinkIndex) return documentsLinkIndex;
+export async function getDocumentsSystemLinkIndex(
+  locale: AppLocale = resolveAppLocale()
+): Promise<DocumentsSystemLinkIndex> {
+  if (shouldCacheDocuments && documentsLinkIndexByLocale.has(locale)) {
+    return documentsLinkIndexByLocale.get(locale)!;
+  }
 
-  const registry = await loadDocumentsSystemRegistry();
+  const registry = await loadDocumentsSystemRegistry(locale);
 
   return registry.linkIndex;
 }
@@ -203,36 +303,44 @@ export async function getDocumentsSystemSourceByPath(): Promise<Map<string, stri
   return registry.sourceByPath;
 }
 
-export async function getCachedDocumentsSystemRegistry(): Promise<DocumentsSystemRegistry> {
+export async function getCachedDocumentsSystemRegistry(
+  locale: AppLocale = resolveAppLocale()
+): Promise<DocumentsSystemRegistry> {
   "use cache";
   cacheLife("hours");
   cacheTag(CACHE_DocumentsSystemTag("registry"));
 
-  return loadDocumentsSystemRegistry();
+  return loadDocumentsSystemRegistry(locale);
 }
 
-export async function getCachedAllDocuments(): Promise<DocumentInfo[]> {
+export async function getCachedAllDocuments(
+  locale: AppLocale = resolveAppLocale()
+): Promise<DocumentInfo[]> {
   "use cache";
   cacheLife("hours");
   cacheTag(CACHE_DocumentsSystemTag("all"));
 
-  return loadAllDocuments();
+  return loadAllDocuments(locale);
 }
 
-export async function getCachedDocuments(): Promise<DocumentInfo[]> {
+export async function getCachedDocuments(
+  locale: AppLocale = resolveAppLocale()
+): Promise<DocumentInfo[]> {
   "use cache";
   cacheLife("hours");
   cacheTag(CACHE_DocumentsSystemTag("visible"));
 
-  return loadDocuments();
+  return loadDocuments(locale);
 }
 
-export async function getCachedDocumentsSystemLinkIndex(): Promise<DocumentsSystemLinkIndex> {
+export async function getCachedDocumentsSystemLinkIndex(
+  locale: AppLocale = resolveAppLocale()
+): Promise<DocumentsSystemLinkIndex> {
   "use cache";
   cacheLife("hours");
   cacheTag(CACHE_DocumentsSystemTag("link_index"));
 
-  return getDocumentsSystemLinkIndex();
+  return getDocumentsSystemLinkIndex(locale);
 }
 
 export async function getCachedDocumentsSystemSourceByPath(): Promise<Map<string, string>> {

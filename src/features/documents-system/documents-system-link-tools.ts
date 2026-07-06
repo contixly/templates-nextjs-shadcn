@@ -142,13 +142,14 @@ export const extractDocumentsSystemLinks = (
 };
 
 export const validateDocumentsSystemLinks = (
-  allDocuments: DocumentInfo[],
-  sourceByPath: Map<string, string>
+  sourceDocuments: Array<Pick<DocumentInfo, "sourcePath">>,
+  sourceByPath: Map<string, string>,
+  targetDocuments: DocumentInfo[] = sourceDocuments as DocumentInfo[]
 ): DocumentsSystemBrokenLink[] => {
-  const index = buildDocumentsSystemLinkIndex(allDocuments);
+  const index = buildDocumentsSystemLinkIndex(targetDocuments);
   const brokenLinks: DocumentsSystemBrokenLink[] = [];
 
-  allDocuments.forEach((document) => {
+  sourceDocuments.forEach((document) => {
     const content = sourceByPath.get(document.sourcePath);
     if (!content) return;
 

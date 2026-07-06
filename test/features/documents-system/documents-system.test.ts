@@ -8,12 +8,41 @@ import routes from "@features/routes";
 import {
   getCachedDocumentsSystemRegistry,
   loadDocumentsSystemRegistry,
+  resolveDocumentsSystemRegistryDocuments,
 } from "@features/documents-system/documents-system-actions";
 import { validateDocumentsSystemLinks } from "@features/documents-system/documents-system-link-tools";
 import { searchDocumentsSystemIndex } from "@features/documents-system/documents-system-search-tools";
+import type {
+  DocumentsSystemDocumentVariant,
+  DocumentsSystemMetadata,
+} from "@features/documents-system/documents-system-types";
 import { loadMessages } from "@/src/i18n/messages";
 
 describe("documents system", () => {
+  const baseRegistryMeta = (title: string): DocumentsSystemMetadata => ({
+    title,
+    description: `${title} description`,
+    group: "Group",
+    parentItem: "Parent",
+    order: 10,
+    status: "published",
+    toc: true,
+  });
+
+  const registryVariant = (
+    sourcePath: string,
+    contentLocale: "en" | "ru",
+    title: string
+  ): DocumentsSystemDocumentVariant => ({
+    url: "general/authoring/sample",
+    slug: ["general", "authoring", "sample"],
+    sourcePath,
+    canonicalSourcePath: "general/authoring/sample.mdx",
+    contentLocale,
+    hasExplicitLocale: true,
+    meta: baseRegistryMeta(title),
+  });
+
   it("is registered in application routes", () => {
     expect(routes.documents_system.pages.home.path()).toBe("/docs");
   });
@@ -87,5 +116,54 @@ describe("documents system", () => {
     );
 
     expect(source).not.toContain("DocumentationRootLink");
+  });
+
+  describe("locale registry resolution", () => {
+    it("resolves requested locale variants by canonical URL", () => {
+      const documents = resolveDocumentsSystemRegistryDocuments(
+        [
+          registryVariant("general/authoring/sample.en.mdx", "en", "Sample"),
+          registryVariant("general/authoring/sample.ru.mdx", "ru", "Возможности документации"),
+        ],
+        "ru"
+      );
+
+      expect(documents).toHaveLength(1);
+      expect(documents[0]).toMatchObject({
+        url: "general/authoring/sample",
+        sourcePath: "general/authoring/sample.ru.mdx",
+        requestedLocale: "ru",
+        contentLocale: "ru",
+        isLocaleFallback: false,
+        availableLocales: ["en", "ru"],
+      });
+    });
+
+    it("uses stable fallback content when requested locale is missing", () => {
+      const documents = resolveDocumentsSystemRegistryDocuments(
+        [registryVariant("general/authoring/sample.ru.mdx", "ru", "Возможности документации")],
+        "en"
+      );
+
+      expect(documents[0]).toMatchObject({
+        requestedLocale: "en",
+        contentLocale: "ru",
+        isLocaleFallback: true,
+        sourcePath: "general/authoring/sample.ru.mdx",
+        availableLocales: ["ru"],
+      });
+    });
+
+    it("throws on duplicate variants for one canonical URL and locale", () => {
+      expect(() =>
+        resolveDocumentsSystemRegistryDocuments(
+          [
+            registryVariant("general/authoring/sample.mdx", "en", "Sample"),
+            registryVariant("general/authoring/sample.en.mdx", "en", "Sample duplicate"),
+          ],
+          "en"
+        )
+      ).toThrow("Duplicate documents-system content locale");
+    });
   });
 });

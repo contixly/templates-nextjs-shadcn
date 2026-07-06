@@ -10,6 +10,7 @@ import {
   DocumentsSystemStatusTone,
 } from "./documents-system-types";
 import { DocumentsSystemRouteRoot } from "./documents-system-routes";
+import { parseDocumentsSystemContentPath } from "./documents-system-locale-tools";
 
 const isNonEmptyString = (value: unknown): value is string =>
   typeof value === "string" && value.trim().length > 0;
@@ -50,8 +51,6 @@ const validateOptionalBoolean = (value: unknown): { ok: true; value?: boolean } 
   return isBoolean(value) ? { ok: true, value } : { ok: false };
 };
 
-const normalizeSlashes = (path: string) => path.replaceAll("\\", "/");
-
 const groupBy = <TItem, TKey>(
   items: TItem[],
   getKey: (item: TItem) => TKey
@@ -89,17 +88,8 @@ const toNavigationItem = (document: DocumentInfo): DocumentsSystemNavigationItem
 });
 
 export const documentsSystemTools = {
-  normalizeDocumentUrl: (filePath: string) => {
-    const normalized = normalizeSlashes(filePath)
-      .replace(/^content\//, "")
-      .replace(/\.(md|mdx)$/i, "");
-
-    if (normalized === "index") {
-      return "index";
-    }
-
-    return normalized.replace(/\/index$/, "");
-  },
+  normalizeDocumentUrl: (filePath: string) =>
+    parseDocumentsSystemContentPath(filePath).canonicalUrl,
 
   documentUrlToSlug: (url: string) => (url === "index" ? [] : url.split("/").filter(Boolean)),
 
@@ -205,7 +195,7 @@ export const documentsSystemTools = {
     return meta.hide !== true && (meta.status === "published" || meta.status === "archived");
   },
 
-  sortDocuments: (documents: DocumentInfo[]) => {
+  sortDocuments: <TDocument extends { meta: DocumentsSystemMetadata }>(documents: TDocument[]) => {
     const groupOrders = new Map<string, number | undefined>();
     const parentItemOrders = new Map<string, number | undefined>();
 
