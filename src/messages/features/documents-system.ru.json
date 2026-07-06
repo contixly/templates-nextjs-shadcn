@@ -33,7 +33,9 @@
         "reading": "Время чтения",
         "status": "Статус",
         "visibility": "Видимость",
-        "hiddenInProduction": "Скрыто в prod"
+        "hiddenInProduction": "Скрыто в prod",
+        "language": "Язык",
+        "fallbackLanguage": "Доступно на {locale}"
       },
       "status": {
         "draft": "Черновик",

@@ -61,6 +61,8 @@ export const DocumentsSystemPage = ({
             meta={meta}
             statusTone={statusTone}
             hiddenInProduction={hiddenInProduction}
+            contentLocale={document.contentLocale}
+            isLocaleFallback={document.isLocaleFallback}
           />
         </header>
 

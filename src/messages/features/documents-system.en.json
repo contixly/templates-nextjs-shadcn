@@ -33,7 +33,9 @@
         "reading": "Reading time",
         "status": "Status",
         "visibility": "Visibility",
-        "hiddenInProduction": "Hidden in production"
+        "hiddenInProduction": "Hidden in production",
+        "language": "Language",
+        "fallbackLanguage": "Available in {locale}"
       },
       "status": {
         "draft": "Draft",

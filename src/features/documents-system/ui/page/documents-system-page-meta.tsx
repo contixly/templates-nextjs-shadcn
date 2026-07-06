@@ -4,6 +4,7 @@ import {
   IconEyeOff,
   IconFolder,
   IconGitBranch,
+  IconLanguage,
   IconTarget,
   IconUser,
 } from "@tabler/icons-react";
@@ -11,6 +12,7 @@ import React, { CSSProperties, ReactNode } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { cn } from "@lib/utils";
 import {
+  DocumentsSystemContentLocale,
   DocumentsSystemMetadata,
   DocumentsSystemStatus,
   DocumentsSystemStatusTone,
@@ -84,10 +86,14 @@ export const DocumentsSystemPageMeta = ({
   meta,
   statusTone,
   hiddenInProduction = false,
+  contentLocale,
+  isLocaleFallback = false,
 }: {
   meta: DocumentsSystemMetadata;
   statusTone: DocumentsSystemStatusTone;
   hiddenInProduction?: boolean;
+  contentLocale?: DocumentsSystemContentLocale;
+  isLocaleFallback?: boolean;
 }) => {
   const locale = useLocale();
   const tMeta = useTranslations("documentsSystem.ui.page.meta");
@@ -173,6 +179,20 @@ export const DocumentsSystemPageMeta = ({
         valueClassName="whitespace-normal break-words"
       >
         {tMeta("hiddenInProduction")}
+      </MetaItem>
+    );
+  }
+
+  if (isLocaleFallback && contentLocale) {
+    secondaryMetaItems.push(
+      <MetaItem
+        key="fallback-language"
+        icon={<IconLanguage size={14} />}
+        label={tMeta("language")}
+        tone={statusTone}
+        valueClassName="whitespace-normal break-words"
+      >
+        {tMeta("fallbackLanguage", { locale: contentLocale.toUpperCase() })}
       </MetaItem>
     );
   }
