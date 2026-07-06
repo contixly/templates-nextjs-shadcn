@@ -82,5 +82,8 @@ describe("documents system locale tools", () => {
 
     process.env.PUBLIC_DEFAULT_LOCALE = "de";
     expect(resolveDocumentsSystemDefaultContentLocale()).toBe("en");
+
+    process.env.PUBLIC_DEFAULT_LOCALE = "";
+    expect(resolveDocumentsSystemDefaultContentLocale()).toBe("en");
   });
 });

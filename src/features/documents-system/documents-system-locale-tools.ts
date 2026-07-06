@@ -19,7 +19,7 @@ const normalizeDocumentUrlFromCanonicalSourcePath = (sourcePath: string) => {
 };
 
 export const resolveDocumentsSystemDefaultContentLocale = (): AppLocale =>
-  resolveAppLocale(process.env.PUBLIC_DEFAULT_LOCALE ?? DefaultLocale);
+  resolveAppLocale(process.env.PUBLIC_DEFAULT_LOCALE || DefaultLocale);
 
 export const assertValidDocumentsSystemRequestedLocale = (value: string): AppLocale => {
   if (isAppLocale(value)) {
