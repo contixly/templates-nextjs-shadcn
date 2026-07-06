@@ -401,6 +401,13 @@ The system SHALL build a locale-aware search index from visible documents and th
 - **AND** allows one edit for tokens of four to seven characters
 - **AND** allows two edits for longer tokens
 
+#### Scenario: Token fallback preserves exact short tokens
+- **GIVEN** a multi-word query contains a token of three characters or fewer
+- **AND** the exact query phrase is not contiguous in the indexed text
+- **WHEN** the index is searched
+- **THEN** exact token equality still matches that short token
+- **AND** typo matching remains disabled for non-equal short tokens
+
 ### Requirement: Search API
 The system SHALL expose documentation search through a public JSON route at `/api/v1/documents-system/search`.
 

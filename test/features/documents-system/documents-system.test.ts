@@ -252,6 +252,33 @@ describe("documents system", () => {
     });
   });
 
+  it("matches exact short tokens in non-contiguous multi-word search queries", () => {
+    const response = searchDocumentsSystemIndex(
+      {
+        pages: [
+          {
+            type: "page",
+            title: "API v1 reference",
+            description: "External API endpoint documentation",
+            href: "/docs/api/api-v1",
+            group: "API",
+            parentItem: "Reference",
+            order: 0,
+            searchText: "api v1 reference external api endpoint documentation",
+            titleText: "api v1 reference",
+          },
+        ],
+        headings: [],
+      },
+      "api reference"
+    );
+
+    expect(response.pages[0]).toMatchObject({
+      title: "API v1 reference",
+      href: "/docs/api/api-v1",
+    });
+  });
+
   it("loads documents-system UI messages for supported locales", async () => {
     const enMessages = await loadMessages("en");
     const ruMessages = await loadMessages("ru");

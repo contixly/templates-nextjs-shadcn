@@ -238,6 +238,10 @@ const getAllowedTypoDistance = (token: string) => {
 };
 
 const isFuzzyTokenMatch = (queryToken: string, candidateToken: string) => {
+  if (candidateToken === queryToken) {
+    return true;
+  }
+
   const allowedDistance = getAllowedTypoDistance(queryToken);
 
   if (allowedDistance === 0) {
