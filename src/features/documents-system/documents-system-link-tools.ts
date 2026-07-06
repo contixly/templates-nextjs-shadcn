@@ -165,11 +165,20 @@ export const extractDocumentsSystemLinks = (
   return links;
 };
 
-export const validateDocumentsSystemLinks = (
+export function validateDocumentsSystemLinks(
+  sourceDocuments: DocumentsSystemLinkTargetDocument[],
+  sourceByPath: Map<string, string>
+): DocumentsSystemBrokenLink[];
+export function validateDocumentsSystemLinks(
+  sourceDocuments: DocumentsSystemLinkSourceDocument[],
+  sourceByPath: Map<string, string>,
+  targetDocuments: DocumentsSystemLinkTargetDocument[]
+): DocumentsSystemBrokenLink[];
+export function validateDocumentsSystemLinks(
   sourceDocuments: DocumentsSystemLinkSourceDocument[],
   sourceByPath: Map<string, string>,
   targetDocuments?: DocumentsSystemLinkTargetDocument[]
-): DocumentsSystemBrokenLink[] => {
+): DocumentsSystemBrokenLink[] {
   const linkTargets = targetDocuments ?? (sourceDocuments as DocumentsSystemLinkTargetDocument[]);
   const index = buildDocumentsSystemLinkIndex(linkTargets);
   const brokenLinks: DocumentsSystemBrokenLink[] = [];
@@ -188,7 +197,7 @@ export const validateDocumentsSystemLinks = (
   });
 
   return brokenLinks;
-};
+}
 
 export const formatDocumentsSystemBrokenLinks = (links: DocumentsSystemBrokenLink[]) =>
   [

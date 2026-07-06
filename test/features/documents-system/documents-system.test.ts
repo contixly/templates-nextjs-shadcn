@@ -57,6 +57,12 @@ describe("documents system", () => {
     meta: baseRegistryMeta(title),
   });
 
+  const assertValidateDocumentsSystemLinksRejectsSourceOnlyCall = () => {
+    // @ts-expect-error Source-only documents require explicit canonical targets.
+    validateDocumentsSystemLinks([{ sourcePath: "x.md" }], new Map<string, string>());
+  };
+  void assertValidateDocumentsSystemLinksRejectsSourceOnlyCall;
+
   it("is registered in application routes", () => {
     expect(routes.documents_system.pages.home.path()).toBe("/docs");
   });
@@ -231,6 +237,33 @@ describe("documents system", () => {
 
       expect(index.allByUrl.has("general/authoring/sample")).toBe(true);
       expect(index.allByUrl.has("general/authoring/sample.ru")).toBe(false);
+    });
+
+    it("validates source variant links against canonical target documents", () => {
+      const sourcePath = "general/authoring/sample.ru.mdx";
+      const sourceVariants = [{ sourcePath }];
+      const sourceByPath = new Map([
+        [
+          sourcePath,
+          [
+            "[Canonical](/docs/general/authoring/sample)",
+            "[Locale suffix](/docs/general/authoring/sample.ru)",
+          ].join("\n"),
+        ],
+      ]);
+      const canonicalTargets = resolveDocumentsSystemRegistryDocuments(
+        [registryVariant(sourcePath, "ru", "Возможности документации")],
+        "ru"
+      );
+
+      expect(validateDocumentsSystemLinks(sourceVariants, sourceByPath, canonicalTargets)).toEqual([
+        {
+          sourcePath,
+          href: "/docs/general/authoring/sample.ru",
+          line: 2,
+          targetUrl: "general/authoring/sample.ru",
+        },
+      ]);
     });
 
     it("builds static params from canonical slugs without locale suffixes", () => {
