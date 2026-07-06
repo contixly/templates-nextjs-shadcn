@@ -1,3 +1,4 @@
+import { locales } from "@/src/i18n/config";
 import {
   DocumentInfo,
   DocumentsSystemEnvironment,
@@ -26,6 +27,7 @@ const DOCUMENT_STATUS_VALUES: readonly DocumentsSystemStatus[] = [
   "published",
   "archived",
 ];
+const DOCUMENT_LOCALE_SUFFIX_PATTERN = new RegExp(`\\.(${locales.join("|")})$`, "iu");
 
 const isDocumentStatus = (value: unknown): value is DocumentsSystemStatus =>
   typeof value === "string" && DOCUMENT_STATUS_VALUES.includes(value as DocumentsSystemStatus);
@@ -256,7 +258,7 @@ export const documentsSystemTools = {
     documents
       .filter((document) => document.url !== "index")
       .map((document) => {
-        if (document.slug.some((segment) => /\.(en|ru)$/iu.test(segment))) {
+        if (document.slug.some((segment) => DOCUMENT_LOCALE_SUFFIX_PATTERN.test(segment))) {
           throw new Error(
             `Documents-system static params must use canonical slugs without locale suffixes: ${document.slug.join("/")}`
           );

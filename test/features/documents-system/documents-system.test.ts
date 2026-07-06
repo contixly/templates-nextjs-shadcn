@@ -70,6 +70,18 @@ describe("documents system", () => {
     expect(routes.documents_system.pages.home.path()).toBe("/docs");
   });
 
+  it("throws clearly when source-only link validation omits canonical targets at runtime", () => {
+    const sourceOnlyDocuments = [{ sourcePath: "x.md" }] as unknown as {
+      sourcePath: string;
+      url: string;
+      meta: DocumentsSystemMetadata;
+    }[];
+
+    expect(() =>
+      validateDocumentsSystemLinks(sourceOnlyDocuments, new Map<string, string>())
+    ).toThrow("requires targetDocuments when validating source-only documents");
+  });
+
   it("defaults registry locale to en when PUBLIC_DEFAULT_LOCALE is empty or invalid", async () => {
     for (const defaultLocale of ["", "de"]) {
       process.env.PUBLIC_DEFAULT_LOCALE = defaultLocale;

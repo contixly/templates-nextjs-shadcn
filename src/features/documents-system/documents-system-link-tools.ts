@@ -69,6 +69,31 @@ const decodePathname = (pathname: string) => {
 
 const isExternalHref = (href: string) => HTTP_URL_PATTERN.test(href);
 
+const isDocumentsSystemLinkTargetDocument = (
+  document: DocumentsSystemLinkSourceDocument
+): document is DocumentsSystemLinkTargetDocument =>
+  "url" in document &&
+  typeof document.url === "string" &&
+  "meta" in document &&
+  Boolean(document.meta);
+
+const resolveDocumentsSystemLinkTargets = (
+  sourceDocuments: DocumentsSystemLinkSourceDocument[],
+  targetDocuments?: DocumentsSystemLinkTargetDocument[]
+) => {
+  if (targetDocuments) {
+    return targetDocuments;
+  }
+
+  if (sourceDocuments.every(isDocumentsSystemLinkTargetDocument)) {
+    return sourceDocuments;
+  }
+
+  throw new Error(
+    "Documents-system link validation requires targetDocuments when validating source-only documents."
+  );
+};
+
 export const normalizeDocumentsSystemHref = (href: string): string | undefined => {
   const trimmed = href.trim();
 
@@ -179,7 +204,7 @@ export function validateDocumentsSystemLinks(
   sourceByPath: Map<string, string>,
   targetDocuments?: DocumentsSystemLinkTargetDocument[]
 ): DocumentsSystemBrokenLink[] {
-  const linkTargets = targetDocuments ?? (sourceDocuments as DocumentsSystemLinkTargetDocument[]);
+  const linkTargets = resolveDocumentsSystemLinkTargets(sourceDocuments, targetDocuments);
   const index = buildDocumentsSystemLinkIndex(linkTargets);
   const brokenLinks: DocumentsSystemBrokenLink[] = [];
 
