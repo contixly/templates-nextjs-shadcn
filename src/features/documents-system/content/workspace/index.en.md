@@ -1,95 +1,63 @@
 ---
 title: "Workspace"
-description: "How the template models workspaces, organization-backed routes, members, teams, invitations, and settings."
+description: "How the template models organization-backed workspaces, routes, members, teams, invitations, and settings."
 group: "Workspace"
-groupOrder: 600
+groupOrder: 800
 parentItem: "Overview"
-parentItemOrder: 70
+parentItemOrder: 100
 order: 10
 toc: true
-purpose: "Template user documentation"
+purpose: "Workspace overview"
 status: "published"
 author: "Template Maintainers"
-version: "1.1.0"
+version: "1.2.0"
 editedAt: "2026-07-06"
 ---
 
 # Workspace
 
-Workspace is the user-facing name for an application working area. In the template, each workspace
-is backed by a Better Auth Organization: the organization stores members, roles, teams,
-invitations, API keys, and access settings.
+Workspace is the user-facing name for an application working area. In the template, every workspace
+is backed by a Better Auth Organization that stores members, roles, teams, invitations, API keys,
+and access settings.
 
-This page explains the baseline flows that already exist in the template and can be extended for
-your own product.
+This page is the high-level map. Use the linked pages for task-specific guidance.
 
-## Workspace model
+## Model
 
-- **Workspace backed by organization**: users see a workspace, while the application stores it as a
-  Better Auth Organization.
-- **Workspace URL**: protected workspace pages live under `/w/:organizationKey/...`, where
-  `organizationKey` is an organization slug or id.
-- **Dashboard entry point**: global `/dashboard` redirects to the active workspace. If there is no
-  valid active workspace, the app chooses a deterministic accessible fallback.
-- **URL context**: when a deep link is opened, the application uses the workspace from the URL and
-  does not change the active workspace unless the user explicitly switches.
+| Concept | Meaning |
+| ------- | ------- |
+| Workspace | Product-facing collaboration area shown to users. |
+| Organization | Better Auth model that stores workspace membership and access data. |
+| Organization key | The slug or id used in `/w/:organizationKey/...` routes. |
+| Active workspace | The workspace selected in the user's current session. |
+| Team | An explicit subgroup inside the workspace organization. |
 
-## Workspace settings
+Routes under `/w/:organizationKey/...` validate access before rendering. Deep links use the
+workspace from the URL and do not silently rewrite the user's active workspace unless the user
+switches context.
 
-Workspace settings are split into dedicated pages inside the shared settings shell.
+## What users can do
 
-| Section | What it provides |
-| ------- | ---------------- |
-| Details | Workspace name and slug. Users without update permission see read-only values. |
-| Users | Member list, current-user context, roles, direct existing-user add, and email-domain policy warnings. |
-| Invitations | Invitation creation, list, status, and share links. The section is visible only to users with the required permissions. |
-| Teams | Team creation, rename, deletion, and team member management. Regular members can view teams without management actions. |
-| Roles | Reserved section for future role expansion. |
-| API keys | Workspace API keys for machine access to `/api/v1` when the user's role permits key management. |
+- Create and switch workspace context.
+- Manage workspace details and allowed email domains.
+- Review members and update assignable roles.
+- Create invitations and copy invitation links.
+- Accept or reject invitations after signing in.
+- Create explicit teams and manage team membership.
+- Create workspace API keys when permitted.
 
-## Members and roles
+## Workspace documentation
 
-The template includes built-in **owner**, **admin**, and **member** roles. Owners and admins can
-manage most workspace settings. Members keep read access where it is safe, such as member lists,
-teams, and settings context.
-
-Workspace deletion is guarded against unsafe outcomes: a user should not delete their last
-accessible workspace and leave themselves without a working area.
-
-## Invitations and email domains
-
-Workspace admins can create invitations and copy invite links. After signing in, invitees see a
-decision page where they can accept or reject the invitation. Acceptance requires the user's
-verified primary email to match the invited address.
-
-A workspace can restrict new invitations to configured email domains. This does not remove existing
-members, but it surfaces warnings for members outside the current policy.
-
-## Teams
-
-Teams are explicit subgroups inside a workspace. New workspaces do not create a team automatically:
-zero teams is a valid state. Authorized members can create, rename, and delete teams and add
-existing workspace members to them.
-
-A team-targeted invitation adds the user to the workspace and to the selected team after the
-invitation is accepted.
-
-## Workspace API access
-
-Workspace API keys are managed from workspace settings and act as one organization. They are useful
-for server integrations that need read-only `/api/v1` access to workspace, member, and team data.
-
-Personal API keys live in the user's account settings and act as the owning user. Both key types use
-the `x-api-key` header, scopes, expiration, and rate limits.
-
-## Users without a workspace
-
-When a user has no accessible workspaces, the application shows an onboarding guard. It does not
-block global account pages or workspace management: the user can create a workspace or open personal
-invitations.
+- [Create and switch workspaces](/docs/workspace/create-switch)
+- [Workspace settings](/docs/workspace/settings)
+- [Members and roles](/docs/workspace/members-roles)
+- [Invitations](/docs/workspace/invitations)
+- [Teams](/docs/workspace/teams)
+- [Email domains](/docs/workspace/email-domains)
+- [Users without a workspace](/docs/workspace/no-workspace)
 
 ## Related pages
 
-- [Glossary](/docs/general/glossary) - definitions for workspace, organization, API key, and other terms.
-- [Releases](/docs/history/releases) - published template history.
-- [Weekly changes](/docs/history/change-logs) - short notes for recent changes.
+- [Account settings](/docs/account)
+- [API access](/docs/api)
+- [Application shell](/docs/application)
