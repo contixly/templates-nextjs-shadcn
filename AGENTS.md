@@ -73,8 +73,66 @@ work through the relevant OpenSpec skill (`openspec-propose`, `openspec-apply-ch
 inspect existing tests, fix broken tests, and add focused e2e tests for spec-visible user/API workflows when the
 behavior changes.
 
+When adding or changing application functionality, also review public user documentation for the affected behavior. Add,
+update, or remove documentation pages in the same change when the user-facing workflow, route, permission model, API
+surface, settings behavior, or release-visible capability changes. If the code and docs/specs disagree, verify the real
+behavior from source and tests, then update the stale artifact rather than leaving the mismatch in place.
+
 OpenSpec-backed Playwright tests live in `e2e/specs/<capability>/`, mirroring `openspec/specs/<capability>/spec.md`.
 Keep quick reachability/browser checks in `e2e/smoke/`.
+
+## Public User Documentation
+
+Public user documentation lives in `src/features/documents-system/content/` and is rendered under `/docs` by the
+documents-system feature. Treat this content as a maintained user-facing product surface, not as internal engineering
+notes. Write in plain language for template adopters and end users, and avoid internal implementation detail unless it
+changes what the reader can do or must configure.
+
+Content files are Markdown or MDX. Use locale suffixes for translated pages: `.en.md` / `.en.mdx` and `.ru.md` /
+`.ru.mdx`. The canonical URL must not include the locale suffix; for example, `history/releases/0.0.10.en.mdx` and
+`history/releases/0.0.10.ru.mdx` both publish at `/docs/history/releases/0.0.10`. Unsuffixed content is treated as the
+configured `PUBLIC_DEFAULT_LOCALE` and should be used only when a deliberate fallback page is acceptable.
+
+Every public doc page needs valid frontmatter: `title`, `description`, `group`, `parentItem`, numeric `order`, boolean
+`toc`, and `status`. Use `groupOrder` and `parentItemOrder` when a new section must sort predictably in the sidebar.
+Published user docs should use `status: "published"`; local-only authoring examples can use non-production statuses or
+`hide: true` when appropriate. Keep internal links canonical, starting with `/docs/...`, so the documents-system link
+validator can catch broken or unpublished targets.
+
+Current content areas:
+
+- `index.*.mdx` - documentation home and entry points.
+- `general/` - glossary and authoring guidance.
+- `workspace/` - workspace, organization, member, team, invitation, settings, and API-key user guidance.
+- `history/releases/` - release notes derived from `docs/releases/template/` and exposed as public docs.
+- `history/change-logs/` - weekly user-visible change summaries based on real repository history.
+
+When changing visible behavior, update the closest concrete user doc first. Do not spread small UI wording changes across
+index, glossary, releases, and changelog pages unless the behavior actually affects those surfaces. When adding a new
+public doc section, keep the navigation metadata consistent, add both supported locales when possible, update indexes or
+link cards that make the page discoverable, and run the documents-system checks before calling the work complete.
+
+## E2E Testing
+
+Playwright E2E tests live under `e2e/`. OpenSpec-backed user/API scenarios belong in `e2e/specs/<capability>/`,
+mirroring `openspec/specs/<capability>/spec.md`; quick reachability and browser smoke checks belong in `e2e/smoke/`.
+When functionality is added or changed, inspect the matching OpenSpec capability and existing E2E specs, then update or
+add focused coverage for the changed user-visible workflow. Do not leave new behavior covered only by unit tests when it
+changes a spec-visible browser or API flow.
+
+Use shared E2E infrastructure instead of ad hoc setup:
+
+- Import `test` and `expect` from `e2e/support/test`.
+- Use route constants from `e2e/support/routes`.
+- Use local auth helpers from `e2e/support/local-auth`.
+- Use workspace and invitation helpers from `e2e/support/workspaces` and `e2e/support/invitations`.
+- Use API key helpers from `e2e/support/api-keys` when a scenario needs machine access.
+
+The default `npm run e2e` path starts its own dev server on the configured Playwright base URL and sets the local
+automation/session-cache environment expected by the suite. Use `PLAYWRIGHT_START_SERVER=false` only when intentionally
+testing against an already running app, and then ensure that app was started with the same required local automation and
+session-cache settings. For feature work, prefer focused capability runs while iterating, then run the relevant default
+or broader E2E command before declaring the browser/API workflow covered.
 
 ## Local Automation Auth
 
