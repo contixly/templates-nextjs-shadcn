@@ -1,6 +1,6 @@
 ---
 title: "Документация шаблона"
-description: "Публичная документация шаблона приложения, рабочих пространств и истории изменений."
+description: "Публичная документация Next.js шаблона: возможности, рабочие пространства, API-ключи и история изменений."
 group: "Общее"
 groupOrder: 2000
 parentItem: "Введение"
@@ -10,49 +10,50 @@ toc: true
 purpose: "Публичная документация шаблона"
 status: "published"
 author: "Template Maintainers"
-version: "1.0.0"
+version: "1.1.0"
 editedAt: "2026-07-06"
 ---
 
 # Документация шаблона
 
-Этот раздел показывает, как в шаблоне устроена публичная документация на Markdown и MDX. Страницы
-собираются из `src/features/documents-system/content`, попадают в левую навигацию, индексируются для
-поиска и рендерятся внутри обычного App Router маршрута `/docs`.
+Эта документация помогает понять, что уже есть в шаблоне Next.js приложения и куда смотреть при
+добавлении собственного продукта. Шаблон включает публичные и защищенные маршруты, рабочие
+пространства на базе Better Auth Organizations, команды, приглашения, API-ключи, локализацию и
+готовые проверки качества.
 
 ## Разделы
 
 <DocumentLinkGrid>
   <DocumentLinkGroup
     title="Общее"
-    description="Базовые страницы и справочные материалы документации."
+    description="Быстрый вход в документацию и словарь терминов шаблона."
   >
     <DocumentLinkCard href="/docs/general/glossary" title="Глоссарий">
-      Термины, которые используются в демонстрационных страницах документации.
+      Термины, которые используются в документации шаблона, workspace-сценариях и API-доступе.
     </DocumentLinkCard>
   </DocumentLinkGroup>
 
 <DocumentLinkGroup
   title="Рабочее пространство"
-  description="Начальная страница для будущих пользовательских сценариев рабочих пространств."
+  description="Сценарии организации, участников, команд, приглашений и настроек."
 >
   <DocumentLinkCard href="/docs/workspace" title="Рабочее пространство">
-    Каркас раздела, который можно расширять документацией продукта.
+    Как в шаблоне устроены workspace, organization-backed маршруты, команды и доступ участников.
   </DocumentLinkCard>
 </DocumentLinkGroup>
 
   <DocumentLinkGroup
     title="История изменений"
-    description="Примеры релизных заметок и еженедельных обновлений."
+    description="Публичная история релизов и еженедельных обновлений шаблона."
   >
     <DocumentLinkCard href="/docs/history/releases" title="Релизы">
-      Индекс релизных заметок.
+      Индекс опубликованных релизов шаблона и ссылка на актуальный релиз.
     </DocumentLinkCard>
-    <DocumentLinkCard href="/docs/history/releases/2.0.11" title="Пример релиза">
-      Демонстрационная MDX-страница с callout-блоками, вкладками и изображениями.
+    <DocumentLinkCard href="/docs/history/releases/0.0.10" title="v0.0.10">
+      Последний релиз с расширенным E2E-покрытием, local automation auth и исправлениями workspace/API key потоков.
     </DocumentLinkCard>
     <DocumentLinkCard href="/docs/history/change-logs" title="Еженедельные изменения">
-      Индекс еженедельных заметок по реальной истории шаблона.
+      Короткие weekly notes по реальным изменениям в репозитории.
     </DocumentLinkCard>
     <DocumentLinkCard
       href="/docs/history/change-logs/2026-07-06-weekly-changelog"
@@ -63,15 +64,33 @@ editedAt: "2026-07-06"
   </DocumentLinkGroup>
 </DocumentLinkGrid>
 
-## Как расширять документацию
+## Что входит в шаблон
 
-Добавляйте новые страницы в `src/features/documents-system/content`. Каждая страница должна иметь
-frontmatter с `title`, `description`, `group`, `parentItem`, `order`, `status` и `toc`.
+- **Основа приложения**: Next.js App Router, React, TypeScript, Tailwind CSS v4, shadcn/ui,
+  серверные actions и feature-sliced структура.
+- **Аккаунты и авторизация**: Better Auth, OAuth-провайдеры, защищенные маршруты, настройки
+  профиля, подключенные аккаунты и управление сессиями.
+- **Рабочие пространства**: workspace как пользовательский термин для Better Auth Organizations,
+  маршруты `/w/:organizationKey/...`, настройки, участники, команды и приглашения.
+- **API-доступ**: персональные и workspace API-ключи, одноразовый показ секрета, scopes,
+  rate limits и стартовые read-only маршруты `/api/v1`.
+- **Локализация**: инфраструктура `next-intl`, сообщения для `en` и `ru`, локализованные metadata
+  и локализованные страницы документации.
+- **Качество**: Jest, Playwright E2E, OpenSpec-backed сценарии и локальный automation auth для
+  безопасной браузерной проверки.
 
-<Callout title="Публикация" variant="info">
-  В production отображаются только страницы со статусом `published` или `archived`, если у них не
-  стоит `hide: true`. В локальной разработке видны черновики, review-страницы и authoring-примеры.
+<Callout title="О локализации документации" variant="info">
+  Страницы документации могут иметь варианты `.en.md` и `.ru.md`. При открытии `/docs` система
+  выбирает вариант под текущую локаль интерфейса, а если нужного варианта нет, показывает fallback с
+  языковым маркером.
 </Callout>
+
+## Как читать этот раздел
+
+Начните с [рабочего пространства](/docs/workspace), если оцениваете product flows, роли, команды и
+приглашения. Используйте [глоссарий](/docs/general/glossary), когда встречаете термин из шаблона.
+Историю изменений смотрите в [релизах](/docs/history/releases) и
+[weekly notes](/docs/history/change-logs).
 
 ## Полезные страницы для авторов
 

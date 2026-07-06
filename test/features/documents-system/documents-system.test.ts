@@ -118,14 +118,14 @@ describe("documents system", () => {
         "history/change-logs/2026-05-04-weekly-changelog",
         "history/change-logs/2026-07-06-weekly-changelog",
         "history/releases",
-        "history/releases/2.0.11",
+        "history/releases/0.0.10",
       ])
     );
     expect(registry.visibleDocuments.every((document) => !document.url.endsWith(".ru"))).toBe(true);
     expect(documentsSystemTools.findDocument(registry.visibleDocuments, "index")).toMatchObject({
-      sourcePath: "index.ru.mdx",
-      contentLocale: "ru",
-      isLocaleFallback: true,
+      sourcePath: "index.en.mdx",
+      contentLocale: "en",
+      isLocaleFallback: false,
     });
     expect(
       validateDocumentsSystemLinks(
@@ -207,11 +207,11 @@ describe("documents system", () => {
         })),
         headings: [],
       },
-      "глоссарий"
+      "glossary"
     );
 
     expect(response.pages[0]).toMatchObject({
-      title: "Глоссарий",
+      title: "Glossary",
       href: "/docs/general/glossary",
     });
   });

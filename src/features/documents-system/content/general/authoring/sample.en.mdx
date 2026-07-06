@@ -42,8 +42,8 @@ Short values can stay inline: `status: "published"`, `group: "General"`, or `par
 
 ### Images
 
-![Events list in the personal account](/static/docs/images/authoring/sample/events_table.png "Example events table")
-![External image example](https://squidex.jugru.team/api/assets/sites/5idvRhyQLmaD8XrlJqez35/cfp-dotnext-en.png?cache=3600 "External image example")
+![Template logo](/img/branding/template_logo_nb_s.png "Template logo")
+![Template app icon](/img/branding/web-app-manifest-512x512.png "Template app icon")
 
 ### Code block
 
@@ -124,16 +124,23 @@ Checklists are useful for page acceptance before publishing:
 
 <Files>
   <Folder name="content">
+    <File name="index.en.mdx" />
     <File name="index.ru.mdx" />
-    <Folder name="authoring">
-      <File name="how-to-write-docs.en.md" />
-      <File name="how-to-write-docs.ru.md" />
-      <File name="sample.en.mdx" />
-      <File name="sample.ru.mdx" />
+    <Folder name="general">
+      <Folder name="authoring">
+        <File name="how-to-write-docs.en.md" />
+        <File name="how-to-write-docs.ru.md" />
+        <File name="sample.en.mdx" />
+        <File name="sample.ru.mdx" />
+      </Folder>
     </Folder>
-    <Folder name="releases">
-      <File name="index.ru.md" />
-      <File name="2.0.11.ru.mdx" />
+    <Folder name="history">
+      <Folder name="releases">
+        <File name="index.en.md" />
+        <File name="index.ru.md" />
+        <File name="0.0.10.en.mdx" />
+        <File name="0.0.10.ru.mdx" />
+      </Folder>
     </Folder>
   </Folder>
 </Files>

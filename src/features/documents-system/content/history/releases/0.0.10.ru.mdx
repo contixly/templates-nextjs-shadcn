@@ -1,0 +1,100 @@
+---
+title: "v0.0.10"
+description: "Релиз Next.js шаблона про E2E-покрытие и надежность automation-сценариев."
+group: "История изменений"
+parentItem: "Релизы"
+order: 100
+status: "published"
+toc: true
+author: "Template Maintainers"
+version: "0.0.10"
+editedAt: "2026-07-06"
+---
+
+# v0.0.10
+
+v0.0.10 — релиз Next.js шаблона про E2E-покрытие и надежность automation-сценариев. Он расширяет
+OpenSpec-backed Playwright проверки для аккаунта, workspace, приглашений, API-ключей, `/api/v1`,
+security headers и local automation auth.
+
+<Callout title="Фокус релиза" variant="info">
+  Этот релиз не меняет продуктовую модель. Он делает существующие сценарии шаблона проще для
+  проверки, безопаснее для локальной автоматизации и стабильнее при запуске тестов против уже
+  поднятого dev-сервера.
+</Callout>
+
+## Главное
+
+- Расширено Playwright-покрытие для account settings, account sessions, workspace management,
+  workspace invitations, workspace teams, workspace users, workspace routing, workspace fallbacks,
+  API key management, `/api/v1`, local automation auth и security headers.
+- Добавлены общие E2E helpers для workspaces, invitations, browser contexts, API keys, local auth,
+  route constants и cold-route retry handling.
+- Playwright запускается последовательно по умолчанию, чтобы уменьшить конфликты состояния между
+  сценариями.
+- Добавлена явная настройка `AUTH_DISABLE_SESSION_COOKIE_CACHE` для local automation и
+  reused-server Playwright запусков.
+- API key configuration constants вынесены в одно место с сохранением совместимых re-exports.
+- Workspace creation и settings navigation стали устойчивее: ключевые workspace paths
+  revalidate-ятся после создания, а изменения slug или route key ведут на canonical settings route.
+
+## Что изменилось для пользователей шаблона
+
+<Tabs defaultValue="browser-tests">
+  <Tab title="Browser tests" value="browser-tests">
+    <ul>
+      <li>OpenSpec-backed E2E сценарии теперь покрывают основные account, workspace, invitation, API key и security flows.</li>
+      <li>Общие helpers удерживают маршруты, local auth, API key setup, workspace setup и invitation setup в одном стиле.</li>
+      <li>Повтор cold first-party 404 делает свежие dev-server запуски менее шумными, не скрывая page errors и first-party 5xx.</li>
+    </ul>
+  </Tab>
+
+<Tab title="Automation" value="automation">
+  <ul>
+    <li>Local automation auth получил более явные требования к session-cache настройкам.</li>
+    <li>
+      Reused-server Playwright запуск теперь падает раньше, если в уже поднятом приложении не
+      хватает нужных automation settings.
+    </li>
+    <li>
+      Cleanup удаляет organization API keys, когда созданные automation организации остаются без
+      участников.
+    </li>
+  </ul>
+</Tab>
+
+  <Tab title="Workspace flows" value="workspace">
+    <ul>
+      <li>Создание workspace обновляет важные workspace routes, которые пользователь открывает сразу после создания.</li>
+      <li>Изменение workspace slug или route key переводит пользователя на canonical settings URL после успешного сохранения.</li>
+      <li>API key constants используются из одного места, поэтому будущие product API routes проще расширять последовательно.</li>
+    </ul>
+  </Tab>
+</Tabs>
+
+## Upgrade notes
+
+- Prisma migration для этого релиза не требуется.
+- Package metadata теперь показывает `0.0.10`; dependency upgrades в релиз не входят.
+- Playwright запускается с `workers: 1` по умолчанию.
+- Стандартный `npm run e2e` поднимает собственный dev-server и выставляет local automation и
+  session-cache окружение, которое ожидает suite.
+- Reused-server запуск с `PLAYWRIGHT_START_SERVER=false` требует
+  `AUTH_DISABLE_SESSION_COOKIE_CACHE=true` и в уже поднятом приложении, и в Playwright command.
+- `LOCAL_AUTOMATION_AUTH_ENABLED` остается только локальной настройкой и не должен включаться в
+  production.
+- Изменения workspace slug или route key после сохранения ведут на canonical settings routes.
+
+## Качество
+
+В релиз добавлены и расширены OpenSpec-backed Playwright specs для account, API key, local
+automation, settings, security и workspace capabilities. Также добавлены infrastructure tests для
+API key E2E helpers, Playwright global setup, proxy session-cache behavior, централизованной API key
+configuration, account actions, local automation cleanup и workspace settings.
+
+## Связанные страницы
+
+- [Релизы](/docs/history/releases) — индекс релизов.
+- [Еженедельное обновление за 29 июня-6 июля 2026](/docs/history/change-logs/2026-07-06-weekly-changelog) —
+  недельная сводка для этого релизного окна.
+- [Рабочее пространство](/docs/workspace) — workspace-модель и пользовательские сценарии.
