@@ -106,11 +106,6 @@ const getDocumentsSystemQueryKeyboardLayout = (
   return hasLayoutLetter ? layout : undefined;
 };
 
-const shouldSkipKeyboardLayoutSearchQuery = (
-  layout: DocumentsSystemKeyboardLayout,
-  query: string
-) => layout === "russian" && tokenizeDocumentsSystemSearchText(query).length > 1;
-
 const getKeyboardLayoutSearchQuery = (query: string) => {
   const layout = getDocumentsSystemQueryKeyboardLayout(query);
 
@@ -126,7 +121,7 @@ const getKeyboardLayoutSearchQuery = (query: string) => {
   ).join("");
   const normalizedConvertedQuery = normalizeDocumentsSystemSearchText(convertedQuery);
 
-  if (!normalizedConvertedQuery || shouldSkipKeyboardLayoutSearchQuery(layout, query)) {
+  if (!normalizedConvertedQuery) {
     return undefined;
   }
 
