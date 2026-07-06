@@ -1,5 +1,6 @@
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { getLocale } from "next-intl/server";
 import {
   getCachedDocumentsSystemRegistry,
   importDocumentModule,
@@ -12,7 +13,8 @@ import { DocumentsSystemPage } from "@features/documents-system/ui/page/document
 const DOCUMENT_URL = "index";
 
 export async function generateMetadata(): Promise<Metadata | null> {
-  const registry = await getCachedDocumentsSystemRegistry();
+  const locale = await getLocale();
+  const registry = await getCachedDocumentsSystemRegistry(locale);
   const document = documentsSystemTools.findDocument(registry.visibleDocuments, DOCUMENT_URL);
 
   if (!document) {
@@ -26,7 +28,8 @@ export async function generateMetadata(): Promise<Metadata | null> {
 }
 
 export default async function DocumentsSystemHomePage() {
-  const registry = await getCachedDocumentsSystemRegistry();
+  const locale = await getLocale();
+  const registry = await getCachedDocumentsSystemRegistry(locale);
   const document = documentsSystemTools.findDocument(registry.visibleDocuments, DOCUMENT_URL);
 
   if (!document) {

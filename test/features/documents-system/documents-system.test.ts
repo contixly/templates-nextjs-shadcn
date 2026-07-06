@@ -14,7 +14,10 @@ import {
   buildDocumentsSystemLinkIndex,
   validateDocumentsSystemLinks,
 } from "@features/documents-system/documents-system-link-tools";
-import { searchDocumentsSystemIndex } from "@features/documents-system/documents-system-search-tools";
+import {
+  buildDocumentsSystemSearchIndexFromDocuments,
+  searchDocumentsSystemIndex,
+} from "@features/documents-system/documents-system-search-tools";
 import { documentsSystemTools } from "@features/documents-system/documents-system-tools";
 import type {
   DocumentsSystemDocumentVariant,
@@ -154,6 +157,44 @@ describe("documents system", () => {
     );
 
     expect(source).not.toContain("DocumentationRootLink");
+  });
+
+  it("indexes the selected locale document title for search", () => {
+    const documents = resolveDocumentsSystemRegistryDocuments(
+      [
+        registryVariant("general/authoring/sample.en.mdx", "en", "Documentation features"),
+        registryVariant("general/authoring/sample.ru.mdx", "ru", "Возможности документации"),
+      ],
+      "en"
+    );
+    const sourceByPath = new Map([
+      ["general/authoring/sample.en.mdx", "## Markdown basics"],
+      ["general/authoring/sample.ru.mdx", "## Базовый Markdown"],
+    ]);
+    const index = buildDocumentsSystemSearchIndexFromDocuments(documents, sourceByPath);
+
+    expect(index.pages[0]).toMatchObject({
+      title: "Documentation features",
+      href: "/docs/general/authoring/sample",
+    });
+    expect(index.headings[0]).toMatchObject({
+      title: "Markdown basics",
+      href: "/docs/general/authoring/sample#markdown-basics",
+    });
+  });
+
+  it("indexes fallback content when requested locale has no variant", () => {
+    const documents = resolveDocumentsSystemRegistryDocuments(
+      [registryVariant("general/authoring/sample.ru.mdx", "ru", "Возможности документации")],
+      "en"
+    );
+    const sourceByPath = new Map([["general/authoring/sample.ru.mdx", "## Базовый Markdown"]]);
+    const index = buildDocumentsSystemSearchIndexFromDocuments(documents, sourceByPath);
+
+    expect(index.pages[0]).toMatchObject({
+      title: "Возможности документации",
+      href: "/docs/general/authoring/sample",
+    });
   });
 
   describe("locale registry resolution", () => {

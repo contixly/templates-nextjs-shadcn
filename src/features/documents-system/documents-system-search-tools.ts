@@ -1,9 +1,10 @@
-import { readFile } from "node:fs/promises";
-import { join } from "node:path";
-import { getCachedDocuments } from "@features/documents-system/documents-system-actions";
+import { getCachedDocumentsSystemRegistry } from "@features/documents-system/documents-system-actions";
 import { createUniqueDocumentHeadingId } from "@features/documents-system/documents-system-heading-tools";
+import { resolveDocumentsSystemDefaultContentLocale } from "@features/documents-system/documents-system-locale-tools";
 import { getDocumentsSystemEnvironment } from "@features/documents-system/documents-system-runtime";
 import { documentsSystemTools } from "@features/documents-system/documents-system-tools";
+import type { AppLocale } from "@/src/i18n/config";
+import type { DocumentInfo } from "./documents-system-types";
 import {
   DOCUMENTS_SYSTEM_SEARCH_EMPTY_PAGE_LIMIT,
   DOCUMENTS_SYSTEM_SEARCH_QUERY_LIMIT,
@@ -25,7 +26,7 @@ const MARKDOWN_LINK_PATTERN = /\[([^\]]+)]\([^)]+\)/g;
 const MARKDOWN_IMAGE_PATTERN = /!\[([^\]]*)]\([^)]+\)/g;
 const MARKDOWN_HEADING_ID_PATTERN = /\s*\{#[^}]+}\s*$/g;
 
-let cachedSearchIndex: DocumentsSystemSearchIndex | undefined;
+const cachedSearchIndexes = new Map<AppLocale, DocumentsSystemSearchIndex>();
 const documentsSystemEnvironment = getDocumentsSystemEnvironment();
 
 const ENGLISH_KEYBOARD_LAYOUT = "qwertyuiop[]asdfghjkl;'zxcvbnm,.";
@@ -311,76 +312,85 @@ const toHeadingResult = (
   parentItem: heading.parentItem,
 });
 
-export async function buildDocumentsSystemSearchIndex(): Promise<DocumentsSystemSearchIndex> {
-  const documents = await getCachedDocuments();
+export const buildDocumentsSystemSearchIndexFromDocuments = (
+  documents: DocumentInfo[],
+  sourceByPath: Map<string, string>
+): DocumentsSystemSearchIndex => {
+  const indexedDocuments = documents.map((document, documentOrder) => {
+    const href = documentsSystemTools.documentUrlToHref(document.url);
+    const source = sourceByPath.get(document.sourcePath) ?? "";
 
-  const indexedDocuments = await Promise.all(
-    documents.map(async (document, documentOrder) => {
-      const href = documentsSystemTools.documentUrlToHref(document.url);
-      const source = await readFile(
-        join(process.cwd(), "src/features/documents-system/content", document.sourcePath),
-        "utf8"
-      );
+    const page: DocumentsSystemIndexedPage = {
+      type: "page",
+      title: document.meta.title,
+      description: document.meta.description,
+      href,
+      group: document.meta.group,
+      parentItem: document.meta.parentItem,
+      order: documentOrder,
+      searchText: normalizeDocumentsSystemSearchText(
+        [
+          document.meta.title,
+          document.meta.description,
+          document.meta.group,
+          document.meta.parentItem,
+          document.url,
+        ].join(" ")
+      ),
+      titleText: normalizeDocumentsSystemSearchText(document.meta.title),
+    };
 
-      const page: DocumentsSystemIndexedPage = {
-        type: "page",
-        title: document.meta.title,
-        description: document.meta.description,
-        href,
-        group: document.meta.group,
-        parentItem: document.meta.parentItem,
-        order: documentOrder,
-        searchText: normalizeDocumentsSystemSearchText(
-          [
-            document.meta.title,
-            document.meta.description,
-            document.meta.group,
-            document.meta.parentItem,
-            document.url,
-          ].join(" ")
-        ),
-        titleText: normalizeDocumentsSystemSearchText(document.meta.title),
-      };
+    const headings = extractDocumentsSystemHeadings(source).map((heading, headingOrder) => ({
+      type: "heading" as const,
+      title: heading.title,
+      href: `${href}#${heading.id}`,
+      pageTitle: document.meta.title,
+      group: document.meta.group,
+      parentItem: document.meta.parentItem,
+      order: documentOrder * 10000 + headingOrder,
+      searchText: normalizeDocumentsSystemSearchText(
+        [
+          heading.title,
+          document.meta.title,
+          document.meta.description,
+          document.meta.group,
+          document.meta.parentItem,
+        ].join(" ")
+      ),
+      titleText: normalizeDocumentsSystemSearchText(heading.title),
+    }));
 
-      const headings = extractDocumentsSystemHeadings(source).map((heading, headingOrder) => ({
-        type: "heading" as const,
-        title: heading.title,
-        href: `${href}#${heading.id}`,
-        pageTitle: document.meta.title,
-        group: document.meta.group,
-        parentItem: document.meta.parentItem,
-        order: documentOrder * 10000 + headingOrder,
-        searchText: normalizeDocumentsSystemSearchText(
-          [
-            heading.title,
-            document.meta.title,
-            document.meta.description,
-            document.meta.group,
-            document.meta.parentItem,
-          ].join(" ")
-        ),
-        titleText: normalizeDocumentsSystemSearchText(heading.title),
-      }));
-
-      return { page, headings };
-    })
-  );
+    return { page, headings };
+  });
 
   return {
     pages: indexedDocuments.map(({ page }) => page),
     headings: indexedDocuments.flatMap(({ headings }) => headings),
   };
+};
+
+export async function buildDocumentsSystemSearchIndex(
+  locale: AppLocale = resolveDocumentsSystemDefaultContentLocale()
+): Promise<DocumentsSystemSearchIndex> {
+  const registry = await getCachedDocumentsSystemRegistry(locale);
+
+  return buildDocumentsSystemSearchIndexFromDocuments(
+    registry.visibleDocuments,
+    registry.sourceByPath
+  );
 }
 
-export async function getDocumentsSystemSearchIndex() {
-  if (documentsSystemEnvironment !== "local" && cachedSearchIndex) {
-    return cachedSearchIndex;
+export async function getDocumentsSystemSearchIndex(
+  locale: AppLocale = resolveDocumentsSystemDefaultContentLocale()
+) {
+  if (documentsSystemEnvironment !== "local" && cachedSearchIndexes.has(locale)) {
+    return cachedSearchIndexes.get(locale)!;
   }
 
-  const index = await buildDocumentsSystemSearchIndex();
+  const index = await buildDocumentsSystemSearchIndex(locale);
 
   if (documentsSystemEnvironment !== "local") {
-    cachedSearchIndex = index;
+    cachedSearchIndexes.set(locale, index);
   }
 
   return index;
@@ -425,6 +435,9 @@ export const searchDocumentsSystemIndex = (
   };
 };
 
-export async function searchDocumentsSystem(query: string) {
-  return searchDocumentsSystemIndex(await getDocumentsSystemSearchIndex(), query);
+export async function searchDocumentsSystem(
+  query: string,
+  locale: AppLocale = resolveDocumentsSystemDefaultContentLocale()
+) {
+  return searchDocumentsSystemIndex(await getDocumentsSystemSearchIndex(locale), query);
 }

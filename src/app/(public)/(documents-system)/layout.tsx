@@ -1,4 +1,5 @@
 import React, { ReactNode, Suspense, use } from "react";
+import { getLocale } from "next-intl/server";
 import { SidebarInset, SidebarProvider } from "@components/ui/sidebar";
 import { getTFromCookie } from "@lib/cookies";
 import { SIDEBAR_COOKIE_KEY } from "@lib/environment";
@@ -50,7 +51,8 @@ export default async function DocumentsSystemLayout({
   children: ReactNode;
 }>) {
   const sideBarStatePromise = getTFromCookie<boolean>(SIDEBAR_COOKIE_KEY);
-  const documents = await getCachedDocuments();
+  const locale = await getLocale();
+  const documents = await getCachedDocuments(locale);
   const sidebarMenu = documentsSystemTools.buildSidebarMenuItems(
     documents,
     getDocumentsSystemEnvironment()

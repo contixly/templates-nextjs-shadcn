@@ -1,9 +1,11 @@
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { getLocale } from "next-intl/server";
 import {
   getCachedDocumentsSystemRegistry,
   importDocumentModule,
 } from "@features/documents-system/documents-system-actions";
+import { resolveDocumentsSystemDefaultContentLocale } from "@features/documents-system/documents-system-locale-tools";
 import { getDocumentsSystemEnvironment } from "@features/documents-system/documents-system-runtime";
 import { documentsSystemTools } from "@features/documents-system/documents-system-tools";
 import { createDocumentsMdxComponents } from "@features/documents-system/ui/mdx/documents-mdx-components";
@@ -16,14 +18,15 @@ export async function generateMetadata({
 }): Promise<Metadata | null> {
   const { slug } = await params;
   const currentPath = slug.join("/");
-  const registry = await getCachedDocumentsSystemRegistry();
+  const locale = await getLocale();
+  const registry = await getCachedDocumentsSystemRegistry(locale);
   const document = documentsSystemTools.findDocument(registry.visibleDocuments, currentPath);
 
   if (!document) {
     return null;
   }
 
-  const imageUrl = `/docs/og/${currentPath}`;
+  const imageUrl = `/docs/og/${currentPath}?locale=${locale}`;
 
   return {
     title: document.meta.title,
@@ -42,7 +45,9 @@ export async function generateMetadata({
 }
 
 export async function generateStaticParams() {
-  const registry = await getCachedDocumentsSystemRegistry();
+  const registry = await getCachedDocumentsSystemRegistry(
+    resolveDocumentsSystemDefaultContentLocale()
+  );
 
   return documentsSystemTools.buildStaticParams(registry.visibleDocuments);
 }
@@ -54,7 +59,8 @@ export default async function DocumentsSystemDocumentPage({
 }) {
   const { slug } = await params;
   const currentPath = slug.join("/");
-  const registry = await getCachedDocumentsSystemRegistry();
+  const locale = await getLocale();
+  const registry = await getCachedDocumentsSystemRegistry(locale);
   const document = documentsSystemTools.findDocument(registry.visibleDocuments, currentPath);
 
   if (!document) {

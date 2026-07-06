@@ -3,7 +3,7 @@
 import { IconFileText, IconSearch, IconTextCaption } from "@tabler/icons-react";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Button } from "@components/ui/button";
 import {
   Command,
@@ -35,7 +35,8 @@ const emptySearchResponse: DocumentsSystemSearchResponse = {
   headings: [],
 };
 
-const getSearchApiPath = (query: string) => routes.api.search({ query: { q: query } });
+const getSearchApiPath = (query: string, locale: string) =>
+  routes.api.search({ query: { q: query, locale } });
 
 const getResultCount = (results: DocumentsSystemSearchResponse) =>
   results.pages.length + results.headings.length;
@@ -56,6 +57,7 @@ type SearchStatus = "idle" | "success" | "error";
 
 export const DocumentsSystemSearch = ({ className }: { className?: string }) => {
   const router = useRouter();
+  const locale = useLocale();
   const t = useTranslations("documentsSystem.ui.search");
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -98,7 +100,7 @@ export const DocumentsSystemSearch = ({ className }: { className?: string }) => 
 
     const controller = new AbortController();
 
-    fetch(getSearchApiPath(debouncedQuery), {
+    fetch(getSearchApiPath(debouncedQuery, locale), {
       signal: controller.signal,
       headers: {
         Accept: "application/json",
@@ -131,7 +133,7 @@ export const DocumentsSystemSearch = ({ className }: { className?: string }) => 
       });
 
     return () => controller.abort();
-  }, [debouncedQuery, open]);
+  }, [debouncedQuery, locale, open]);
 
   const handleOpenChange = useCallback((nextOpen: boolean) => {
     setOpen(nextOpen);
