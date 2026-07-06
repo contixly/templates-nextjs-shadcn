@@ -1,0 +1,81 @@
+---
+title: "Документация шаблона"
+description: "Публичная документация шаблона приложения, рабочих пространств и истории изменений."
+group: "Общее"
+groupOrder: 2000
+parentItem: "Введение"
+parentItemOrder: 1000
+order: 1000
+toc: true
+purpose: "Публичная документация шаблона"
+status: "published"
+author: "Template Maintainers"
+version: "1.0.0"
+editedAt: "2026-07-06"
+---
+
+# Документация шаблона
+
+Этот раздел показывает, как в шаблоне устроена публичная документация на Markdown и MDX. Страницы
+собираются из `src/features/documents-system/content`, попадают в левую навигацию, индексируются для
+поиска и рендерятся внутри обычного App Router маршрута `/docs`.
+
+## Разделы
+
+<DocumentLinkGrid>
+  <DocumentLinkGroup
+    title="Общее"
+    description="Базовые страницы и справочные материалы документации."
+  >
+    <DocumentLinkCard href="/docs/general/glossary" title="Глоссарий">
+      Термины, которые используются в демонстрационных страницах документации.
+    </DocumentLinkCard>
+  </DocumentLinkGroup>
+
+<DocumentLinkGroup
+  title="Рабочее пространство"
+  description="Начальная страница для будущих пользовательских сценариев рабочих пространств."
+>
+  <DocumentLinkCard href="/docs/workspace" title="Рабочее пространство">
+    Каркас раздела, который можно расширять документацией продукта.
+  </DocumentLinkCard>
+</DocumentLinkGroup>
+
+  <DocumentLinkGroup
+    title="История изменений"
+    description="Примеры релизных заметок и еженедельных обновлений."
+  >
+    <DocumentLinkCard href="/docs/history/releases" title="Релизы">
+      Индекс релизных заметок.
+    </DocumentLinkCard>
+    <DocumentLinkCard href="/docs/history/releases/2.0.11" title="Пример релиза">
+      Демонстрационная MDX-страница с callout-блоками, вкладками и изображениями.
+    </DocumentLinkCard>
+    <DocumentLinkCard href="/docs/history/change-logs" title="Еженедельные изменения">
+      Индекс еженедельных заметок.
+    </DocumentLinkCard>
+    <DocumentLinkCard
+      href="/docs/history/change-logs/2026-03-23-weekly-changelog"
+      title="Пример еженедельного обновления"
+    >
+      Демонстрационная Markdown-страница с пользовательским changelog.
+    </DocumentLinkCard>
+  </DocumentLinkGroup>
+</DocumentLinkGrid>
+
+## Как расширять документацию
+
+Добавляйте новые страницы в `src/features/documents-system/content`. Каждая страница должна иметь
+frontmatter с `title`, `description`, `group`, `parentItem`, `order`, `status` и `toc`.
+
+<Callout title="Публикация" variant="info">
+  В production отображаются только страницы со статусом `published` или `archived`, если у них не
+  стоит `hide: true`. В локальной разработке видны черновики, review-страницы и authoring-примеры.
+</Callout>
+
+## Полезные страницы для авторов
+
+Authoring-страницы скрыты в production, но доступны локально:
+
+- [Как писать документацию](/docs/general/authoring/how-to-write-docs)
+- [Возможности документации](/docs/general/authoring/sample)

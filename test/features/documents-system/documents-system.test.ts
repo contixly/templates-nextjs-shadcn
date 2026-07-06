@@ -100,8 +100,8 @@ describe("documents system", () => {
     }
   });
 
-  it("loads visible public documents without broken internal links", async () => {
-    const registry = await loadDocumentsSystemRegistry();
+  it("loads visible public documents as canonical URLs without locale suffixes", async () => {
+    const registry = await loadDocumentsSystemRegistry("en");
 
     expect(registry.visibleDocuments.map((document) => document.url)).toEqual([
       "index",
@@ -112,7 +112,41 @@ describe("documents system", () => {
       "history/releases",
       "history/releases/2.0.11",
     ]);
-    expect(validateDocumentsSystemLinks(registry.allDocuments, registry.sourceByPath)).toEqual([]);
+    expect(registry.visibleDocuments.every((document) => !document.url.endsWith(".ru"))).toBe(true);
+    expect(
+      registry.visibleDocuments.every((document) => /\.ru\.(md|mdx)$/u.test(document.sourcePath))
+    ).toBe(true);
+    expect(registry.visibleDocuments.some((document) => document.isLocaleFallback)).toBe(true);
+    expect(
+      validateDocumentsSystemLinks(
+        registry.allVariants,
+        registry.sourceByPath,
+        registry.allDocuments
+      )
+    ).toEqual([]);
+  });
+
+  it("loads authoring pages from matching english and russian variants", async () => {
+    const enRegistry = await loadDocumentsSystemRegistry("en");
+    const ruRegistry = await loadDocumentsSystemRegistry("ru");
+
+    const enSample = enRegistry.allDocuments.find(
+      (document) => document.url === "general/authoring/sample"
+    );
+    const ruSample = ruRegistry.allDocuments.find(
+      (document) => document.url === "general/authoring/sample"
+    );
+
+    expect(enSample).toMatchObject({
+      sourcePath: "general/authoring/sample.en.mdx",
+      contentLocale: "en",
+      isLocaleFallback: false,
+    });
+    expect(ruSample).toMatchObject({
+      sourcePath: "general/authoring/sample.ru.mdx",
+      contentLocale: "ru",
+      isLocaleFallback: false,
+    });
   });
 
   it("searches pages from the documents registry", async () => {
