@@ -1,4 +1,14 @@
 {
+  "pages": {
+    "home": {
+      "title": "Documentation",
+      "description": "Public template documentation for application features, workspaces, and changelog history.",
+      "openGraph": {
+        "title": "Documentation",
+        "description": "Public template documentation for application features, workspaces, and changelog history."
+      }
+    }
+  },
   "ui": {
     "navigation": {
       "label": "Documentation",

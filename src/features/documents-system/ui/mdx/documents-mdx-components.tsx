@@ -364,12 +364,12 @@ const isDocumentTabElement = (child: ReactNode): child is React.ReactElement<Doc
 export const Tab = ({ children }: DocumentTabProps) => <>{children}</>;
 
 const TABS_CONTENT_CLASS = cn(
-  "grid gap-4 text-sm leading-7 text-foreground",
+  "grid gap-4 text-sm leading-6 text-foreground",
   "[&>*:first-child]:mt-0",
-  "[&_p]:mt-4 [&_p]:leading-7 [&_p]:text-foreground",
+  "[&_p]:mt-4 [&_p]:leading-6 [&_p]:text-foreground",
   "[&_ul]:ml-6 [&_ul]:list-disc [&_ul]:space-y-1.5 [&_ul]:text-foreground [&_ul]:marker:text-muted-foreground",
   "[&_ol]:ml-6 [&_ol]:list-decimal [&_ol]:space-y-1.5 [&_ol]:text-foreground [&_ol]:marker:text-muted-foreground",
-  "[&_li]:leading-7",
+  "[&_li]:leading-6",
   "[&_blockquote]:border-l-2 [&_blockquote]:pl-4 [&_blockquote]:text-muted-foreground [&_blockquote]:italic",
   "[&_code]:rounded [&_code]:bg-muted [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:font-mono [&_code]:text-sm",
   "[&_table]:w-full [&_table]:border-collapse [&_table]:text-sm",
@@ -513,7 +513,7 @@ const createDocumentsMdxComponentMap = (
             "text-foreground scroll-m-20 font-semibold tracking-tight",
             isFootnoteLabel
               ? "text-muted-foreground mt-0 mb-2 text-[11px] tracking-wider uppercase"
-              : "group border-muted-foreground/50 mt-10 flex items-center gap-3 border-b border-dashed pb-0 text-[22px] first:mt-0"
+              : "group border-muted-foreground/50 mt-10 flex items-center gap-3 border-b border-dashed pb-0 text-xl first:mt-0"
           )}
           {...props}
         >
@@ -534,7 +534,7 @@ const createDocumentsMdxComponentMap = (
       return (
         <h3
           id={headingId}
-          className="text-foreground mt-7 scroll-m-20 text-lg font-semibold tracking-tight"
+          className="text-foreground mt-7 scroll-m-20 text-base font-semibold tracking-tight"
           {...props}
         >
           {children}
@@ -542,7 +542,7 @@ const createDocumentsMdxComponentMap = (
       );
     },
     p: ({ children, ...props }) => (
-      <p className="text-foreground mt-4 leading-7" {...props}>
+      <p className="text-foreground mt-4 text-sm leading-6" {...props}>
         {children}
       </p>
     ),
@@ -551,7 +551,7 @@ const createDocumentsMdxComponentMap = (
       return (
         <ul
           className={cn(
-            "text-foreground marker:text-muted-foreground mt-4 space-y-1.5",
+            "text-foreground marker:text-muted-foreground mt-4 space-y-1.5 text-sm",
             isTaskList ? "ml-0 list-none" : "ml-6 list-disc",
             className
           )}
@@ -564,7 +564,7 @@ const createDocumentsMdxComponentMap = (
     ol: ({ children, className, ...props }) => (
       <ol
         className={cn(
-          "text-foreground marker:text-muted-foreground mt-4 ml-6 list-decimal space-y-1.5",
+          "text-foreground marker:text-muted-foreground mt-4 ml-6 list-decimal space-y-1.5 text-sm",
           className
         )}
         {...props}
@@ -576,7 +576,7 @@ const createDocumentsMdxComponentMap = (
       const isTaskListItem = typeof className === "string" && className.includes("task-list-item");
       return (
         <li
-          className={cn("leading-7", isTaskListItem && "flex items-baseline gap-2", className)}
+          className={cn("leading-6", isTaskListItem && "flex items-baseline gap-2", className)}
           {...props}
         >
           {children}
@@ -628,7 +628,10 @@ const createDocumentsMdxComponentMap = (
       <ExternalLink {...props} linkContext={linkContext} stateLabels={labels.linkStates} />
     ),
     blockquote: ({ children, ...props }) => (
-      <blockquote className="text-muted-foreground mt-4 border-l-2 pl-4 italic" {...props}>
+      <blockquote
+        className="text-muted-foreground mt-4 border-l-2 pl-4 text-sm leading-6 italic"
+        {...props}
+      >
         {children}
       </blockquote>
     ),

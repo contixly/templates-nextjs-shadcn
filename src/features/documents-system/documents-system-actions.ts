@@ -5,6 +5,8 @@ import { join } from "node:path";
 import { cacheLife, cacheTag } from "next/cache";
 import { glob } from "glob";
 import matter from "gray-matter";
+import commonEn from "@messages/common.en.json";
+import commonRu from "@messages/common.ru.json";
 import { locales } from "@/src/i18n/config";
 import type { AppLocale } from "@/src/i18n/config";
 import {
@@ -50,16 +52,22 @@ const shouldAssertBrokenLinks =
 const editedAtCache = new Map<string, string>();
 
 const READING_WORDS_PER_MINUTE = 180;
+const READING_TIME_UNIT_BY_LOCALE: Record<AppLocale, string> = {
+  en: commonEn.words.time["minutes-short"],
+  ru: commonRu.words.time["minutes-short"],
+};
 
-const computeReading = (raw: string): string => {
+const computeReadingMinutes = (raw: string): number => {
   const stripped = raw
     .replace(/```[\s\S]*?```/g, " ")
     .replace(/`[^`]*`/g, " ")
     .replace(/<[^>]+>/g, " ");
   const words = stripped.split(/\s+/u).filter(Boolean).length;
-  const minutes = Math.max(1, Math.ceil(words / READING_WORDS_PER_MINUTE));
-  return `${minutes} мин`;
+  return Math.max(1, Math.ceil(words / READING_WORDS_PER_MINUTE));
 };
+
+const formatReadingTime = (minutes: number, locale: AppLocale): string =>
+  `${minutes} ${READING_TIME_UNIT_BY_LOCALE[locale]}`;
 
 const computeEditedAt = (absPath: string): string => {
   const cached = editedAtCache.get(absPath);
@@ -144,6 +152,12 @@ export const resolveDocumentsSystemRegistryDocuments = (
       }
 
       const availableLocales = sortLocales(urlVariants.map((variant) => variant.contentLocale));
+      const meta: DocumentsSystemMetadata = {
+        ...selected.meta,
+        ...(selected.meta.reading === undefined && selected.meta.readingMinutes !== undefined
+          ? { reading: formatReadingTime(selected.meta.readingMinutes, requestedLocale) }
+          : {}),
+      };
 
       return {
         url: selected.url,
@@ -154,7 +168,7 @@ export const resolveDocumentsSystemRegistryDocuments = (
         contentLocale: selected.contentLocale,
         isLocaleFallback: selected.contentLocale !== requestedLocale,
         availableLocales,
-        meta: selected.meta,
+        meta,
       };
     })
   );
@@ -188,7 +202,9 @@ const readDocumentFiles = async (): Promise<{
       const enrichedMeta: DocumentsSystemMetadata = {
         ...meta,
         source: meta.source ?? parsedPath.sourcePath,
-        reading: meta.reading ?? computeReading(parsed.content),
+        ...(meta.reading === undefined
+          ? { readingMinutes: computeReadingMinutes(parsed.content) }
+          : {}),
         editedAt: meta.editedAt ?? computeEditedAt(absPath),
       };
 

@@ -23,6 +23,7 @@ export interface DocumentsSystemMetadata extends Metadata {
   version?: string;
   editedAt?: string;
   reading?: string;
+  readingMinutes?: number;
   source?: string;
 }
 

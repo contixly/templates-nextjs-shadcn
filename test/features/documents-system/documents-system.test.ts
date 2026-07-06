@@ -68,6 +68,7 @@ describe("documents system", () => {
 
   it("is registered in application routes", () => {
     expect(routes.documents_system.pages.home.path()).toBe("/docs");
+    expect(routes.documents_system.pages.home.i18n.namespace).toBe("documentsSystem.pages.home");
   });
 
   it("throws clearly when source-only link validation omits canonical targets at runtime", () => {
@@ -129,6 +130,17 @@ describe("documents system", () => {
         registry.allDocuments
       )
     ).toEqual([]);
+  });
+
+  it("formats computed reading time with the requested registry locale", async () => {
+    const enRegistry = await loadDocumentsSystemRegistry("en");
+    const ruRegistry = await loadDocumentsSystemRegistry("ru");
+    const enDocument = documentsSystemTools.findDocument(enRegistry.visibleDocuments, "index");
+    const ruDocument = documentsSystemTools.findDocument(ruRegistry.visibleDocuments, "index");
+
+    expect(enDocument?.meta.reading).toMatch(/\smin$/);
+    expect(enDocument?.meta.reading).not.toContain("мин");
+    expect(ruDocument?.meta.reading).toMatch(/\sмин$/);
   });
 
   it("loads authoring pages from matching english and russian variants", async () => {
@@ -204,11 +216,28 @@ describe("documents system", () => {
     const enMessages = await loadMessages("en");
     const ruMessages = await loadMessages("ru");
 
+    expect(enMessages).toHaveProperty("documentsSystem.pages.home.title", "Documentation");
+    expect(ruMessages).toHaveProperty("documentsSystem.pages.home.title", "Документация");
     expect(enMessages).toHaveProperty("documentsSystem.ui.search.openLabel", "Search docs");
     expect(ruMessages).toHaveProperty(
       "documentsSystem.ui.search.openLabel",
       "Поиск по документации"
     );
+  });
+
+  it("keeps documentation typography aligned with compact application surfaces", async () => {
+    const [sidebarSource, pageSource, mdxSource] = await Promise.all([
+      readFile("src/features/documents-system/ui/documents-system-sidebar.tsx", "utf8"),
+      readFile("src/features/documents-system/ui/page/documents-system-page.tsx", "utf8"),
+      readFile("src/features/documents-system/ui/mdx/documents-mdx-components.tsx", "utf8"),
+    ]);
+
+    expect(sidebarSource).not.toContain("text-[0.92rem]");
+    expect(sidebarSource).not.toContain("text-[0.84rem]");
+    expect(pageSource).not.toContain("md:text-4xl");
+    expect(pageSource).not.toContain("w-full text-base leading-relaxed");
+    expect(mdxSource).not.toContain("text-[22px]");
+    expect(mdxSource).not.toContain("text-lg font-semibold");
   });
 
   it("does not render the global documentation shortcut inside the documentation header", async () => {

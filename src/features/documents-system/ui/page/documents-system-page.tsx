@@ -39,7 +39,7 @@ export const DocumentsSystemPage = ({
         "xl:grid-cols-[minmax(0,1fr)_18rem] xl:gap-12 xl:px-12"
       }
     >
-      <article className="text-foreground flex w-full min-w-0 flex-col">
+      <article className="text-foreground flex w-full min-w-0 flex-col text-sm">
         <div
           id={DOCUMENTS_SYSTEM_BREADCRUMB_MARKER_ID}
           hidden
@@ -49,12 +49,12 @@ export const DocumentsSystemPage = ({
         />
         <header className="flex flex-col gap-3">
           <div className="flex items-start justify-between gap-3">
-            <h1 className="scroll-m-20 text-3xl leading-tight font-semibold tracking-tight text-balance md:text-4xl">
+            <h1 className="scroll-m-20 text-2xl leading-tight font-semibold tracking-tight text-balance md:text-3xl">
               {title}
             </h1>
             <DocumentsSystemPageActionsTop navigation={navigation} />
           </div>
-          <p className="text-muted-foreground w-full text-base leading-relaxed text-pretty">
+          <p className="text-muted-foreground w-full text-sm leading-6 text-pretty">
             {description}
           </p>
           <DocumentsSystemPageMeta

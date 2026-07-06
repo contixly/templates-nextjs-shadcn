@@ -95,8 +95,8 @@ export const DocumentsSystemSidebar = ({
                   <IconBook2 className="size-4" />
                 </div>
                 <div className="flex flex-col gap-0.5 leading-none">
-                  <span className="font-medium">{t("title")}</span>
-                  <span>v1.0.0</span>
+                  <span className="text-sm font-medium">{t("title")}</span>
+                  <span className="text-sidebar-foreground/60 text-xs">v1.0.0</span>
                 </div>
               </div>
             </SidebarMenuButton>
@@ -122,7 +122,7 @@ export const DocumentsSystemSidebar = ({
                         <SidebarMenuButton
                           data-status-mix={item.statusMix}
                           className={cn(
-                            "text-sidebar-foreground h-auto min-h-9 items-start px-2 py-1.5 text-[0.92rem] leading-5 font-medium",
+                            "text-sidebar-foreground h-auto min-h-8 items-start px-2 py-1.5 text-sm leading-5 font-medium",
                             "[&>span]:min-w-0 [&>span]:flex-1 [&>span]:break-words [&>span]:whitespace-normal"
                           )}
                         >
@@ -148,7 +148,7 @@ export const DocumentsSystemSidebar = ({
                                   child.hiddenInProduction ? "true" : "false"
                                 }
                                 className={cn(
-                                  "text-sidebar-foreground/65 relative ml-1.5 h-auto min-h-8 items-start rounded-none py-1.5 pr-2 pl-4 text-[0.84rem] leading-5 break-words whitespace-normal",
+                                  "text-sidebar-foreground/65 relative ml-1.5 h-auto min-h-7 items-start rounded-none py-1.5 pr-2 pl-4 text-[13px] leading-5 break-words whitespace-normal",
                                   "data-[active=true]:bg-sidebar-primary/10 data-[active=true]:text-sidebar-accent-foreground data-[active=true]:font-medium"
                                 )}
                               >
