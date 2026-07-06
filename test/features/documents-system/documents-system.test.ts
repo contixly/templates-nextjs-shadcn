@@ -112,7 +112,11 @@ describe("documents system", () => {
         "general/glossary",
         "workspace",
         "history/change-logs",
-        "history/change-logs/2026-03-23-weekly-changelog",
+        "history/change-logs/2026-04-13-weekly-changelog",
+        "history/change-logs/2026-04-20-weekly-changelog",
+        "history/change-logs/2026-04-27-weekly-changelog",
+        "history/change-logs/2026-05-04-weekly-changelog",
+        "history/change-logs/2026-07-06-weekly-changelog",
         "history/releases",
         "history/releases/2.0.11",
       ])
