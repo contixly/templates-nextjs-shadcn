@@ -42,13 +42,32 @@ const META_CELL_TONE_CLASS: Record<DocumentsSystemStatusTone, string> = {
   archived: "bg-muted/60",
 };
 
+const DATE_ONLY_PATTERN = /^(\d{4})-(\d{2})-(\d{2})$/u;
+
 const formatEditedAt = (value: string, locale: string): string => {
-  const parsed = new Date(value);
+  const dateOnlyMatch = DATE_ONLY_PATTERN.exec(value);
+  const parsed = dateOnlyMatch
+    ? new Date(
+        Date.UTC(Number(dateOnlyMatch[1]), Number(dateOnlyMatch[2]) - 1, Number(dateOnlyMatch[3]))
+      )
+    : new Date(value);
+
   if (Number.isNaN(parsed.getTime())) return value;
+
+  if (
+    dateOnlyMatch &&
+    (parsed.getUTCFullYear() !== Number(dateOnlyMatch[1]) ||
+      parsed.getUTCMonth() !== Number(dateOnlyMatch[2]) - 1 ||
+      parsed.getUTCDate() !== Number(dateOnlyMatch[3]))
+  ) {
+    return value;
+  }
+
   return new Intl.DateTimeFormat(locale, {
     day: "numeric",
     month: "short",
     year: "numeric",
+    ...(dateOnlyMatch ? { timeZone: "UTC" } : {}),
   }).format(parsed);
 };
 

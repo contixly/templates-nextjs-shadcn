@@ -44,6 +44,11 @@ The system SHALL render documentation pages inside a shared documentation shell 
 - **WHEN** the documentation layout renders
 - **THEN** the shell initializes the sidebar open state from that cookie
 
+#### Scenario: Mobile sidebar closes after document navigation
+- **GIVEN** the documentation sidebar is open in the mobile sheet
+- **WHEN** the visitor selects a document link
+- **THEN** the mobile sidebar sheet closes after the selection
+
 #### Scenario: Header renders document navigation tools
 - **GIVEN** the documentation shell is visible
 - **WHEN** the header renders
@@ -279,6 +284,11 @@ The system SHALL render document metadata, optional table of contents, and page 
 - **WHEN** page metadata renders
 - **THEN** the system does not display a fallback language marker
 
+#### Scenario: Date-only edited metadata keeps the authored calendar day
+- **GIVEN** a document has date-only `editedAt` metadata such as `2026-07-06`
+- **WHEN** page metadata formats the edited date for a visitor locale
+- **THEN** the displayed calendar day remains the authored date regardless of the visitor timezone
+
 #### Scenario: Table of contents follows H2 headings
 - **GIVEN** a document has `toc` enabled
 - **WHEN** the rendered content contains H2 headings with IDs
@@ -294,6 +304,12 @@ The system SHALL render document metadata, optional table of contents, and page 
 - **GIVEN** the rendered content contains generated H2 or H3 IDs
 - **WHEN** the table of contents component inspects the content container
 - **THEN** the system normalizes duplicate generated IDs to stable unique IDs
+
+#### Scenario: Malformed URL hashes do not break table of contents handling
+- **GIVEN** a documentation URL has a malformed percent-encoded hash fragment
+- **WHEN** the table of contents reads the current hash on the client
+- **THEN** the page does not throw a decoding error
+- **AND** the raw hash remains available for anchor matching
 
 ### Requirement: Internal Link Handling
 The system SHALL resolve documentation internal links against canonical document URLs and expose valid, unpublished, broken, external, and ignored link states.
@@ -323,7 +339,7 @@ The system SHALL resolve documentation internal links against canonical document
 - **GIVEN** a document source contains inline markdown links, reference link definitions, and MDX href attributes
 - **WHEN** link validation extracts links
 - **THEN** the system extracts internal documentation targets with source path and line number
-- **AND** ignores links inside fenced code blocks
+- **AND** ignores links inside backtick or tilde fenced code blocks
 
 #### Scenario: Broken links fail quality gates outside local development
 - **GIVEN** the documentation registry contains broken internal links

@@ -21,6 +21,7 @@ import * as React from "react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { cn } from "@lib/utils";
+import { useMobileSidebarClose } from "@hooks/use-mobile-sidebar-close";
 import type {
   DocumentsSystemParentStatusMix,
   DocumentsSystemSidebarParent,
@@ -88,6 +89,7 @@ const DocumentsSystemSidebarParentMenu = ({
   hiddenInProductionLabel: string;
 }) => {
   const hasActiveChild = item.items.some((child) => child.href === activePathname);
+  const { closeMobileSidebar } = useMobileSidebarClose();
   const [open, setOpen] = React.useState(hasActiveChild);
   const controlledOpen = open || hasActiveChild;
 
@@ -133,7 +135,7 @@ const DocumentsSystemSidebarParentMenu = ({
                       "data-[active=true]:bg-sidebar-primary/10 data-[active=true]:text-sidebar-accent-foreground data-[active=true]:font-medium"
                     )}
                   >
-                    <Link href={child.href}>
+                    <Link href={child.href} onClick={closeMobileSidebar}>
                       <div className="flex min-w-0 flex-1 flex-wrap items-center gap-1.5">
                         <span className="min-w-0 flex-1 break-words whitespace-normal">
                           {child.label}

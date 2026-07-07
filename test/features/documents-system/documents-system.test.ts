@@ -470,6 +470,30 @@ describe("documents system", () => {
       ]);
     });
 
+    it("ignores links inside tilde fenced code blocks during validation", () => {
+      const sourcePath = "general/authoring/sample.ru.mdx";
+      const sourceVariants = [{ sourcePath }];
+      const sourceByPath = new Map([
+        [
+          sourcePath,
+          [
+            "~~~md",
+            "[Code example should not validate](/docs/missing-page)",
+            "~~~",
+            "[Canonical](/docs/general/authoring/sample)",
+          ].join("\n"),
+        ],
+      ]);
+      const canonicalTargets = resolveDocumentsSystemRegistryDocuments(
+        [registryVariant(sourcePath, "ru", "Возможности документации")],
+        "ru"
+      );
+
+      expect(validateDocumentsSystemLinks(sourceVariants, sourceByPath, canonicalTargets)).toEqual(
+        []
+      );
+    });
+
     it("builds static params from canonical slugs without locale suffixes", () => {
       const documents = resolveDocumentsSystemRegistryDocuments(
         [registryVariant("general/authoring/sample.ru.mdx", "ru", "Возможности документации")],

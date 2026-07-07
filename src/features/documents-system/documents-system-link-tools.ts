@@ -14,9 +14,14 @@ const MARKDOWN_REFERENCE_DEFINITION_PATTERN =
 const MDX_HREF_PATTERN =
   /\bhref=(?:"([^"]+)"|'([^']+)'|\{`([^`]+)`\}|\{"([^"]+)"\}|\{'([^']+)'\})/g;
 const HTTP_URL_PATTERN = /^https?:\/\//iu;
+const MARKDOWN_FENCE_PATTERN = /^\s*(`{3,}|~{3,})/u;
 
 type DocumentsSystemLinkTargetDocument = Pick<DocumentInfo, "meta" | "url" | "sourcePath">;
 type DocumentsSystemLinkSourceDocument = Pick<DocumentInfo, "sourcePath">;
+type DocumentsSystemMarkdownFence = {
+  marker: "`" | "~";
+  length: number;
+};
 
 type DocumentsSystemLinkIndexFor<TDocument extends DocumentsSystemLinkTargetDocument> = {
   allByUrl: Map<string, TDocument>;
@@ -76,6 +81,20 @@ const isDocumentsSystemLinkTargetDocument = (
   typeof document.url === "string" &&
   "meta" in document &&
   Boolean(document.meta);
+
+const getMarkdownFence = (line: string): DocumentsSystemMarkdownFence | undefined => {
+  const match = MARKDOWN_FENCE_PATTERN.exec(line);
+  const fence = match?.[1];
+
+  if (!fence) {
+    return undefined;
+  }
+
+  return {
+    marker: fence[0] as DocumentsSystemMarkdownFence["marker"],
+    length: fence.length,
+  };
+};
 
 const resolveDocumentsSystemLinkTargets = (
   sourceDocuments: DocumentsSystemLinkSourceDocument[],
@@ -153,15 +172,20 @@ export const extractDocumentsSystemLinks = (
 ): DocumentsSystemExtractedLink[] => {
   const links: DocumentsSystemExtractedLink[] = [];
   const lines = content.split(/\r?\n/u);
-  let insideFence = false;
+  let activeFence: DocumentsSystemMarkdownFence | undefined;
 
   lines.forEach((line, lineIndex) => {
-    if (/^\s*```/u.test(line)) {
-      insideFence = !insideFence;
+    const fence = getMarkdownFence(line);
+
+    if (
+      fence &&
+      (!activeFence || (fence.marker === activeFence.marker && fence.length >= activeFence.length))
+    ) {
+      activeFence = activeFence ? undefined : fence;
       return;
     }
 
-    if (insideFence) {
+    if (activeFence) {
       return;
     }
 

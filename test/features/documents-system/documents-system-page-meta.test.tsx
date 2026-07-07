@@ -56,4 +56,28 @@ describe("DocumentsSystemPageMeta", () => {
 
     expect(screen.queryByText("Available in EN")).toBeNull();
   });
+
+  it("formats date-only edited dates without shifting to the previous local day", () => {
+    const DateTimeFormat = Intl.DateTimeFormat;
+    const dateTimeFormatSpy = jest
+      .spyOn(Intl, "DateTimeFormat")
+      .mockImplementation((locales, options) => {
+        const nextOptions = {
+          ...options,
+          timeZone: options?.timeZone ?? "America/Los_Angeles",
+        };
+
+        return new DateTimeFormat(locales, nextOptions);
+      });
+
+    try {
+      render(
+        <DocumentsSystemPageMeta meta={{ ...meta, editedAt: "2026-07-06" }} statusTone="default" />
+      );
+
+      expect(screen.getByText("Jul 6, 2026")).not.toBeNull();
+    } finally {
+      dateTimeFormatSpy.mockRestore();
+    }
+  });
 });

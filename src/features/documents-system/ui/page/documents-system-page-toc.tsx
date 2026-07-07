@@ -10,7 +10,15 @@ type PageMenuItem = {
   href: string;
 };
 
-const readCurrentHash = () => decodeURIComponent(window.location.hash.replace(/^#/, ""));
+const readCurrentHash = () => {
+  const rawHash = window.location.hash.replace(/^#/, "");
+
+  try {
+    return decodeURIComponent(rawHash);
+  } catch {
+    return rawHash;
+  }
+};
 
 const useUrlAnchor = () => {
   const [hash, setHash] = useState("");
