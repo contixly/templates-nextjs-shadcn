@@ -1,5 +1,8 @@
 import application, { ApplicationRoutes } from "@features/application/application-routes";
 import dashboard, { DashboardRoutes } from "@features/dashboard/dashboard-routes";
+import documents_system, {
+  DocumentsSystemRoutes,
+} from "@features/documents-system/documents-system-routes";
 import workspaces, { WorkspaceRoutes } from "@features/workspaces/workspaces-routes";
 import accounts, { AccountsRoutes } from "@features/accounts/accounts-routes";
 
@@ -10,6 +13,7 @@ import accounts, { AccountsRoutes } from "@features/accounts/accounts-routes";
  */
 export type AppRoutes = Readonly<{
   application: ApplicationRoutes;
+  documents_system: DocumentsSystemRoutes;
   workspaces: WorkspaceRoutes;
   dashboard: DashboardRoutes;
   accounts: AccountsRoutes;
@@ -23,6 +27,7 @@ export type AppRoutes = Readonly<{
  */
 const routes: AppRoutes = {
   application,
+  documents_system,
   workspaces,
   dashboard,
   accounts,
@@ -41,6 +46,7 @@ export const routesConfig = {
   ],
   publicRoutes: [
     application.pages.home.pathTemplate,
+    `${documents_system.pages.home.pathTemplate}(.*)`,
     accounts.pages.login.pathTemplate,
     accounts.pages.error.pathTemplate,
   ],

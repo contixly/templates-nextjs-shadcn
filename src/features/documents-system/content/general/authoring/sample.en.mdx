@@ -1,0 +1,195 @@
+---
+title: "Documentation components"
+description: "Visual reference for Markdown and documentation-specific MDX components"
+group: "Documentation"
+groupOrder: 400
+parentItem: "Authoring"
+parentItemOrder: 100
+order: 30
+status: "published"
+toc: true
+purpose: "Content authors"
+author: "Template Maintainers"
+version: "1.2.0"
+editedAt: "2026-07-06"
+---
+
+# Documentation components
+
+This page shows how regular Markdown and documentation-specific components look for content authors.
+Use it as a visual reference before creating a new public documentation page.
+
+## Basic Markdown
+
+### Text
+
+Documentation supports regular text, **emphasis**, ~~outdated fragments~~, links, and lists.
+For example, you can link to the [documentation home](/docs) or open an
+[external resource](https://nextjs.org/docs) in a new tab. Complex terms and notes can move
+to footnotes[^gfm], so the paragraph stays readable[^style].
+
+- A bullet list works well for short enumerations.
+- Each item should be self-contained and clear.
+- If the list grows too long, split it into several blocks.
+
+1. A numbered list works well for a sequence of actions.
+2. Each step should describe one action.
+3. The result of the step should be explicit.
+
+> A quote works well for a principle, agreement, or excerpt from a user scenario.
+
+Short values can stay inline: `status: "published"`, `group: "Documentation"`, or
+`parentItem: "Authoring"`.
+
+### Images
+
+![Template logo](/img/branding/template_logo_nb_s.png "Template logo")
+![Template app icon](/img/branding/web-app-manifest-512x512.png "Template app icon")
+
+### Code block
+
+```md
+---
+title: "Page title"
+description: "Short page description"
+group: "General"
+parentItem: "Authors"
+order: 30
+status: "draft"
+toc: true
+---
+```
+
+### Tables
+
+| Field         | Type    | Purpose                                                    |
+| ------------- | ------- | ---------------------------------------------------------- |
+| `title`       | string  | Page title shown in the header and left menu               |
+| `description` | string  | Page subtitle and search description                       |
+| `order`       | number  | Page position inside `parentItem`                          |
+| `status`      | string  | Page status: `draft`, `review`, `published`, or `archived` |
+| `hide`        | boolean | Hides the page in production for every status              |
+| `toc`         | boolean | Enables the right column with page section navigation      |
+
+### Checklists
+
+Checklists are useful for page acceptance before publishing:
+
+- [x] Fill frontmatter and verify `group` and `parentItem`
+- [x] Check that second-level headings appear in the right navigation
+- [ ] Align the description with a stakeholder
+- [ ] Move the page to publication with `status: "published"`
+
+## Highlighted notes
+
+<Callout title="Regular note">
+  Use this block for an important explanation that should stand out more than a normal paragraph.
+</Callout>
+
+<Callout title="Helpful context" variant="info">
+  Additional information that helps readers understand the scenario but does not block the main
+  flow. Use it to link related documents or share a nuance.
+</Callout>
+
+<Callout title="Done" variant="success">
+  Confirmation that a step finished successfully: for example, the page is published, materials are
+  approved, or navigation reflects the change.
+</Callout>
+
+<Callout title="Warning" variant="warning">
+  Use a warning when an action requires attention: for example, before publishing a page or changing
+  a material status.
+</Callout>
+
+<Callout title="Critical limitation" variant="danger">
+  Use this variant for errors that block the scenario, or rules where violation can cause data loss.
+</Callout>
+
+## Step-by-step scenario
+
+<Steps>
+  <Step title="Prepare the structure">
+    Choose the section, parent menu item, and page order in navigation.
+  </Step>
+
+<Step title="Fill the content">
+  Start with a short description, then add main sections, examples, and limits.
+</Step>
+
+  <Step title="Check the result">
+    Make sure headings appear in the right navigation and the page appears in the left menu.
+  </Step>
+</Steps>
+
+## File structure
+
+<Files>
+  <Folder name="content">
+    <File name="index.en.mdx" />
+    <File name="index.ru.mdx" />
+    <Folder name="general">
+      <Folder name="authoring">
+        <File name="how-to-write-docs.en.md" />
+        <File name="how-to-write-docs.ru.md" />
+        <File name="sample.en.mdx" />
+        <File name="sample.ru.mdx" />
+      </Folder>
+    </Folder>
+    <Folder name="history">
+      <Folder name="releases">
+        <File name="index.en.md" />
+        <File name="index.ru.md" />
+        <File name="0.0.1.en.md" />
+        <File name="0.0.1.ru.md" />
+        <File name="..." />
+        <File name="0.0.10.en.mdx" />
+        <File name="0.0.10.ru.mdx" />
+      </Folder>
+    </Folder>
+  </Folder>
+</Files>
+
+## Switchable blocks
+
+<Tabs defaultValue="preview">
+  <Tab title="Description" value="preview">
+    Use tabs when you need to show several variants of the same material: description, example, and ready-to-use snippet.
+  </Tab>
+
+  <Tab title="Example" value="example">
+    A tab can contain regular text, a list, or another supported Markdown block.
+
+    - Short point.
+    - Additional detail.
+    - Expected result.
+
+  </Tab>
+
+  <Tab title="Snippet" value="snippet">
+
+    ```md
+    <Callout title="Note">
+      Text inside a special block.
+    </Callout>
+    ```
+
+  </Tab>
+</Tabs>
+
+## Recommendations for authors
+
+Write a page around one user scenario. If the material starts mixing roles, statuses, instructions,
+and reference information, split it into several pages and connect them with links.
+
+Start main sections with second-level headings. The right navigation is built from them, so names should be
+short and recognizable.
+
+## Related pages
+
+- [How to write documentation](/docs/general/authoring/how-to-write-docs)
+- [Localized documentation content](/docs/general/authoring/localized-content)
+- [For developers](/docs/developers)
+
+[^gfm]: GitHub Flavored Markdown adds tables, checklists, strikethrough, autolinks, and footnotes to basic Markdown.
+
+[^style]: A footnote uses `[^id]` in text and `[^id]: text` somewhere in the document. The order is not important.

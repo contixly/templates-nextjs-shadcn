@@ -3,6 +3,7 @@ import { ThemeSwitcher } from "@components/application/theme/theme-switcher";
 import { NavUserLogin } from "@features/accounts/components/nav/nav-user-login";
 import { loadCurrentUserId } from "@features/accounts/accounts-actions";
 import { AppBreadcrumbs } from "@components/application/breadcrumbs/app-breadcrumbs";
+import { DocumentationRootLink } from "@components/application/documentation-root-link";
 import { getFromCookie } from "@lib/cookies";
 import { LAST_LOGIN_METHOD_KEY } from "@lib/environment";
 import { loadUserWorkspaces } from "@features/workspaces/actions/load-user-workspaces";
@@ -36,6 +37,7 @@ export const AppSiteHeader = ({ hideSidebarTrigger, style }: AppSiteHeaderProps)
             dotShowLogout
             variant="outline"
           />
+          <DocumentationRootLink />
           <ThemeSwitcher />
         </div>
       </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { IconHelp } from "@tabler/icons-react";
+import { IconBook2 } from "@tabler/icons-react";
 import * as React from "react";
 import { ComponentProps, useCallback } from "react";
 import Link from "@components/ui/custom/animated-link";
@@ -12,7 +12,6 @@ import {
   SidebarMenuItem,
 } from "@components/ui/sidebar";
 import routes from "@features/routes";
-import { APP_BASE_URL } from "@lib/environment";
 import { getMenuItem } from "@lib/ui";
 import { usePageTranslations } from "@hooks/use-page-translations";
 import { useTranslations } from "next-intl";
@@ -48,9 +47,9 @@ export const NavSecondary = ({ ...props }: React.ComponentPropsWithoutRef<typeof
     getMenuItem(routes.workspaces.pages.workspaces, workspacesTranslations.title),
     getMenuItem(routes.accounts.pages.profile, profileTranslations.title),
     {
-      label: t("getHelp"),
-      url: APP_BASE_URL,
-      icon: IconHelp,
+      label: t("documentation"),
+      url: routes.documents_system.pages.home.path(),
+      icon: IconBook2,
     },
   ];
 

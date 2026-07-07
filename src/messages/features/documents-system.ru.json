@@ -1,0 +1,76 @@
+{
+  "pages": {
+    "home": {
+      "title": "Документация",
+      "description": "Публичная документация шаблона приложения, рабочих пространств и истории изменений.",
+      "openGraph": {
+        "title": "Документация",
+        "description": "Публичная документация шаблона приложения, рабочих пространств и истории изменений."
+      }
+    }
+  },
+  "ui": {
+    "navigation": {
+      "label": "Документация",
+      "goHome": "На главную"
+    },
+    "sidebar": {
+      "title": "Документация",
+      "hiddenInProduction": "Скрыто в prod"
+    },
+    "search": {
+      "openLabel": "Поиск по документации",
+      "placeholder": "Поиск по документации...",
+      "title": "Поиск по документации",
+      "description": "Поиск страниц и разделов документации",
+      "emptyQuery": "Документы не найдены",
+      "emptyResults": "Ничего не найдено",
+      "unavailable": "Поиск временно недоступен",
+      "pages": "Страницы",
+      "headings": "Разделы на страницах"
+    },
+    "page": {
+      "tocTitle": "На этой странице",
+      "previousDocument": "Предыдущий документ",
+      "nextDocument": "Следующий документ",
+      "footnotes": "Сноски",
+      "meta": {
+        "section": "Раздел",
+        "purpose": "Назначение",
+        "editedAt": "Изменено",
+        "author": "Автор",
+        "version": "Версия",
+        "reading": "Время чтения",
+        "status": "Статус",
+        "visibility": "Видимость",
+        "hiddenInProduction": "Скрыто в prod",
+        "language": "Язык",
+        "fallbackLanguage": "Доступно на {locale}"
+      },
+      "status": {
+        "draft": "Черновик",
+        "review": "На проверке",
+        "published": "Опубликовано",
+        "archived": "В архиве"
+      }
+    },
+    "headingShare": {
+      "copyAria": "Скопировать ссылку на раздел {label}",
+      "copy": "Скопировать ссылку",
+      "copied": "Ссылка скопирована"
+    },
+    "links": {
+      "broken": "Ссылка сломана",
+      "unpublished": "Еще не готово"
+    },
+    "code": {
+      "copy": "Скопировать",
+      "copied": "Скопировано",
+      "copyTooltip": "Скопировать"
+    },
+    "mdx": {
+      "folder": "папка",
+      "file": "файл"
+    }
+  }
+}

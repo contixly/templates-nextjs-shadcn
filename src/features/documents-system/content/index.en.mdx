@@ -1,0 +1,153 @@
+---
+title: "Template documentation"
+description: "Public documentation for the Next.js template: setup, accounts, workspaces, API access, application runtime, and developer guidance."
+group: "General"
+groupOrder: 2000
+parentItem: "Introduction"
+parentItemOrder: 1000
+order: 1000
+toc: true
+purpose: "Public template documentation"
+status: "published"
+author: "Template Maintainers"
+version: "1.2.0"
+editedAt: "2026-07-06"
+---
+
+# Template documentation
+
+This documentation explains what the Next.js application template already provides and how to use
+it when creating a service. It covers setup, account management, organization-backed workspaces, API
+keys, localization, runtime defaults, quality workflow, and release history.
+
+## Start here
+
+<DocumentLinkGrid>
+  <DocumentLinkGroup
+    title="General"
+    description="First steps and shared terminology for template adopters."
+  >
+    <DocumentLinkCard href="/docs/general/quick-start" title="Quick start">
+      Create a project from the template, configure the required environment, run migrations, and
+      verify the first local launch.
+    </DocumentLinkCard>
+    <DocumentLinkCard href="/docs/general/glossary" title="Glossary">
+      Terms used across account, workspace, API, documentation, and development pages.
+    </DocumentLinkCard>
+  </DocumentLinkGroup>
+
+<DocumentLinkGroup
+  title="Account"
+  description="Personal settings, provider connections, sessions, invitations, and deletion."
+>
+  <DocumentLinkCard href="/docs/account" title="Account settings">
+    Understand the user's global settings area and how it differs from workspace settings.
+  </DocumentLinkCard>
+  <DocumentLinkCard href="/docs/account/profile-connections" title="Profile and connections">
+    Update the display name and manage configured OAuth provider connections.
+  </DocumentLinkCard>
+  <DocumentLinkCard href="/docs/account/sessions-security" title="Sessions and security">
+    Review active sessions and revoke access without exposing raw session tokens.
+  </DocumentLinkCard>
+</DocumentLinkGroup>
+
+<DocumentLinkGroup
+  title="Workspace"
+  description="Organization-backed collaboration, members, teams, invitations, and settings."
+>
+  <DocumentLinkCard href="/docs/workspace" title="Workspace">
+    Learn how the template maps user-facing workspaces to Better Auth Organizations.
+  </DocumentLinkCard>
+  <DocumentLinkCard href="/docs/workspace/create-switch" title="Create and switch workspaces">
+    Create workspaces, open workspace URLs, switch context, and understand deletion boundaries.
+  </DocumentLinkCard>
+  <DocumentLinkCard href="/docs/workspace/settings" title="Workspace settings">
+    Review the settings sections for workspace details, users, invitations, teams, roles, and API
+    keys.
+  </DocumentLinkCard>
+  <DocumentLinkCard href="/docs/workspace/invitations" title="Invitations">
+    Create invitations, copy links, accept or reject decisions, and target teams.
+  </DocumentLinkCard>
+</DocumentLinkGroup>
+
+<DocumentLinkGroup
+  title="API and integrations"
+  description="Machine access with API keys and starter read-only API routes."
+>
+  <DocumentLinkCard href="/docs/api" title="API access">
+    Understand personal and workspace API keys and how `/api/v1` authenticates requests.
+  </DocumentLinkCard>
+  <DocumentLinkCard href="/docs/api/api-keys" title="Manage API keys">
+    Create, edit, expire, rate-limit, and delete personal or workspace-owned keys.
+  </DocumentLinkCard>
+  <DocumentLinkCard href="/docs/api/api-v1" title="API v1 reference">
+    Review starter routes, response envelopes, principal rules, and common errors.
+  </DocumentLinkCard>
+</DocumentLinkGroup>
+
+<DocumentLinkGroup
+  title="Application"
+  description="Application shell, localization, OAuth, runtime security, caching, and settings UI."
+>
+  <DocumentLinkCard href="/docs/application" title="Application shell">
+    Review public routes, protected routes, dashboard surface, and extension points.
+  </DocumentLinkCard>
+  <DocumentLinkCard href="/docs/application/localization" title="Localization">
+    See how `PUBLIC_DEFAULT_LOCALE` controls UI messages, metadata, and documentation variants.
+  </DocumentLinkCard>
+  <DocumentLinkCard href="/docs/application/runtime-security" title="Runtime security">
+    Review public base URL, image host policy, security headers, and route protection defaults.
+  </DocumentLinkCard>
+</DocumentLinkGroup>
+
+<DocumentLinkGroup
+  title="Documentation and development"
+  description="How to keep public docs, OpenSpec, E2E tests, and feature slices aligned."
+>
+  <DocumentLinkCard
+    href="/docs/general/authoring/how-to-write-docs"
+    title="How to write documentation"
+  >
+    Write public pages with stable metadata, canonical links, and user-facing scope.
+  </DocumentLinkCard>
+  <DocumentLinkCard href="/docs/developers" title="For developers">
+    Extend a service built from the template while keeping specs, tests, and docs in sync.
+  </DocumentLinkCard>
+  <DocumentLinkCard href="/docs/developers/openspec-e2e-docs" title="OpenSpec, E2E, and docs">
+    Use the cross-surface workflow when visible behavior changes.
+  </DocumentLinkCard>
+</DocumentLinkGroup>
+
+  <DocumentLinkGroup
+    title="History"
+    description="Published releases and weekly user-visible change summaries."
+  >
+    <DocumentLinkCard href="/docs/history/releases" title="Releases">
+      Published template releases and the current release note.
+    </DocumentLinkCard>
+    <DocumentLinkCard href="/docs/history/change-logs" title="Weekly changes">
+      Short weekly notes based on real repository changes.
+    </DocumentLinkCard>
+  </DocumentLinkGroup>
+</DocumentLinkGrid>
+
+## What the template includes
+
+- **Application foundation**: Next.js App Router, React, TypeScript, Tailwind CSS v4, shadcn/ui,
+  server actions, settings shell, and feature-sliced structure.
+- **Accounts and auth**: Better Auth, configured-only OAuth providers, account settings, connected
+  accounts, sessions, local automation auth, and protected routes.
+- **Workspaces**: Better Auth Organization-backed workspaces, `/w/:organizationKey/...` routes,
+  settings, users, roles, teams, invitations, allowed email domains, and zero-workspace onboarding.
+- **API access**: personal and workspace API keys, one-time secret reveal, permissions, expiration,
+  rate limits, and starter read-only `/api/v1` routes.
+- **Localization**: `next-intl` infrastructure, English and Russian messages, localized metadata,
+  and localized documentation content with canonical URLs.
+- **Quality workflow**: OpenSpec requirements, Jest, Playwright E2E, shared automation helpers,
+  public documentation updates, releases, and weekly change notes.
+
+<Callout title="Documentation localization" variant="info">
+  Documentation pages can have `.en.md` and `.ru.md` variants. The route stays canonical; the
+  documents system chooses the variant that matches the configured UI locale and shows a language
+  marker only when fallback content is used.
+</Callout>

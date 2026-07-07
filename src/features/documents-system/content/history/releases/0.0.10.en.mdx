@@ -1,0 +1,98 @@
+---
+title: "v0.0.10"
+description: "E2E coverage and automation reliability release for the Next.js application template."
+group: "History"
+parentItem: "Releases"
+order: 100
+status: "published"
+toc: true
+author: "Template Maintainers"
+version: "0.0.10"
+editedAt: "2026-07-06"
+---
+
+# v0.0.10
+
+v0.0.10 is an E2E coverage and automation reliability release for the Next.js application
+template. It expands OpenSpec-backed Playwright coverage across account, workspace, invitation,
+API key, `/api/v1`, security, and local automation flows.
+
+<Callout title="Release focus" variant="info">
+  This release does not change the product model. It makes the existing template flows easier to
+  verify, safer to automate locally, and more predictable when tests run against an already running
+  development server.
+</Callout>
+
+## Highlights
+
+- Expanded Playwright coverage for account settings, account sessions, workspace management,
+  workspace invitations, workspace teams, workspace users, workspace routing, workspace fallbacks,
+  API key management, `/api/v1` access, local automation auth, and security headers.
+- Added shared E2E helpers for workspaces, invitations, browser contexts, API keys, local auth,
+  route constants, and cold-route retry handling.
+- Made Playwright run serially by default to reduce cross-scenario state conflicts.
+- Added explicit `AUTH_DISABLE_SESSION_COOKIE_CACHE` handling for local automation and reused-server
+  Playwright runs.
+- Centralized API key configuration constants while preserving compatibility re-exports.
+- Improved workspace creation and settings navigation by revalidating key workspace paths and
+  navigating slug or route-key changes to canonical settings routes.
+
+## What changed for template users
+
+<Tabs defaultValue="browser-tests">
+  <Tab title="Browser tests" value="browser-tests">
+    <ul>
+      <li>OpenSpec-backed E2E scenarios now cover the core account, workspace, invitation, API key, and security flows.</li>
+      <li>Shared helpers keep route handling, local auth, API key setup, workspace setup, and invitation setup consistent across specs.</li>
+      <li>Cold first-party 404 retries make fresh development-server runs less noisy without hiding page errors or first-party 5xx failures.</li>
+    </ul>
+  </Tab>
+
+<Tab title="Automation" value="automation">
+  <ul>
+    <li>Local automation auth has clearer session-cache requirements.</li>
+    <li>
+      Reused-server Playwright runs now fail early when the running app is missing required
+      automation settings.
+    </li>
+    <li>
+      Cleanup removes organization API keys when automation-created organizations become memberless.
+    </li>
+  </ul>
+</Tab>
+
+  <Tab title="Workspace flows" value="workspace">
+    <ul>
+      <li>Creating a workspace refreshes the important workspace routes that users open immediately after creation.</li>
+      <li>Workspace slug and route-key changes resolve to canonical settings URLs after a successful save.</li>
+      <li>API key constants are shared from one place, which makes future product API routes easier to extend consistently.</li>
+    </ul>
+  </Tab>
+</Tabs>
+
+## Upgrade notes
+
+- No Prisma migration is required for this release.
+- The package metadata reports `0.0.10`; this release does not include dependency upgrades.
+- Playwright runs with `workers: 1` by default.
+- The default `npm run e2e` path starts its own development server and sets the local automation and
+  session-cache environment expected by the suite.
+- Reused-server runs with `PLAYWRIGHT_START_SERVER=false` require
+  `AUTH_DISABLE_SESSION_COOKIE_CACHE=true` on both the already running app and the Playwright
+  command.
+- `LOCAL_AUTOMATION_AUTH_ENABLED` remains local-only and must not be enabled in production.
+- Workspace slug or route-key changes navigate to canonical settings routes after save.
+
+## Quality
+
+This release adds and expands OpenSpec-backed Playwright specs across account, API key, local
+automation, settings, security, and workspace capabilities. It also adds infrastructure tests for
+API key E2E helpers, Playwright global setup, proxy session-cache behavior, centralized API key
+configuration, account actions, local automation cleanup, and workspace settings.
+
+## Related pages
+
+- [Releases](/docs/history/releases) - release index.
+- [Weekly update - June 29-July 6, 2026](/docs/history/change-logs/2026-07-06-weekly-changelog) -
+  week-level summary for this release window.
+- [Workspace](/docs/workspace) - workspace model and user-facing flows.

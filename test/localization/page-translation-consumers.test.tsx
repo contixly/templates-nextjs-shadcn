@@ -76,7 +76,11 @@ jest.mock("../../src/components/ui/custom/animated-link", () => ({
 }));
 
 jest.mock("next-intl", () => ({
-  useTranslations: () => (key: string) => (key === "getHelp" ? "Помощь" : key),
+  useTranslations: () => (key: string) => {
+    if (key === "documentation") return "Документация";
+    if (key === "getHelp") return "Помощь";
+    return key;
+  },
 }));
 
 jest.mock("../../src/lib/environment", () => ({
@@ -167,13 +171,14 @@ describe("page translation consumers", () => {
     expect(screen.getByText("Главная")).toBeInTheDocument();
   });
 
-  it("renders translated labels in secondary navigation", () => {
+  it("renders translated labels in secondary navigation without legacy help link", () => {
     render(<NavSecondary />);
 
     expect(screen.getByText("Главная")).toBeInTheDocument();
     expect(screen.getByText("Рабочие пространства")).toBeInTheDocument();
     expect(screen.getByText("Профиль")).toBeInTheDocument();
-    expect(screen.getByText("Помощь")).toBeInTheDocument();
+    expect(screen.getByText("Документация")).toBeInTheDocument();
+    expect(screen.queryByText("Помощь")).not.toBeInTheDocument();
   });
 
   it("renders the translated parent breadcrumb label when the current page has a parent", () => {

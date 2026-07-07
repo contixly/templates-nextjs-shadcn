@@ -1,0 +1,76 @@
+{
+  "pages": {
+    "home": {
+      "title": "Documentation",
+      "description": "Public template documentation for application features, workspaces, and changelog history.",
+      "openGraph": {
+        "title": "Documentation",
+        "description": "Public template documentation for application features, workspaces, and changelog history."
+      }
+    }
+  },
+  "ui": {
+    "navigation": {
+      "label": "Documentation",
+      "goHome": "Go to home page"
+    },
+    "sidebar": {
+      "title": "Documentation",
+      "hiddenInProduction": "Hidden in production"
+    },
+    "search": {
+      "openLabel": "Search docs",
+      "placeholder": "Search docs...",
+      "title": "Search docs",
+      "description": "Search documentation pages and sections",
+      "emptyQuery": "No documents found",
+      "emptyResults": "No results found",
+      "unavailable": "Search is temporarily unavailable",
+      "pages": "Pages",
+      "headings": "Page sections"
+    },
+    "page": {
+      "tocTitle": "On this page",
+      "previousDocument": "Previous document",
+      "nextDocument": "Next document",
+      "footnotes": "Footnotes",
+      "meta": {
+        "section": "Section",
+        "purpose": "Purpose",
+        "editedAt": "Updated",
+        "author": "Author",
+        "version": "Version",
+        "reading": "Reading time",
+        "status": "Status",
+        "visibility": "Visibility",
+        "hiddenInProduction": "Hidden in production",
+        "language": "Language",
+        "fallbackLanguage": "Available in {locale}"
+      },
+      "status": {
+        "draft": "Draft",
+        "review": "In review",
+        "published": "Published",
+        "archived": "Archived"
+      }
+    },
+    "headingShare": {
+      "copyAria": "Copy link to section {label}",
+      "copy": "Copy link",
+      "copied": "Link copied"
+    },
+    "links": {
+      "broken": "Broken link",
+      "unpublished": "Not ready yet"
+    },
+    "code": {
+      "copy": "Copy",
+      "copied": "Copied",
+      "copyTooltip": "Copy"
+    },
+    "mdx": {
+      "folder": "dir",
+      "file": "file"
+    }
+  }
+}
