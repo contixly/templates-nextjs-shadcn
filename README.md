@@ -8,8 +8,8 @@ A localized, organization-ready starting point for building custom services with
 Better Auth, Prisma, `next-intl`, and shadcn/ui.
 
 The template ships with public and protected application flows, feature-sliced modules, server actions, Prisma-backed
-persistence, social authentication, personal and organization API keys, bilingual UI/message infrastructure for English
-and Russian, and collaboration flows built around organization-backed workspaces.
+persistence, social authentication, personal and organization API keys, a public documentation system, bilingual
+UI/message infrastructure for English and Russian, and collaboration flows built around organization-backed workspaces.
 
 **After generating a new repo from this template**, follow **[TEMPLATE.md](./TEMPLATE.md)** for environment variables,
 auth, and domain setup.
@@ -28,6 +28,7 @@ auth, and domain setup.
   pending-invitation entry points
 - Workspace email-domain restrictions for invitation creation, invitation acceptance, and out-of-policy member warnings
 - Zero-workspace onboarding that keeps workspace creation and invitation review available
+- Public `/docs` documentation with localized Markdown/MDX pages, navigation, search, release notes, and changelogs
 - Internationalization with `next-intl` and typed message catalogs
 - Feature Slice Design structure for isolating business logic
 - Server actions, validation, and cache invalidation patterns
@@ -76,6 +77,12 @@ header; browser session cookies are not accepted for these external API routes.
   single workspace.
 - Both key types use explicit permission presets and scopes, so applications built from the template can add product
   endpoints, role rules, and API key presets without exposing raw Better Auth payloads to client code.
+
+## Public Documentation
+
+The `/docs` section publishes localized Markdown and MDX pages for template usage, account and workspace flows,
+API access, application settings, release notes, and weekly changelogs. It includes sidebar navigation, page metadata,
+table of contents support, internal link validation, and search through `/api/v1/documents-system/search`.
 
 ## Getting Started
 
@@ -203,6 +210,7 @@ deploy one instance for `en` and another for `ru`, each with its own domain-leve
 ## Documentation
 
 - **[TEMPLATE.md](./TEMPLATE.md)** — Checklist after creating a repo from this template
+- **[/docs](./src/features/documents-system/content/index.en.mdx)** — Public documentation content rendered by the template
 - **[docs/releases/README.md](docs/releases/template/README.md)** — Saved release notes for published template versions
 - **[CONTRIBUTING.md](./CONTRIBUTING.md)** — How to contribute to the template
 - **[SECURITY.md](./SECURITY.md)** — Reporting security issues

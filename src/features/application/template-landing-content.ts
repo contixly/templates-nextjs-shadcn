@@ -1,5 +1,6 @@
 import type { TablerIcon } from "@tabler/icons-react";
 import {
+  IconBook2,
   IconDatabase,
   IconKey,
   IconMail,
@@ -13,7 +14,7 @@ import {
 /** Shared marketing copy for public home and authenticated welcome — replace with your product story. */
 export type TemplateStackFeature = {
   icon: TablerIcon;
-  id: "routing" | "actions" | "database" | "auth" | "features" | "ui" | "apiKeys";
+  id: "routing" | "actions" | "database" | "auth" | "features" | "ui" | "apiKeys" | "docs";
 };
 
 export const templateStackFeatureBlocks: TemplateStackFeature[] = [
@@ -44,6 +45,10 @@ export const templateStackFeatureBlocks: TemplateStackFeature[] = [
   {
     icon: IconKey,
     id: "apiKeys",
+  },
+  {
+    icon: IconBook2,
+    id: "docs",
   },
 ];
 
