@@ -10,7 +10,7 @@ status: "published"
 toc: true
 author: "Template Maintainers"
 version: "1.0.0"
-editedAt: "2026-07-06"
+editedAt: "2026-07-07"
 ---
 
 # Weekly changes
@@ -20,6 +20,7 @@ release notes, OpenSpec requirements, and the public documentation surface.
 
 ## Weekly updates
 
+- [Weekly update - 6-13 July 2026](/docs/history/change-logs/2026-07-13-weekly-changelog) - bilingual documentation coverage, `/docs` navigation polish, more precise search, and fenced-code heading fixes.
 - [Weekly update - 29 June-6 July 2026](/docs/history/change-logs/2026-07-06-weekly-changelog) - API keys, API v1, public documentation, localized documentation content, and broader E2E coverage.
 - [Weekly update - 27 April-4 May 2026](/docs/history/change-logs/2026-05-04-weekly-changelog) - workspace teams, team-targeted invitations, distributed caching, configured social providers, local automation auth, and Playwright E2E.
 - [Weekly update - 20-27 April 2026](/docs/history/change-logs/2026-04-27-weekly-changelog) - organization-backed workspaces, settings, invitations, security hardening, and allowed email-domain policies.
