@@ -17,6 +17,10 @@ RUN \
   else echo "Lockfile not found." && exit 1; \
   fi
 
+FROM base AS prisma-cli
+WORKDIR /app
+RUN npm install --omit=dev --no-audit --fund=false --no-package-lock --no-save prisma@7.8.0
+
 # Rebuild the source code only when needed
 FROM base AS builder
 WORKDIR /app
@@ -56,7 +60,9 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=deps --chown=nextjs:nodejs /app/node_modules/sharp ./node_modules/sharp
 COPY --from=deps --chown=nextjs:nodejs /app/node_modules/@img ./node_modules/@img
+COPY --from=prisma-cli --chown=nextjs:nodejs /app/node_modules/ ./node_modules/
 COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
+COPY --from=builder --chown=nextjs:nodejs /app/prisma.config.ts ./prisma.config.ts
 
 USER nextjs
 
