@@ -4,6 +4,9 @@ This directory stores text versions of release notes for published template vers
 
 ## Available releases
 
+- [v0.0.11](0.0.11.md) - Public documentation system release with localized
+  Markdown/MDX content, `/docs` navigation, documentation search, release and changelog pages, and
+  OpenSpec-backed documents-system requirements
 - [v0.0.10](0.0.10.md) - E2E coverage and automation reliability release with expanded
   OpenSpec-backed Playwright specs, shared E2E helpers, serial Playwright runs, local automation
   session-cache controls, and workspace/API key runtime fixes

@@ -1,0 +1,69 @@
+---
+title: "v0.0.11"
+description: "Public documentation system and localized documentation release for the Next.js application template."
+group: "History"
+parentItem: "Releases"
+order: 110
+status: "published"
+toc: true
+author: "Template Maintainers"
+version: "0.0.11"
+editedAt: "2026-07-07"
+---
+
+# v0.0.11
+
+v0.0.11 makes `/docs` a full public documentation center for the template. It adds localized
+Markdown and MDX content, documentation search, release and changelog pages, and OpenSpec-backed
+requirements for the documentation runtime.
+
+<Callout title="Release focus" variant="info">
+  This release is about discoverability. Template users can now read product, API, workspace,
+  developer, release, and weekly-change documentation from one public docs surface.
+</Callout>
+
+## 🚀 New Features
+
+- Added a public `/docs` documentation system with a shared shell, sidebar, breadcrumb, page actions,
+  table of contents, theme controls, canonical routes, and generated share images [#16].
+- Added locale-aware Markdown and MDX document resolution, so English and Russian content variants
+  share stable canonical URLs and fall back deterministically when a page is missing in the selected
+  locale [#16].
+- Published a bilingual documentation library for account management, API access, application
+  settings, workspace flows, developer guidance, release history, and weekly change summaries [#16].
+- Added `/api/v1/documents-system/search` with locale-aware page and heading search, short-token
+  matching, keyboard-layout normalization, bounded typo tolerance, and stable empty-state behavior
+  [#16].
+- Added MDX rendering components for callouts, tabs, link grids, code-copy controls, heading anchors,
+  local images, and safe internal links [#16].
+
+## 🐛 Bug Fixes
+
+- Prevented tilde-fenced code examples from creating false documentation headings, anchors, table of
+  contents entries, or search results [#16].
+- Tightened internal link, metadata, sidebar, and table-of-contents validation so invalid public
+  documentation targets fail earlier and render more predictably [#16].
+- Improved documentation search behavior for short queries and multi-word queries when an exact
+  phrase is not available [#16].
+- Added not-found handling for missing or hidden documentation pages while keeping public
+  documentation readable without authentication [#16].
+
+## ⚙️ Performance & Internal Improvements
+
+- Added the `documents-system` OpenSpec capability for routes, registry behavior, locale variants,
+  visibility rules, MDX rendering, metadata, links, search, images, caching, and runtime modes [#16].
+- Added focused Jest coverage for document locale parsing, registry behavior, page metadata,
+  sidebar rendering, table of contents behavior, scroll-spy behavior, and content validation [#16].
+- Added `@next/mdx`, MDX React packages, `glob`, `gray-matter`, remark plugins, and `sharp` support
+  for local Markdown/MDX content and generated documentation images [#16].
+- Updated agent and OpenSpec guidance so future documentation and spec work follows the new public
+  docs structure [#16].
+- Added the July 6-13, 2026 weekly changelog pages to the public documentation history.
+- Updated template package metadata to `0.0.11` in `package.json` and `package-lock.json`.
+
+## Related pages
+
+- [Releases](/docs/history/releases) - release index.
+- [Weekly update - 6-13 July 2026](/docs/history/change-logs/2026-07-13-weekly-changelog) -
+  week-level summary for this release window.
+- [Documentation home](/docs) - public documentation entry point.

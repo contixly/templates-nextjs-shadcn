@@ -9,8 +9,8 @@ order: 1000
 status: "published"
 toc: true
 author: "Template Maintainers"
-version: "1.1.0"
-editedAt: "2026-07-06"
+version: "1.2.0"
+editedAt: "2026-07-07"
 ---
 
 # Releases
@@ -21,13 +21,14 @@ quality checks.
 
 ## Current release
 
-- [v0.0.10](/docs/history/releases/0.0.10) - expanded Playwright E2E coverage, local automation
-  auth reliability, session-cache controls for reused-server runs, and workspace/API key flow fixes.
+- [v0.0.11](/docs/history/releases/0.0.11) - public documentation system, localized Markdown/MDX
+  content, `/docs` navigation, documentation search, release and weekly changelog pages.
 
 ## Release archive
 
 | Version | Main theme |
 | ------- | ---------- |
+| [v0.0.11](/docs/history/releases/0.0.11) | Public documentation system, localized content, and documentation search. |
 | [v0.0.10](/docs/history/releases/0.0.10) | E2E coverage and automation reliability. |
 | [v0.0.9](/docs/history/releases/0.0.9) | Personal and organization API keys, `/api/v1`, scopes, expiration, and rate limits. |
 | [v0.0.8](/docs/history/releases/0.0.8) | Local automation auth, Playwright E2E, and invitation policy hooks. |
