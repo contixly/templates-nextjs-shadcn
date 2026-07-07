@@ -3,6 +3,7 @@
 ![Next.js Template Hero](https://cdn.contixly.com/github/contixly/templates/nextjs-shadcn/assets/img/hero.png)
 
 [![Use this template](https://img.shields.io/badge/Use%20this%20template-2ea44f?style=for-the-badge&logo=github)](https://github.com/new?template_name=templates-nextjs-shadcn&template_owner=contixly)
+[![Live demo](https://img.shields.io/badge/Live%20demo-nextjs.contixly.com-111827?style=for-the-badge&logo=nextdotjs)](https://nextjs.contixly.com/)
 
 A localized, organization-ready starting point for building custom services with Next.js, TypeScript, Tailwind CSS v4,
 Better Auth, Prisma, `next-intl`, and shadcn/ui.
@@ -13,6 +14,16 @@ UI/message infrastructure for English and Russian, and collaboration flows built
 
 **After generating a new repo from this template**, follow **[TEMPLATE.md](./TEMPLATE.md)** for environment variables,
 auth, and domain setup.
+
+## Live Demo
+
+Try the template as a deployed application at **[nextjs.contixly.com](https://nextjs.contixly.com/)**. The demo is the
+quickest way to review the public landing page, localized `/docs` experience, authentication entry points, workspace
+onboarding, protected application shell, and API-key management screens before creating your own repository.
+
+Use the hosted demo to evaluate product flow and UI conventions. For project-specific setup such as OAuth credentials,
+database migrations, cache configuration, and deployment secrets, generate a repository from this template and follow
+**[TEMPLATE.md](./TEMPLATE.md)**.
 
 ## What This Template Includes
 
