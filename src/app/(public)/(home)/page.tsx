@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import { Badge } from "@components/ui/badge";
+import { Button } from "@components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@components/ui/card";
 import { Separator } from "@components/ui/separator";
-import { IconLock, IconTerminal } from "@tabler/icons-react";
+import { IconBrandGithub, IconExternalLink, IconLock, IconTerminal } from "@tabler/icons-react";
 import { loadCurrentUserId } from "@features/accounts/accounts-actions";
 import { NavUserLogin } from "@features/accounts/components/nav/nav-user-login";
 import { buildPageMetadata } from "@lib/metadata";
@@ -54,6 +55,28 @@ export default async function HomePage() {
             dotShowLogout
             showHomepageCTA
           />
+
+          <div className="border-border/70 bg-background/80 grid w-full max-w-xl gap-3 border px-4 py-4 text-left shadow-sm backdrop-blur-sm sm:grid-cols-[1fr_auto] sm:items-center">
+            <div className="min-w-0 space-y-1">
+              <div className="flex min-w-0 items-center gap-2">
+                <IconBrandGithub aria-hidden="true" className="text-foreground size-4 shrink-0" />
+                <span className="truncate text-sm font-medium">{t("heroSourceTitle")}</span>
+              </div>
+              <p className="text-muted-foreground text-xs leading-relaxed text-pretty">
+                {t("heroSourceDescription")}
+              </p>
+            </div>
+            <Button asChild variant="outline" size="sm" className="w-full sm:w-auto">
+              <a
+                href="https://github.com/contixly/templates-nextjs-shadcn"
+                target="_blank"
+                rel="noreferrer"
+              >
+                {t("heroSourceCta")}
+                <IconExternalLink aria-hidden="true" className="size-3.5" />
+              </a>
+            </Button>
+          </div>
 
           <div className="text-muted-foreground w-full max-w-xl text-xs leading-relaxed">
             <span className="inline-block max-w-full text-balance">
