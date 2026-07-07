@@ -375,7 +375,7 @@ The system SHALL build a locale-aware search index from visible documents and th
 #### Scenario: Heading results index source headings
 - **GIVEN** visible documents have source content
 - **WHEN** the search index is built
-- **THEN** the system extracts H2 and H3 headings outside code blocks
+- **THEN** the system extracts H2 and H3 headings outside backtick or tilde fenced code blocks
 - **AND** strips inline markdown formatting from heading titles
 - **AND** creates stable heading hrefs using the page href plus heading anchor
 

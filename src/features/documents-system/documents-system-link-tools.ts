@@ -1,4 +1,8 @@
 import { documentsSystemTools } from "./documents-system-tools";
+import {
+  getDocumentsSystemMarkdownFence,
+  type DocumentsSystemMarkdownFence,
+} from "./documents-system-markdown-fence-tools";
 import { DOCUMENTS_SYSTEM_LOG_SCOPE } from "./documents-system-consts";
 import {
   DocumentInfo,
@@ -14,14 +18,9 @@ const MARKDOWN_REFERENCE_DEFINITION_PATTERN =
 const MDX_HREF_PATTERN =
   /\bhref=(?:"([^"]+)"|'([^']+)'|\{`([^`]+)`\}|\{"([^"]+)"\}|\{'([^']+)'\})/g;
 const HTTP_URL_PATTERN = /^https?:\/\//iu;
-const MARKDOWN_FENCE_PATTERN = /^\s*(`{3,}|~{3,})/u;
 
 type DocumentsSystemLinkTargetDocument = Pick<DocumentInfo, "meta" | "url" | "sourcePath">;
 type DocumentsSystemLinkSourceDocument = Pick<DocumentInfo, "sourcePath">;
-type DocumentsSystemMarkdownFence = {
-  marker: "`" | "~";
-  length: number;
-};
 
 type DocumentsSystemLinkIndexFor<TDocument extends DocumentsSystemLinkTargetDocument> = {
   allByUrl: Map<string, TDocument>;
@@ -81,20 +80,6 @@ const isDocumentsSystemLinkTargetDocument = (
   typeof document.url === "string" &&
   "meta" in document &&
   Boolean(document.meta);
-
-const getMarkdownFence = (line: string): DocumentsSystemMarkdownFence | undefined => {
-  const match = MARKDOWN_FENCE_PATTERN.exec(line);
-  const fence = match?.[1];
-
-  if (!fence) {
-    return undefined;
-  }
-
-  return {
-    marker: fence[0] as DocumentsSystemMarkdownFence["marker"],
-    length: fence.length,
-  };
-};
 
 const resolveDocumentsSystemLinkTargets = (
   sourceDocuments: DocumentsSystemLinkSourceDocument[],
@@ -175,7 +160,7 @@ export const extractDocumentsSystemLinks = (
   let activeFence: DocumentsSystemMarkdownFence | undefined;
 
   lines.forEach((line, lineIndex) => {
-    const fence = getMarkdownFence(line);
+    const fence = getDocumentsSystemMarkdownFence(line);
 
     if (
       fence &&

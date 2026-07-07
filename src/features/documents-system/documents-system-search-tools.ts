@@ -1,6 +1,7 @@
 import { getCachedDocumentsSystemRegistry } from "@features/documents-system/documents-system-actions";
 import { createUniqueDocumentHeadingId } from "@features/documents-system/documents-system-heading-tools";
 import { resolveDocumentsSystemDefaultContentLocale } from "@features/documents-system/documents-system-locale-tools";
+import { stripDocumentsSystemMarkdownFencedCodeBlocks } from "@features/documents-system/documents-system-markdown-fence-tools";
 import { getDocumentsSystemEnvironment } from "@features/documents-system/documents-system-runtime";
 import { documentsSystemTools } from "@features/documents-system/documents-system-tools";
 import type { AppLocale } from "@/src/i18n/config";
@@ -19,7 +20,6 @@ import {
   DocumentsSystemSearchResponse,
 } from "./documents-system-search-types";
 
-const CODE_BLOCK_PATTERN = /```[\s\S]*?```/g;
 const HEADING_PATTERN = /^(#{2,3})[ \t]+(.+?)[ \t]*#*[ \t]*$/gm;
 const INLINE_MARKDOWN_PATTERN = /[*_`~]/g;
 const MARKDOWN_LINK_PATTERN = /\[([^\]]+)]\([^)]+\)/g;
@@ -160,7 +160,7 @@ const stripHeadingMarkdown = (value: string) =>
 export const extractDocumentsSystemHeadings = (
   content: string
 ): DocumentsSystemExtractedHeading[] => {
-  const contentWithoutCodeBlocks = content.replace(CODE_BLOCK_PATTERN, "");
+  const contentWithoutCodeBlocks = stripDocumentsSystemMarkdownFencedCodeBlocks(content);
   const seenIds = new Map<string, number>();
   const headings: DocumentsSystemExtractedHeading[] = [];
   let match: RegExpExecArray | null;

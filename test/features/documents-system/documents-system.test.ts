@@ -360,6 +360,27 @@ describe("documents system", () => {
     });
   });
 
+  it("does not index headings inside tilde fenced code blocks", () => {
+    const documents = resolveDocumentsSystemRegistryDocuments(
+      [registryVariant("general/authoring/sample.en.mdx", "en", "Documentation features")],
+      "en"
+    );
+    const sourceByPath = new Map([
+      [
+        "general/authoring/sample.en.mdx",
+        ["~~~md", "## Code example heading", "~~~", "## Rendered heading"].join("\n"),
+      ],
+    ]);
+    const index = buildDocumentsSystemSearchIndexFromDocuments(documents, sourceByPath);
+
+    expect(index.headings).toEqual([
+      expect.objectContaining({
+        title: "Rendered heading",
+        href: "/docs/general/authoring/sample#rendered-heading",
+      }),
+    ]);
+  });
+
   describe("locale registry resolution", () => {
     it("resolves requested locale variants by canonical URL", () => {
       const documents = resolveDocumentsSystemRegistryDocuments(
