@@ -30,6 +30,13 @@ The system SHALL expose the documentation surface as public Next.js routes roote
 - **THEN** the system allows the route through the public route boundary
 - **AND** does not require a browser session to read public documentation
 
+#### Scenario: Sitemap includes visible documentation routes
+- **GIVEN** visible documentation documents exist in the registry
+- **WHEN** the application sitemap is generated
+- **THEN** the system includes `/docs` for the canonical `index` document
+- **AND** includes nested `/docs/:slug` URLs for visible non-index documents
+- **AND** does not include locale suffixes in generated documentation URLs
+
 ### Requirement: Documentation Shell
 The system SHALL render documentation pages inside a shared documentation shell with sidebar navigation, breadcrumb, search, home navigation, and theme controls.
 
