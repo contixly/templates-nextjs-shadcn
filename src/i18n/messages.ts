@@ -42,7 +42,7 @@ export const loadMessages = async (locale: AppLocale): Promise<I18nMessages> => 
   };
 };
 
-export const loadI18nMessagesConfig = async (requestLocale?: AppLocale | null) => {
+export const loadI18nMessagesConfig = async (requestLocale?: string | null) => {
   const locale = resolveAppLocale(requestLocale);
 
   return {

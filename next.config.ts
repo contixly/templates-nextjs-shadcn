@@ -72,7 +72,6 @@ const nextConfig: NextConfig = {
 
   experimental: {
     authInterrupts: true,
-    viewTransition: true,
   },
   serverExternalPackages: ["pino", "pino-pretty"],
   reactCompiler: true,

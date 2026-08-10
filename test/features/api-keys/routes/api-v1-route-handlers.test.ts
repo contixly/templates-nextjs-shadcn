@@ -1,5 +1,7 @@
 /** @jest-environment node */
 
+import { NextRequest } from "next/server";
+
 const requireApiKeyMock = jest.fn();
 const requireApiOrganizationAccessMock = jest.fn();
 const findManyAccessibleOrganizationsByUserIdMock = jest.fn();
@@ -43,13 +45,13 @@ import { ApiKeyHttpError } from "@features/api-keys/api-keys-errors";
 import { API_KEY_REQUIRED_PERMISSIONS } from "@features/api-keys/api-keys-permissions";
 
 const request = () =>
-  new Request("http://localhost:3000/api/v1/organizations/org_1", {
+  new NextRequest("http://localhost:3000/api/v1/organizations/org_1", {
     headers: { "x-api-key": "secret" },
   });
 
 const expectRequireApiKeyCall = (
   callIndex: number,
-  apiRequest: Request,
+  apiRequest: NextRequest,
   expectedPermissions: (typeof API_KEY_REQUIRED_PERMISSIONS)[keyof typeof API_KEY_REQUIRED_PERMISSIONS]
 ) => {
   const call = requireApiKeyMock.mock.calls[callIndex];

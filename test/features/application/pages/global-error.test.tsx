@@ -11,7 +11,9 @@ jest.mock("next-intl", () => ({
 
 describe("GlobalErrorPage", () => {
   it("renders fallback UI without requiring next-intl hooks", () => {
-    expect(() => render(<GlobalErrorPage error={new Error("boom")} />)).not.toThrow();
+    expect(() =>
+      render(<GlobalErrorPage error={new Error("boom")} unstable_retry={jest.fn()} />)
+    ).not.toThrow();
 
     expect(screen.getByText("Something went wrong")).toBeInTheDocument();
   });

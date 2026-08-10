@@ -26,8 +26,10 @@ jest.mock("better-auth", () => ({
   isProduction: false,
 }));
 
+const pagePath = jest.fn(() => "/auth/login");
+
 const page = {
-  path: jest.fn(() => "/auth/login"),
+  path: pagePath,
   pathTemplate: "/auth/login",
   featureName: "accounts",
   pageKey: "login",
@@ -55,7 +57,7 @@ describe("page metadata translations", () => {
   beforeEach(() => {
     mockGetTranslations.mockResolvedValue(translator);
     mockUseTranslations.mockReturnValue(translator);
-    page.path.mockClear();
+    pagePath.mockClear();
   });
 
   it("resolves page translations with optional metadata fallbacks", async () => {

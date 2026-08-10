@@ -86,7 +86,7 @@ describe("local automation login page", () => {
 
     expect(pageSource).toContain('import { Suspense } from "react";');
     expect(pageSource).toMatch(
-      /<Suspense fallback=\{null\}>\s*<LocalAutomationLoginPanel \/>\s*<\/Suspense>/s
+      /<Suspense fallback=\{null\}>[\s\S]*?<LocalAutomationLoginPanel \/>[\s\S]*?<\/Suspense>/
     );
   });
 });
