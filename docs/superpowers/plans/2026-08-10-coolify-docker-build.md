@@ -4,7 +4,7 @@
 
 **Goal:** Restore a successful Coolify Docker deployment for the dependency-updated application.
 
-**Architecture:** Next.js 16.3 type-checks the complete project selected by `tsconfig.json`. The build stage therefore receives the `e2e/` helper sources used by infrastructure tests; the final image remains limited to the standalone output. The dedicated Prisma CLI package in the runner is aligned to `7.9.1`.
+**Architecture:** Next.js 16.3 type-checks the complete project selected by `tsconfig.json`. The build stage therefore receives the `e2e/` helper sources used by infrastructure tests, and receives `NEXT_PUBLIC_APP_BASE_URL` through a Docker build argument; the final image remains limited to the standalone output. The dedicated Prisma CLI package in the runner is aligned to `7.9.1`.
 
 **Tech Stack:** Docker multi-stage build, Node 24 Alpine, Next.js 16.3, TypeScript, Prisma 7.9.
 
@@ -14,6 +14,7 @@
 - Keep E2E files out of the final runtime stage.
 - Keep all package upgrades within their existing major versions.
 - Validate the exact Dockerfile path used by Coolify with a no-cache image build.
+- In Coolify, keep `NEXT_PUBLIC_APP_BASE_URL` enabled as both a Build Variable and a Runtime Variable.
 
 ---
 
@@ -52,14 +53,14 @@ Expected: exit code `0`; the builder logs generated Prisma Client `7.9.1` and Ne
 ### Task 2: Synchronize Docker Prisma CLI with project dependencies
 
 **Files:**
-- Modify: `Dockerfile:22`
-- Test: `docker build --no-cache --progress=plain -t nextjs-template:coolify-check .`
+- Modify: `Dockerfile:22,35-36`
+- Test: `docker build --no-cache --progress=plain --build-arg NEXT_PUBLIC_APP_BASE_URL=https://nextjs.contixly.com -t nextjs-template:coolify-check .`
 
 **Interfaces:**
 - Consumes: `package.json` Prisma and `@prisma/client` ranges `^7.9.1`.
-- Produces: A runner-stage `prisma@7.9.1` used by `npm run migrate:postgres`.
+- Produces: A runner-stage `prisma@7.9.1` used by `npm run migrate:postgres`, and a builder-stage `NEXT_PUBLIC_APP_BASE_URL` value required by `next build`.
 
-- [ ] **Step 1: Change the runner CLI version**
+- [ ] **Step 1: Change the runner CLI version and declare the public build variable**
 
 Replace:
 
@@ -73,11 +74,18 @@ with:
 RUN npm install --omit=dev --no-audit --fund=false --no-package-lock --no-save prisma@7.9.1
 ```
 
+After `ARG DATABASE_URL`, add:
+
+```dockerfile
+ARG NEXT_PUBLIC_APP_BASE_URL
+ENV NEXT_PUBLIC_APP_BASE_URL=$NEXT_PUBLIC_APP_BASE_URL
+```
+
 - [ ] **Step 2: Verify the complete image**
 
-Run: `docker build --no-cache --progress=plain -t nextjs-template:coolify-check .`
+Run: `docker build --no-cache --progress=plain --build-arg NEXT_PUBLIC_APP_BASE_URL=https://nextjs.contixly.com -t nextjs-template:coolify-check .`
 
-Expected: exit code `0`, with the runner image produced after the Next.js build.
+Expected: exit code `0`, with the runner image produced after the Next.js build. Start it with the same runtime variable plus `BETTER_AUTH_SECRET` and `DATABASE_URL`, then check `GET /api/health` returns HTTP `200`.
 
 ### Task 3: Run repository verification and publish
 
@@ -116,4 +124,4 @@ Push `fix/coolify-docker-build` and create a draft PR against `main`. The descri
 
 - [ ] **Step 4: Trigger and confirm deployment after merge**
 
-Trigger the Coolify deployment for the merged `main` revision. Confirm the build log reports successful Next.js and Prisma generation, then request `/api/health` and `/` on the configured production base URL and record their HTTP `200` status.
+Before triggering, verify in Coolify that `NEXT_PUBLIC_APP_BASE_URL` has both Build Variable and Runtime Variable enabled. Trigger the Coolify deployment for the merged `main` revision. Confirm the build log reports successful Next.js and Prisma generation, then request `/api/health` and `/` on the configured production base URL and record their HTTP `200` status.

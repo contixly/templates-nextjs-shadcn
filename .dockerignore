@@ -12,7 +12,6 @@
 .mcp.json
 node_modules
 docs
-e2e
 openspec
 .dockerignore
 .env
