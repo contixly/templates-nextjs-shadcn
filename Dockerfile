@@ -19,7 +19,7 @@ RUN \
 
 FROM base AS prisma-cli
 WORKDIR /app
-RUN npm install --omit=dev --no-audit --fund=false --no-package-lock --no-save prisma@7.8.0
+RUN npm install --omit=dev --no-audit --fund=false --no-package-lock --no-save prisma@7.9.1
 
 # Rebuild the source code only when needed
 FROM base AS builder
@@ -33,6 +33,8 @@ COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
 
 ARG DATABASE_URL
+ARG NEXT_PUBLIC_APP_BASE_URL
+ENV NEXT_PUBLIC_APP_BASE_URL=$NEXT_PUBLIC_APP_BASE_URL
 
 RUN \
   if [ -f yarn.lock ]; then yarn run build; \
