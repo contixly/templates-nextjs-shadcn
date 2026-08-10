@@ -84,6 +84,7 @@ const team = {
 
 const teamMember = {
   id: "membership-1",
+  memberId: "member-1",
   teamId: "team-1",
   userId: "user-1",
   name: "Alice Admin",

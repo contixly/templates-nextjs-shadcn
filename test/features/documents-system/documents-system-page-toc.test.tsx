@@ -1,7 +1,10 @@
 import { render, waitFor } from "@testing-library/react";
 import { DocumentsSystemPageToc } from "@features/documents-system/ui/page/documents-system-page-toc";
 
-const useDocumentsSystemActiveHeadingMock = jest.fn(() => "");
+const useDocumentsSystemActiveHeadingMock = jest.fn((args: unknown) => {
+  void args;
+  return "";
+});
 
 jest.mock("@features/documents-system/ui/page/documents-system-page-menu", () => ({
   DocumentsSystemPageMenu: () => <nav data-testid="documents-system-page-menu" />,

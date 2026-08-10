@@ -238,7 +238,7 @@ Each feature should have its own logger instance in `{feature}-logger.ts`.
 - `reactCompiler: true` - React Compiler is enabled.
 - `output: "standalone"` - Standalone output for Docker deployment.
 - `experimental.authInterrupts: true` - Auth interrupts for `forbidden`/`unauthorized` APIs are enabled.
-- `experimental.viewTransition: true` - Next.js integration for React View Transitions is enabled.
+- React `<ViewTransition>` components work in the App Router without a Next.js config flag (Next.js 16.3+).
 
 ## Git Workflow
 
@@ -273,3 +273,13 @@ All data access uses three-layer caching:
 - Playwright E2E tests live under `e2e/`; `e2e/smoke/` is for quick browser smoke checks and `e2e/specs/` is for OpenSpec-backed scenarios. Jest ignores the `e2e/` tree.
 - E2E specs and smoke tests should import shared `test` and `expect` from `e2e/support/test`; it retries first-party cold-route 404s and fails on uncaught page errors or first-party 5xx responses.
 - Use E2E helpers from `e2e/support/routes`, `e2e/support/local-auth`, `e2e/support/workspaces`, and `e2e/support/invitations` instead of duplicating routes, auth setup, selectors, or workspace/invitation flow glue.
+
+<!-- BEGIN:nextjs-agent-rules -->
+
+# This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->

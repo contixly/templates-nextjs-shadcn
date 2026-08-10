@@ -4,7 +4,7 @@
 
 **Goal:** Upgrade all direct dependencies within their current major versions, including Next.js 16.3.0, and verify the template with linting, unit tests, a production build, and the full Playwright suite.
 
-**Architecture:** Keep the framework configuration and application code unchanged because the official Next.js 16.3 announcements introduce optional navigation and Turbopack capabilities rather than an obligatory 16.2 migration. Update declared package ranges with `npm-check-updates`, regenerate the npm lockfile, and use existing test coverage to validate runtime compatibility.
+**Architecture:** Keep optional Next.js 16.3 navigation and Turbopack capabilities disabled, while removing the obsolete `experimental.viewTransition` configuration key because React `<ViewTransition>` works in the App Router without it. Update declared package ranges with `npm-check-updates`, regenerate the npm lockfile, and use existing test coverage to validate runtime compatibility.
 
 **Tech Stack:** npm 11, Node.js 24.11.1, Next.js 16.3.0, React 19.2.8, TypeScript 6.0.3, Jest 30, Playwright 1.62.1.
 
@@ -16,6 +16,7 @@
 - Align `next`, `@next/mdx`, and `eslint-config-next` at `^16.3.0`.
 - Align `react` and `react-dom` at `^19.2.8`.
 - Do not enable Next.js 16.3 optional Instant Navigations, Partial Prefetching, Turbopack build caching, or `import.meta.glob`.
+- Remove `experimental.viewTransition`; retain the existing React `<ViewTransition>` component without a config flag.
 - If an existing test or build discovers an actual compatibility error, make the smallest source or configuration change that resolves that specific error and record it in the final commit.
 
 ---
