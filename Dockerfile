@@ -34,9 +34,25 @@ ENV NEXT_TELEMETRY_DISABLED=1
 
 ARG DATABASE_URL
 ARG NEXT_PUBLIC_APP_BASE_URL
+ARG NEXT_PUBLIC_YM_COUNTER_ID
+ARG NEXT_DEPLOYMENT_ID
 ENV NEXT_PUBLIC_APP_BASE_URL=$NEXT_PUBLIC_APP_BASE_URL
+ENV NEXT_PUBLIC_YM_COUNTER_ID=$NEXT_PUBLIC_YM_COUNTER_ID
+ENV NEXT_DEPLOYMENT_ID=$NEXT_DEPLOYMENT_ID
 
-RUN \
+RUN --mount=type=secret,id=NEXT_SERVER_ACTIONS_ENCRYPTION_KEY \
+  --mount=type=secret,id=BETTER_AUTH_SECRET \
+  --mount=type=secret,id=GOOGLE_CLIENT_ID \
+  --mount=type=secret,id=GOOGLE_CLIENT_SECRET \
+  for secret_name in \
+    NEXT_SERVER_ACTIONS_ENCRYPTION_KEY \
+    BETTER_AUTH_SECRET \
+    GOOGLE_CLIENT_ID \
+    GOOGLE_CLIENT_SECRET; do \
+    if [ -f "/run/secrets/$secret_name" ]; then \
+      export "$secret_name=$(cat "/run/secrets/$secret_name")"; \
+    fi; \
+  done; \
   if [ -f yarn.lock ]; then yarn run build; \
   elif [ -f package-lock.json ]; then npm run build; \
   elif [ -f pnpm-lock.yaml ]; then corepack enable pnpm && pnpm run build; \
