@@ -2,13 +2,14 @@ import { MemoryCacheHandler, RedisCacheHandler } from "@mrjasonroy/cache-compone
 import {
   assertRemoteCacheConfiguration,
   getCachePrefixes,
-  getRedisConnectionUrl,
   remoteCachingEnabled,
 } from "./settings.mjs";
+import { sharedCacheRedis } from "./shared-redis.mjs";
 
 assertRemoteCacheConfiguration();
 
 const isrCachePrefixes = getCachePrefixes({ keySegment: "isr", tagSegment: "isr-tags" });
+const redis = sharedCacheRedis();
 
 const toTagList = (tags) => {
   const tagList = Array.isArray(tags) ? tags : [tags];
@@ -26,7 +27,7 @@ class DistributedIncrementalCacheHandler extends RedisCacheHandler {
   constructor(options) {
     super({
       ...options,
-      redis: getRedisConnectionUrl(),
+      redis,
       ...isrCachePrefixes,
     });
   }
