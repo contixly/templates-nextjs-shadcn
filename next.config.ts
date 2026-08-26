@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 import createMDX from "@next/mdx";
 import createNextIntlPlugin from "next-intl/plugin";
+import { availableParallelism } from "node:os";
 import { fileURLToPath } from "node:url";
 
 const withNextIntl = createNextIntlPlugin({
@@ -72,6 +73,7 @@ const nextConfig: NextConfig = {
 
   experimental: {
     authInterrupts: true,
+    cpus: Math.min(8, availableParallelism()),
   },
   serverExternalPackages: ["pino", "pino-pretty"],
   reactCompiler: true,
