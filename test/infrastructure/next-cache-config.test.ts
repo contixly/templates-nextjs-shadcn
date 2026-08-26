@@ -106,14 +106,17 @@ describe("Next cache configuration", () => {
     }
   });
 
-  test("limits the Next.js production build to eight workers", async () => {
+  test("caps Next.js production build workers at eight without oversubscribing smaller builders", async () => {
     const nextConfigSource = await fs.readFile(path.join(rootDir, "next.config.ts"), "utf8");
     const nextConfigBlock = nextConfigSource.slice(
       nextConfigSource.indexOf("const nextConfig: NextConfig"),
       nextConfigSource.indexOf("const withMDX")
     );
 
-    expect(nextConfigBlock).toMatch(/experimental:\s*{[\s\S]*?cpus:\s*8/);
+    expect(nextConfigSource).toContain('import { availableParallelism } from "node:os";');
+    expect(nextConfigBlock).toMatch(
+      /experimental:\s*{[\s\S]*?cpus:\s*Math\.min\(8,\s*availableParallelism\(\)\)/
+    );
   });
 
   test("rejects whitespace-only remote cache URLs when remote caching is enabled", async () => {
