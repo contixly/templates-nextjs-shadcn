@@ -106,6 +106,16 @@ describe("Next cache configuration", () => {
     }
   });
 
+  test("limits the Next.js production build to eight workers", async () => {
+    const nextConfigSource = await fs.readFile(path.join(rootDir, "next.config.ts"), "utf8");
+    const nextConfigBlock = nextConfigSource.slice(
+      nextConfigSource.indexOf("const nextConfig: NextConfig"),
+      nextConfigSource.indexOf("const withMDX")
+    );
+
+    expect(nextConfigBlock).toMatch(/experimental:\s*{[\s\S]*?cpus:\s*8/);
+  });
+
   test("rejects whitespace-only remote cache URLs when remote caching is enabled", async () => {
     await withRemoteCacheEnv(
       cacheSettingsPath,

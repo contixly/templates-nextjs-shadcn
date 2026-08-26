@@ -72,6 +72,7 @@ const nextConfig: NextConfig = {
 
   experimental: {
     authInterrupts: true,
+    cpus: 8,
   },
   serverExternalPackages: ["pino", "pino-pretty"],
   reactCompiler: true,
