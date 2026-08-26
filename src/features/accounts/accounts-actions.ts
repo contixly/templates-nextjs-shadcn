@@ -5,6 +5,7 @@ import { getAuthSessionOptions } from "@server/auth/session-cookie-cache";
 import { headers } from "next/headers";
 import { cache } from "react";
 import type { UserSessionListItem } from "@features/accounts/accounts-types";
+import prisma from "@server/prisma";
 
 /**
  * Memoize request headers and auth lookups during a single render pass to avoid
@@ -36,11 +37,34 @@ export const loadCurrentUserAccounts = cache(async () =>
  * This raw loader is server-only because Better Auth session records include
  * bearer-like tokens. Client-facing code must use loadCurrentUserSessionList.
  */
-export const loadCurrentUserSessions = cache(async () =>
-  auth.api.listSessions({
-    headers: await loadRequestHeaders(),
-  })
-);
+export const loadCurrentUserSessions = cache(async () => {
+  const currentSession = await loadCurrentSession();
+
+  if (!currentSession) {
+    return [];
+  }
+
+  // Better Auth's public listSessions endpoint requires a newly created
+  // ("fresh") session. This server-only query keeps long-lived valid sessions
+  // usable while preserving Better Auth freshness checks for sensitive APIs.
+  return prisma.session.findMany({
+    where: {
+      userId: currentSession.userId,
+      expiresAt: {
+        gt: new Date(),
+      },
+    },
+    select: {
+      id: true,
+      token: true,
+      expiresAt: true,
+      createdAt: true,
+      updatedAt: true,
+      ipAddress: true,
+      userAgent: true,
+    },
+  });
+});
 
 export const loadCurrentUserSessionList = cache(async (): Promise<UserSessionListItem[]> => {
   const [sessions, currentSession] = await Promise.all([

@@ -4,6 +4,10 @@ import { resolveE2EBaseURL } from "../../support/config";
 import { cleanupLocalAutomationUser, signInLocalAutomationUser } from "../../support/local-auth";
 import { expect, test } from "../../support/test";
 import { routes } from "../../support/routes";
+import {
+  ageUserSessionsBeyondDefaultFreshness,
+  restoreUserSessionFreshness,
+} from "../../support/account-sessions";
 
 test.use({ viewport: { width: 1440, height: 1100 } });
 
@@ -46,7 +50,7 @@ const expectNoObviousBearerSecrets = async (page: Page, password: string) => {
 };
 
 test.describe("account-session-management: account security", () => {
-  test("lists active sessions safely and revokes another session through the UI", async ({
+  test("lists active sessions for an aged valid login and revokes another session", async ({
     browser,
     page: ownerPage,
     baseURL,
@@ -56,6 +60,7 @@ test.describe("account-session-management: account security", () => {
     const scenario = await signInLocalAutomationUser(ownerPage, {
       name: "E2E Account Session Owner",
     });
+    await ageUserSessionsBeyondDefaultFreshness(scenario.user.id);
     const contextBaseURL = resolveE2EBaseURL(baseURL);
     let secondContext: BrowserContext | null = null;
     let secondPage: Page | null = null;
@@ -95,6 +100,7 @@ test.describe("account-session-management: account security", () => {
           await secondContext.close();
         }
       } finally {
+        await restoreUserSessionFreshness(scenario.user.id);
         await cleanupLocalAutomationUser(ownerPage);
       }
     }
