@@ -1,32 +1,26 @@
-import React, { ReactNode, Suspense, use } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import { getLocale } from "next-intl/server";
-import { SidebarInset, SidebarProvider } from "@components/ui/sidebar";
-import { getTFromCookie } from "@lib/cookies";
-import { SIDEBAR_COOKIE_KEY } from "@lib/environment";
+import { SidebarInset } from "@components/ui/sidebar";
 import { getCachedDocuments } from "@features/documents-system/documents-system-actions";
 import { DOCUMENTS_SYSTEM_SCROLL_CONTAINER_ATTRIBUTE } from "@features/documents-system/documents-system-consts";
 import { getDocumentsSystemEnvironment } from "@features/documents-system/documents-system-runtime";
 import { documentsSystemTools } from "@features/documents-system/documents-system-tools";
 import { DocumentsSystemHeader } from "@features/documents-system/ui/documents-system-header";
 import { DocumentsSystemSidebar } from "@features/documents-system/ui/documents-system-sidebar";
+import { DocumentsSystemSidebarProvider } from "@features/documents-system/ui/documents-system-sidebar-provider";
 import type { DocumentsSystemSidebarGroup } from "@features/documents-system/documents-system-types";
 
 const documentsSidebarStyle = {
   "--sidebar-width": "24rem",
-} as React.CSSProperties;
+} as CSSProperties;
 
 type DocumentsSystemShellProps = Readonly<{
   children: ReactNode;
-  defaultOpen: boolean;
   sidebarMenu: DocumentsSystemSidebarGroup[];
 }>;
 
-const DocumentsSystemShell = ({
-  children,
-  defaultOpen,
-  sidebarMenu,
-}: DocumentsSystemShellProps) => (
-  <SidebarProvider defaultOpen={defaultOpen} style={documentsSidebarStyle}>
+const DocumentsSystemShell = ({ children, sidebarMenu }: DocumentsSystemShellProps) => (
+  <DocumentsSystemSidebarProvider style={documentsSidebarStyle}>
     <DocumentsSystemSidebar menu={sidebarMenu} />
     <SidebarInset
       className="flex h-screen flex-col overflow-y-auto"
@@ -37,26 +31,14 @@ const DocumentsSystemShell = ({
         {children}
       </div>
     </SidebarInset>
-  </SidebarProvider>
+  </DocumentsSystemSidebarProvider>
 );
-
-const DocumentsSystemSidebarProviderLoader = ({
-  sideBarStatePromise,
-  ...props
-}: Omit<DocumentsSystemShellProps, "defaultOpen"> & {
-  sideBarStatePromise: Promise<boolean | undefined>;
-}) => {
-  const sideBarState = use(sideBarStatePromise) ?? false;
-
-  return <DocumentsSystemShell defaultOpen={sideBarState} {...props} />;
-};
 
 export default async function DocumentsSystemLayout({
   children,
 }: Readonly<{
   children: ReactNode;
 }>) {
-  const sideBarStatePromise = getTFromCookie<boolean>(SIDEBAR_COOKIE_KEY);
   const locale = await getLocale();
   const documents = await getCachedDocuments(locale);
   const sidebarMenu = documentsSystemTools.buildSidebarMenuItems(
@@ -64,20 +46,5 @@ export default async function DocumentsSystemLayout({
     getDocumentsSystemEnvironment()
   );
 
-  return (
-    <Suspense
-      fallback={
-        <DocumentsSystemShell defaultOpen={false} sidebarMenu={sidebarMenu}>
-          {children}
-        </DocumentsSystemShell>
-      }
-    >
-      <DocumentsSystemSidebarProviderLoader
-        sideBarStatePromise={sideBarStatePromise}
-        sidebarMenu={sidebarMenu}
-      >
-        {children}
-      </DocumentsSystemSidebarProviderLoader>
-    </Suspense>
-  );
+  return <DocumentsSystemShell sidebarMenu={sidebarMenu}>{children}</DocumentsSystemShell>;
 }
