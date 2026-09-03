@@ -607,10 +607,13 @@ Expected: the root image starts and serves directly without Nginx, proving Compo
 
 - [ ] **Step 4: Verify Nginx against the real local application**
 
-Start the two-tier topology using preserved local environment values. Obtain a disposable valid
-local automation session through the existing development-only helper when running the development
-origin; for the production origin use a valid existing local test session if one is available. Never
-store the cookie in shell history, process arguments, files under Git, or captured logs.
+Before starting the production topology, run the development server with
+`LOCAL_AUTOMATION_AUTH_ENABLED=true` and `AUTH_DISABLE_SESSION_COOKIE_CACHE=true`, create a disposable
+local automation user, and save its cookie jar to a mode-`0600` file outside the repository. Stop the
+development server, then start the production topology with the same database and
+`BETTER_AUTH_SECRET`. Send the saved session token as an explicit `Cookie` header so the verifier
+tests a valid authenticated session against production-rendered HTML. Never store the cookie in
+shell history, process arguments, files under Git, or captured logs.
 
 Run the verifier from a disposable Node container attached to `dokploy-network`, using
 `http://web:3000` for the origin. Resolve each edge container's private address with `docker inspect`
@@ -625,10 +628,10 @@ docker run --rm --network dokploy-network \
 ```
 
 Create `/tmp/docs-cache-verifier.env` with mode `0600`; set `ORIGIN_BASE_URL=http://web:3000`, one
-private `EDGE_BASE_URL`, `EDGE_REPLICA_COUNT=1`, and `AUTH_COOKIE`, then delete the file immediately
-after both runs. Do not echo it. If a valid production-mode local session cannot be created safely,
-complete guest/sidebar/query equality locally and leave the valid-session variant as an explicit
-mandatory live pre-cutover check; do not weaken or remove the check from the script.
+private `EDGE_BASE_URL`, `EDGE_REPLICA_COUNT=1`, and `AUTH_COOKIE`, then delete the verifier file
+immediately after both runs. Do not echo either temporary file. After production verification, start
+the development server with local automation enabled again, delete the disposable user through the
+existing cleanup endpoint using the cookie jar, stop the server, and delete the cookie jar.
 
 Expected: JSON reports complete-body equality, both replicas warmed, normalized query variants,
 and successful bypass probes. Confirm a warm `HIT` does not add an origin access-log entry.
