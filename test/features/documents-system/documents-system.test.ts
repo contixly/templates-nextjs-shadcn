@@ -348,6 +348,11 @@ describe("documents system", () => {
 
       expect(source).toMatch(/Nginx[\s\S]{0,180}(?:optional|необязатель)/iu);
       expect(source).toMatch(/Compose[\s\S]{0,180}(?:optional|необязатель)/iu);
+      expect(source).toMatch(
+        locale === "en"
+          ? /documentation[^.!?]{0,220}query[^.!?]{0,140}(?:bypass|BYPASS)/iu
+          : /документац[^.!?]{0,220}параметр[а-я]* запрос[а-я]*[^.!?]{0,140}(?:обход|BYPASS)/iu
+      );
 
       const edgeCacheInvalidationContractByLocale: Record<
         (typeof cachingPageLocales)[number],

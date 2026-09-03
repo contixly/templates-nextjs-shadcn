@@ -70,6 +70,7 @@ function createMockFetch(options: MockOptions = {}) {
     const bypass =
       url.pathname === "/api/health" ||
       url.pathname.startsWith("/docs/og/") ||
+      url.search !== "" ||
       request.method === "POST" ||
       bypassHeaders.some((header) => request.headers.has(header));
     if (bypass) {
@@ -176,14 +177,17 @@ describe("public documentation cache verifier", () => {
   });
 
   test("verifies complete origin/edge bodies, cache reuse, bypasses, and safe output", async () => {
-    const { fetchImpl, requests } = createMockFetch();
+    const { fetchImpl, requests } = createMockFetch({
+      originBody: (request) =>
+        `<html>${request.url.pathname}${request.url.search ? `:${request.url.search}` : ""}</html>`,
+    });
 
     const result = await runVerification(verifierConfig(), fetchImpl);
     expect(result).toMatchObject({
       ok: true,
       origin: { pathCount: 2 },
       edge: {
-        bypassCount: 11,
+        bypassCount: 13,
         observedReplicaIds: ["edge-a"],
         replicaCount: 1,
         requestCount: 19,
@@ -209,6 +213,9 @@ describe("public documentation cache verifier", () => {
     const edgeRequests = requests.filter((request) => request.url.host === "edge.test");
     expect(edgeRequests.some((request) => request.url.pathname === "/api/health")).toBe(true);
     expect(edgeRequests.some((request) => request.url.pathname === "/docs/og/index")).toBe(true);
+    expect(
+      edgeRequests.filter((request) => request.url.search === "?cache-verifier=safe")
+    ).toHaveLength(2);
     for (const header of [
       "rsc",
       "next-router-state-tree",
@@ -223,10 +230,9 @@ describe("public documentation cache verifier", () => {
     }
   });
 
-  test("rejects a query or cookie-specific edge key on its first already-warmed response", async () => {
+  test("rejects a cookie-specific edge key on its first already-warmed response", async () => {
     const { fetchImpl } = createMockFetch({
-      edgeCacheKey: (request) =>
-        `${request.url.pathname}|${request.url.search}|${request.headers.get("cookie") ?? ""}`,
+      edgeCacheKey: (request) => `${request.url.pathname}|${request.headers.get("cookie") ?? ""}`,
     });
 
     await expect(runVerification(verifierConfig(), fetchImpl)).rejects.toThrow(

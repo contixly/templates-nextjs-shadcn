@@ -71,6 +71,8 @@ The edge uses a positive allowlist. It may cache complete HTML only for `/docs` 
 below it, plus immutable assets under `/_next/static/`. Every other route is proxy-only and reports
 `BYPASS`: this includes the home page, sign-in and protected application pages, APIs, server actions,
 RSC and router-prefetch requests, generated documentation images, and requests with authorization.
+Documentation pages with any query parameters also report `BYPASS`; only the canonical queryless
+page may enter the HTML cache because Next.js can include the query in the complete response.
 
 This narrow boundary matters even when a route looks public. The edge must never store a response
 that depends on a user, a cookie, a workspace, or a request-specific operation.
@@ -88,10 +90,10 @@ URL, and a disposable authenticated test cookie supplied through your secure env
 npm run test:public-cache
 ```
 
-The verifier compares complete documentation responses for guest, authenticated, cookie, and safe
-query requests. It also checks that both edge replicas warm from `MISS` to `HIT` and that private or
-framework requests remain `BYPASS`. Do not copy cookies or other credentials into documentation,
-shell history, or reports.
+The verifier compares complete queryless documentation responses for guest, authenticated, and
+sidebar-cookie requests. It also checks that both edge replicas warm from `MISS` to `HIT`, that
+documentation queries remain `BYPASS`, and that private or framework requests remain `BYPASS`. Do
+not copy cookies or other credentials into documentation, shell history, or reports.
 
 ### Freshness and rollout
 

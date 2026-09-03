@@ -227,7 +227,6 @@ async function verifyOriginPath(config, fetchImpl, path) {
     { name: "sidebar-true", options: requestOptions({ Cookie: "sidebar_state=true" }) },
     { name: "sidebar-false", options: requestOptions({ Cookie: "sidebar_state=false" }) },
     { name: "sidebar-malformed", options: requestOptions({ Cookie: "sidebar_state=%E0%A4%A" }) },
-    { name: "safe-query", options: requestOptions(), query: "cache-verifier=safe" },
     { name: "authenticated", options: requestOptions({ Cookie: config.authCookie }) },
   ];
 
@@ -257,6 +256,17 @@ async function verifyOriginPath(config, fetchImpl, path) {
         `origin ${path} ${variant.name}`
       );
     }
+  }
+
+  const queryResponse = await fetchResponse(
+    fetchImpl,
+    requestUrl(config.originBaseUrl, path, "cache-verifier=safe"),
+    requestOptions(),
+    config.authCookie
+  );
+  assertPublicResponse(queryResponse, `origin ${path} safe-query`);
+  if (config.authCookieValues.some((value) => queryResponse.body.includes(Buffer.from(value)))) {
+    throw new Error(`origin ${path} safe-query: response body contains configured auth cookie`);
   }
 
   return { bytes: guest.body.length, path, sha256: guest.hash };
@@ -400,6 +410,26 @@ async function verifyBypasses(config, fetchImpl, nestedPath, requests) {
   return probes.length;
 }
 
+async function verifyQueryBypass(config, fetchImpl, path, requests) {
+  if (requests.count >= config.maxEdgeRequests) {
+    throw new Error("MAX_EDGE_REQUESTS exhausted before query bypass probe completed");
+  }
+
+  const response = await requestEdge(
+    config,
+    fetchImpl,
+    path,
+    requestOptions(),
+    "cache-verifier=safe"
+  );
+  requests.count += 1;
+  if (response.edgeCache !== "BYPASS") {
+    throw new Error(
+      `edge bypass docs-query: expected X-Edge-Cache BYPASS, received ${response.edgeCache ?? "missing"}`
+    );
+  }
+}
+
 export async function runVerification(config, fetchImpl = fetch) {
   const originDocuments = [];
   for (const path of config.docsPaths) {
@@ -436,16 +466,7 @@ export async function runVerification(config, fetchImpl = fetch) {
     );
     for (const replica of warmHits) replicas.add(replica);
 
-    await verifyVariantHitsOnWarmedReplicas(
-      config,
-      fetchImpl,
-      document.path,
-      expected,
-      requestOptions(),
-      "cache-verifier=safe",
-      warmHits,
-      requests
-    );
+    await verifyQueryBypass(config, fetchImpl, document.path, requests);
     await verifyVariantHitsOnWarmedReplicas(
       config,
       fetchImpl,
@@ -458,12 +479,14 @@ export async function runVerification(config, fetchImpl = fetch) {
     );
   }
 
-  const bypassCount = await verifyBypasses(
-    config,
-    fetchImpl,
-    config.docsPaths.find((path) => path !== "/docs"),
-    requests
-  );
+  const bypassCount =
+    config.docsPaths.length +
+    (await verifyBypasses(
+      config,
+      fetchImpl,
+      config.docsPaths.find((path) => path !== "/docs"),
+      requests
+    ));
 
   return {
     ok: true,
