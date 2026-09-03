@@ -340,6 +340,10 @@ async function collectHitsForEveryReplica(
     const seen = (visits.get(response.edgeReplica) ?? 0) + 1;
     visits.set(response.edgeReplica, seen);
 
+    if (visits.size > config.edgeReplicaCount) {
+      throw new Error(`edge ${path}: observed more than ${config.edgeReplicaCount} edge replicas`);
+    }
+
     assertPublicResponse(response, `edge ${path}`);
     assertSameBody(expected, { body: response.body, hash: sha256(response.body) }, `edge ${path}`);
 
@@ -394,7 +398,40 @@ async function verifyVariantHitsOnWarmedReplicas(
   }
 }
 
-async function verifyBypasses(config, fetchImpl, nestedPath, requests) {
+async function verifyBypassOnEveryReplica(config, fetchImpl, probe, replicas, requests) {
+  const observed = new Set();
+
+  while (observed.size < replicas.size) {
+    if (requests.count >= config.maxEdgeRequests) {
+      throw new Error(
+        `MAX_EDGE_REQUESTS exhausted while checking bypass ${probe.name} on every replica`
+      );
+    }
+
+    const response = await requestEdge(
+      config,
+      fetchImpl,
+      probe.path,
+      requestOptions(probe.headers, probe.method),
+      probe.query ?? ""
+    );
+    requests.count += 1;
+
+    if (!replicas.has(response.edgeReplica)) {
+      throw new Error(`edge bypass ${probe.name}: response came from an unexpected replica`);
+    }
+
+    if (response.edgeCache !== "BYPASS") {
+      throw new Error(
+        `edge bypass ${probe.name} on replica ${response.edgeReplica}: expected X-Edge-Cache BYPASS, received ${response.edgeCache ?? "missing"}`
+      );
+    }
+
+    observed.add(response.edgeReplica);
+  }
+}
+
+async function verifyBypasses(config, fetchImpl, nestedPath, replicas, requests) {
   const probes = [
     { name: "api-health", path: "/api/health" },
     { name: "docs-og", path: "/docs/og/index" },
@@ -418,46 +455,20 @@ async function verifyBypasses(config, fetchImpl, nestedPath, requests) {
   ];
 
   for (const probe of probes) {
-    if (requests.count >= config.maxEdgeRequests) {
-      throw new Error("MAX_EDGE_REQUESTS exhausted before bypass probes completed");
-    }
-
-    const response = await requestEdge(
-      config,
-      fetchImpl,
-      probe.path,
-      requestOptions(probe.headers, probe.method),
-      ""
-    );
-    requests.count += 1;
-    if (response.edgeCache !== "BYPASS") {
-      throw new Error(
-        `edge bypass ${probe.name}: expected X-Edge-Cache BYPASS, received ${response.edgeCache ?? "missing"}`
-      );
-    }
+    await verifyBypassOnEveryReplica(config, fetchImpl, probe, replicas, requests);
   }
 
   return probes.length;
 }
 
-async function verifyQueryBypass(config, fetchImpl, path, requests) {
-  if (requests.count >= config.maxEdgeRequests) {
-    throw new Error("MAX_EDGE_REQUESTS exhausted before query bypass probe completed");
-  }
-
-  const response = await requestEdge(
+async function verifyQueryBypass(config, fetchImpl, path, replicas, requests) {
+  await verifyBypassOnEveryReplica(
     config,
     fetchImpl,
-    path,
-    requestOptions(),
-    "cache-verifier=safe"
+    { name: "docs-query", path, query: "cache-verifier=safe" },
+    replicas,
+    requests
   );
-  requests.count += 1;
-  if (response.edgeCache !== "BYPASS") {
-    throw new Error(
-      `edge bypass docs-query: expected X-Edge-Cache BYPASS, received ${response.edgeCache ?? "missing"}`
-    );
-  }
 }
 
 export async function runVerification(config, fetchImpl = fetch) {
@@ -498,7 +509,7 @@ export async function runVerification(config, fetchImpl = fetch) {
     );
     for (const replica of warmHits) replicas.add(replica);
 
-    await verifyQueryBypass(config, fetchImpl, document.path, requests);
+    await verifyQueryBypass(config, fetchImpl, document.path, warmHits, requests);
     await verifyVariantHitsOnWarmedReplicas(
       config,
       fetchImpl,
@@ -511,12 +522,19 @@ export async function runVerification(config, fetchImpl = fetch) {
     );
   }
 
+  if (replicas.size !== config.edgeReplicaCount) {
+    throw new Error(
+      `edge rollout: expected exactly ${config.edgeReplicaCount} replicas, observed ${replicas.size}`
+    );
+  }
+
   const bypassCount =
     config.docsPaths.length +
     (await verifyBypasses(
       config,
       fetchImpl,
       config.docsPaths.find((path) => path !== "/docs"),
+      replicas,
       requests
     ));
 

@@ -458,12 +458,14 @@ The verification sequence must:
    `sidebar_state=false`, with malformed sidebar state, and with `AUTH_COOKIE`;
 3. require `200`, no `Set-Cookie`, no private/no-store/no-cache, identical bytes, and no configured
    auth-cookie value in the body;
-4. require each replica's first sampled response after recreation to be `MISS`, then prove a
-   subsequent request on that replica is `HIT` with identical bytes;
+4. require the observed replica set to match `EDGE_REPLICA_COUNT` exactly, require each replica's
+   first sampled response after recreation to be `MISS`, then prove a subsequent request on that
+   replica is `HIT` with identical bytes;
 5. prove auth variants reuse the warmed object on the same replica and query variants report
-   `BYPASS`;
-6. require `BYPASS` for `/api/health`, `/docs/og/index`, RSC, router-state, router-prefetch,
-   router-segment-prefetch, Server Action, authorization, and `POST` probes;
+   `BYPASS` on every observed replica;
+6. require `BYPASS` on every observed replica for `/api/health`, `/docs/og/index`, RSC,
+   router-state, router-prefetch, router-segment-prefetch, Server Action, authorization, and `POST`
+   probes;
 7. print one JSON result and never print cookies or bodies, including in thrown errors.
 
 Use `redirect: "manual"` so redirects cannot be mistaken for public documents.

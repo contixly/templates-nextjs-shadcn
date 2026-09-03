@@ -19,8 +19,13 @@ type FetchRequest = {
 
 type MockOptions = {
   authenticatedSession?: boolean;
-  edgeCacheKey?: (request: FetchRequest) => string;
-  edgeReplica?: string;
+  edgeCacheKey?: (request: FetchRequest, edgeReplica: string) => string;
+  edgeCacheStatus?: (
+    request: FetchRequest,
+    edgeReplica: string,
+    defaultStatus: "BYPASS" | "HIT" | "MISS"
+  ) => "BYPASS" | "HIT" | "MISS";
+  edgeReplica?: string | ((request: FetchRequest, edgeRequestIndex: number) => string);
   initialEdgeCacheKeys?: string[];
   originHeaders?: HeadersInit;
   originBody?: (request: FetchRequest) => string;
@@ -39,6 +44,7 @@ function verifierConfig() {
 function createMockFetch(options: MockOptions = {}) {
   const requests: FetchRequest[] = [];
   const cache = new Set(options.initialEdgeCacheKeys ?? []);
+  let edgeRequestIndex = 0;
   const bypassHeaders = [
     "rsc",
     "next-router-state-tree",
@@ -77,6 +83,11 @@ function createMockFetch(options: MockOptions = {}) {
       });
     }
 
+    const edgeReplica =
+      typeof options.edgeReplica === "function"
+        ? options.edgeReplica(request, edgeRequestIndex)
+        : (options.edgeReplica ?? "edge-a");
+    edgeRequestIndex += 1;
     const bypass =
       url.pathname === "/api/health" ||
       url.pathname.startsWith("/docs/og/") ||
@@ -84,24 +95,28 @@ function createMockFetch(options: MockOptions = {}) {
       request.method === "POST" ||
       bypassHeaders.some((header) => request.headers.has(header));
     if (bypass) {
+      const edgeCache = options.edgeCacheStatus?.(request, edgeReplica, "BYPASS") ?? "BYPASS";
       return new Response(body, {
         status: 200,
         headers: {
-          "X-Edge-Cache": "BYPASS",
-          "X-Edge-Replica": options.edgeReplica ?? "edge-a",
+          "X-Edge-Cache": edgeCache,
+          "X-Edge-Replica": edgeReplica,
         },
       });
     }
 
-    const key = options.edgeCacheKey?.(request) ?? request.url.pathname;
-    const edgeCache = cache.has(key) ? "HIT" : "MISS";
+    const key =
+      options.edgeCacheKey?.(request, edgeReplica) ?? `${edgeReplica}:${request.url.pathname}`;
+    const defaultEdgeCache = cache.has(key) ? "HIT" : "MISS";
     cache.add(key);
+    const edgeCache =
+      options.edgeCacheStatus?.(request, edgeReplica, defaultEdgeCache) ?? defaultEdgeCache;
     return new Response(body, {
       status: 200,
       headers: {
         "Cache-Control": "public, s-maxage=3600",
         "X-Edge-Cache": edgeCache,
-        "X-Edge-Replica": options.edgeReplica ?? "edge-a",
+        "X-Edge-Replica": edgeReplica,
       },
     });
   };
@@ -250,7 +265,8 @@ describe("public documentation cache verifier", () => {
 
   test("rejects a cookie-specific edge key on its first already-warmed response", async () => {
     const { fetchImpl } = createMockFetch({
-      edgeCacheKey: (request) => `${request.url.pathname}|${request.headers.get("cookie") ?? ""}`,
+      edgeCacheKey: (request, replica) =>
+        `${replica}:${request.url.pathname}|${request.headers.get("cookie") ?? ""}`,
     });
 
     await expect(runVerification(verifierConfig(), fetchImpl)).rejects.toThrow(
@@ -260,7 +276,7 @@ describe("public documentation cache verifier", () => {
 
   test("rejects an already-warm replica when a cold cache is required", async () => {
     const { fetchImpl } = createMockFetch({
-      initialEdgeCacheKeys: ["/docs", "/docs/general/quick-start"],
+      initialEdgeCacheKeys: ["edge-a:/docs", "edge-a:/docs/general/quick-start"],
     });
 
     await expect(runVerification(verifierConfig(), fetchImpl)).rejects.toThrow(
@@ -273,6 +289,66 @@ describe("public documentation cache verifier", () => {
 
     await expect(runVerification(verifierConfig(), fetchImpl)).rejects.toThrow(
       "AUTH_COOKIE does not resolve to a live origin session"
+    );
+  });
+
+  test("rejects an edge pool with more replicas than configured", async () => {
+    const replicas = ["edge-a", "edge-b", "edge-c"];
+    const { fetchImpl } = createMockFetch({
+      edgeReplica: (_request, index) => replicas[index % replicas.length],
+    });
+    const config = parseVerifierConfig({
+      ORIGIN_BASE_URL: "http://origin.test",
+      EDGE_BASE_URL: "http://edge.test",
+      AUTH_COOKIE: authCookie,
+      EDGE_REPLICA_COUNT: "2",
+      MAX_EDGE_REQUESTS: "80",
+    });
+
+    await expect(runVerification(config, fetchImpl)).rejects.toThrow(
+      "observed more than 2 edge replicas"
+    );
+  });
+
+  test("checks each bypass probe on every discovered edge replica", async () => {
+    const replicas = ["edge-a", "edge-b"];
+    const { fetchImpl } = createMockFetch({
+      edgeReplica: (_request, index) => replicas[index % replicas.length],
+      edgeCacheStatus: (request, replica, defaultStatus) =>
+        request.headers.has("authorization") && replica === "edge-a" ? "HIT" : defaultStatus,
+    });
+    const config = parseVerifierConfig({
+      ORIGIN_BASE_URL: "http://origin.test",
+      EDGE_BASE_URL: "http://edge.test",
+      AUTH_COOKIE: authCookie,
+      EDGE_REPLICA_COUNT: "2",
+      MAX_EDGE_REQUESTS: "80",
+    });
+
+    await expect(runVerification(config, fetchImpl)).rejects.toThrow(
+      "edge bypass authorization on replica edge-a: expected X-Edge-Cache BYPASS"
+    );
+  });
+
+  test("checks each documentation query bypass on every discovered edge replica", async () => {
+    const replicas = ["edge-a", "edge-b"];
+    const { fetchImpl } = createMockFetch({
+      edgeReplica: (_request, index) => replicas[index % replicas.length],
+      edgeCacheStatus: (request, replica, defaultStatus) =>
+        request.url.search === "?cache-verifier=safe" && replica === "edge-a"
+          ? "HIT"
+          : defaultStatus,
+    });
+    const config = parseVerifierConfig({
+      ORIGIN_BASE_URL: "http://origin.test",
+      EDGE_BASE_URL: "http://edge.test",
+      AUTH_COOKIE: authCookie,
+      EDGE_REPLICA_COUNT: "2",
+      MAX_EDGE_REQUESTS: "80",
+    });
+
+    await expect(runVerification(config, fetchImpl)).rejects.toThrow(
+      "edge bypass docs-query on replica edge-a: expected X-Edge-Cache BYPASS"
     );
   });
 

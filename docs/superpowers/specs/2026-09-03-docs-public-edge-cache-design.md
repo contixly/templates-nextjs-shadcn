@@ -241,11 +241,12 @@ DOM fragment.
 - `nginx -t` succeeds and all process/readiness endpoints work.
 - After edge recreation, the first documentation request to each replica is `MISS` and a later
   request to that same replica is `HIT`.
-- Documentation query variants report `BYPASS`; different queryless document paths do not collide.
+- Documentation query variants report `BYPASS` on every observed edge replica; different queryless
+  document paths do not collide.
 - Guest, authenticated, and sidebar-cookie variants return identical bodies.
 - Concurrent cold requests are collapsed within one replica.
 - RSC, router prefetch, Server Actions, authorization, APIs, generated images, and non-GET requests
-  report `BYPASS` and cannot populate the cache.
+  report `BYPASS` on every observed edge replica and cannot populate the cache.
 - Redirects, 404s, 500s, `Set-Cookie`, and private/no-store/no-cache responses are not stored.
 - A warm `HIT` does not reach Next.js.
 - Direct traffic to `web:3000` continues to work without the edge service.
