@@ -97,8 +97,8 @@ shell history, or reports.
 
 Documentation HTML remains in an edge cache for 60 minutes. Nginx does not serve stale HTML when the
 origin fails; an expired entry waits for an origin response. Each edge replica has an ephemeral
-cache, with no shared cache volume or per-page purge API. To invalidate every cached response during
-a deployment, force-recreate every edge container.
+cache, with no shared cache volume or per-page purge API. During a deployment, force-recreate every
+edge container to invalidate its ephemeral cache and every cached response.
 
 Make the first Compose rollout manually. Verify both health endpoints, the allowlist and bypasses,
 and a warm `HIT` on each replica before enabling auto-deploy later as a separate operational change.

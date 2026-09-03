@@ -323,8 +323,9 @@ describe("documents system", () => {
   });
 
   it("documents the optional public edge cache in both supported locales", async () => {
+    const cachingPageLocales = ["en", "ru"] as const;
     const cachingPages = await Promise.all(
-      ["en", "ru"].map(async (locale) => ({
+      cachingPageLocales.map(async (locale) => ({
         locale,
         source: await readFile(
           `src/features/documents-system/content/application/caching.${locale}.md`,
@@ -347,10 +348,33 @@ describe("documents system", () => {
 
       expect(source).toMatch(/Nginx[\s\S]{0,180}(?:optional|необязатель)/iu);
       expect(source).toMatch(/Compose[\s\S]{0,180}(?:optional|необязатель)/iu);
-      expect(source).toMatch(/(?:force-recreate|принудительн[а-я]* пересозда[а-я]*)/iu);
-      expect(source).toMatch(
-        /(?:ephemeral|временн[а-я]*)[\s\S]{0,180}(?:edge|Nginx)|(?:edge|Nginx)[\s\S]{0,180}(?:ephemeral|временн[а-я]*)/iu
+
+      const edgeCacheInvalidationContractByLocale: Record<
+        (typeof cachingPageLocales)[number],
+        { pattern: RegExp; brokenFixture: string }
+      > = {
+        en: {
+          pattern:
+            /deployment[^.!?]{0,220}force-recreate[^.!?]{0,140}edge[^.!?]{0,140}invalida[^.!?]{0,140}ephemeral/iu,
+          brokenFixture:
+            "During a deployment, force-recreate every edge container. Its ephemeral cache is local.",
+        },
+        ru: {
+          pattern:
+            /развертывани[^.!?]{0,220}принудительн[а-я]* пересозда[а-я]*[^.!?]{0,140}пограничн[^.!?]{0,140}временн[^.!?]{0,140}инвалид/iu,
+          brokenFixture:
+            "При развертывании принудительно пересоздавайте каждый контейнер пограничного слоя. Его временный кеш локален.",
+        },
+      };
+      const edgeCacheInvalidationContract = edgeCacheInvalidationContractByLocale[locale];
+
+      expect(edgeCacheInvalidationContract.brokenFixture).toMatch(/(?:force-recreate|пересозда)/iu);
+      expect(edgeCacheInvalidationContract.brokenFixture).toMatch(/(?:edge|пограничн)/iu);
+      expect(edgeCacheInvalidationContract.brokenFixture).toMatch(/(?:ephemeral|временн)/iu);
+      expect(edgeCacheInvalidationContract.brokenFixture).not.toMatch(
+        edgeCacheInvalidationContract.pattern
       );
+      expect(source).toMatch(edgeCacheInvalidationContract.pattern);
 
       expect(locale).toMatch(/^(?:en|ru)$/u);
     }
