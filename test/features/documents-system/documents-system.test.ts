@@ -322,6 +322,40 @@ describe("documents system", () => {
     expect(source).toContain('id="main-content"');
   });
 
+  it("documents the optional public edge cache in both supported locales", async () => {
+    const cachingPages = await Promise.all(
+      ["en", "ru"].map(async (locale) => ({
+        locale,
+        source: await readFile(
+          `src/features/documents-system/content/application/caching.${locale}.md`,
+          "utf8"
+        ),
+      }))
+    );
+
+    for (const { locale, source } of cachingPages) {
+      for (const requiredTerm of [
+        "infra/dokploy/compose.yml",
+        "npm run test:public-cache",
+        "/docs",
+        "/_next/static/",
+        "/nginx-health",
+        "/api/health",
+      ]) {
+        expect(source).toContain(requiredTerm);
+      }
+
+      expect(source).toMatch(/Nginx[\s\S]{0,180}(?:optional|необязатель)/iu);
+      expect(source).toMatch(/Compose[\s\S]{0,180}(?:optional|необязатель)/iu);
+      expect(source).toMatch(/(?:force-recreate|принудительн[а-я]* пересозда[а-я]*)/iu);
+      expect(source).toMatch(
+        /(?:ephemeral|временн[а-я]*)[\s\S]{0,180}(?:edge|Nginx)|(?:edge|Nginx)[\s\S]{0,180}(?:ephemeral|временн[а-я]*)/iu
+      );
+
+      expect(locale).toMatch(/^(?:en|ru)$/u);
+    }
+  });
+
   it("indexes the selected locale document title for search", () => {
     const documents = resolveDocumentsSystemRegistryDocuments(
       [
