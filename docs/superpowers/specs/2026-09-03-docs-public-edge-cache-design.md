@@ -108,10 +108,12 @@ The Nginx configuration uses a strict positive allowlist. Only the following req
 - published documentation pages under `/docs/<slug>`;
 - immutable assets under `/_next/static/`.
 
-The HTML key consists of scheme, host, and canonical pathname. Ordinary query parameters are not
-part of the key because documentation pages do not use them to select content. This prevents
-tracking parameters from producing unbounded duplicate entries. A redirect response is never
-stored, so URL canonicalization remains Next.js's responsibility.
+The HTML key consists of scheme, host, and canonical pathname. Only queryless documentation
+requests are cacheable. Although the page content does not read search parameters, Next.js 16.3
+embeds the request query in the HTML bootstrap/RSC state, so a query variant is not byte-identical to
+the canonical response. Bypassing query requests prevents both mismatched HTML reuse and unbounded
+tracking-parameter cache entries. A redirect response is never stored, so URL canonicalization
+remains Next.js's responsibility.
 
 Documentation HTML has a 60-minute shared-cache lifetime. Browsers must revalidate HTML while the
 shared edge cache may reuse it. Immutable Next.js assets keep their long-lived immutable policy.
@@ -138,6 +140,7 @@ The following are always bypassed and never stored, even if the pathname starts 
 - Server Actions;
 - requests with `Authorization`;
 - requests with `Purpose: prefetch`;
+- documentation requests with any query string;
 - every method except `GET` and `HEAD`.
 
 An eligible request is stored only when the upstream response:
@@ -217,8 +220,10 @@ logs, tests, or reports.
 Run a production build and start the standalone output or root Docker image without Nginx. For
 `/docs` and at least one nested published page:
 
-- guest, valid authenticated-session, `sidebar_state=true`, `sidebar_state=false`, malformed-cookie,
-  and safe-query requests return byte-identical complete HTML;
+- guest, valid authenticated-session, `sidebar_state=true`, `sidebar_state=false`, and
+  malformed-cookie requests return byte-identical complete HTML;
+- query variants are allowed to have different complete HTML at the origin and are always bypassed
+  at the edge;
 - the response has no `Set-Cookie`, authenticated marker, user identifier, workspace data, or other
   session-derived content;
 - the response policy permits shared caching;
@@ -232,7 +237,7 @@ DOM fragment.
 - Compose renders two `web` and two `edge` replicas without database or Dragonfly services.
 - `nginx -t` succeeds and both health endpoints work.
 - A documentation request produces `MISS` then `HIT` on the same edge replica.
-- Safe query variants reuse the canonical pathname key; different document paths do not collide.
+- Documentation query variants report `BYPASS`; different queryless document paths do not collide.
 - Guest, authenticated, and sidebar-cookie variants return identical bodies.
 - Concurrent cold requests are collapsed within one replica.
 - RSC, router prefetch, Server Actions, authorization, APIs, generated images, and non-GET requests
@@ -300,8 +305,8 @@ business capabilities do not change.
 
 The design is complete when all of the following are demonstrated:
 
-1. The complete HTML for every cacheable documentation route is independent of request cookies,
-   authentication, and safe query parameters.
+1. The complete HTML for every cacheable queryless documentation route is independent of request
+   cookies and authentication.
 2. Only canonical public `/docs` HTML and immutable Next.js assets can produce an edge `HIT`.
 3. All personal, dynamic, mutation, API, RSC, prefetch, and image traffic is observably bypassed.
 4. Local development and the root standalone Docker image work without Nginx or Compose.

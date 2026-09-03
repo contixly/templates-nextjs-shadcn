@@ -16,7 +16,8 @@
 - Do not create or modify an OpenSpec change; this is deployment infrastructure without a changed business workflow.
 - Keep `npm run dev`, `npm run start`, and the root `Dockerfile` independently usable without Nginx, Compose, Redis, or Valkey.
 - Do not modify `src/components/ui/sidebar.tsx`; compose the changed behavior inside the documents-system feature.
-- Cache only canonical `/docs` HTML and `/_next/static/`; the home page and every non-allowlisted route remain bypassed.
+- Cache only queryless canonical `/docs` HTML and `/_next/static/`; documentation query variants,
+  the home page, and every non-allowlisted route remain bypassed.
 - Always bypass APIs, generated images, RSC, router state, router prefetch, Server Actions, authorization, prefetch purpose, and methods other than `GET`/`HEAD`.
 - Store only status `200` responses without `Set-Cookie`, `Vary: *`, or private/no-store/no-cache policy.
 - Use a 60-minute documentation TTL, no stale-on-error, `proxy_cache_lock`, and independent ephemeral edge caches.
@@ -451,12 +452,13 @@ Execute `runVerification(parseVerifierConfig())` only when `import.meta.url` equ
 The verification sequence must:
 
 1. fetch `/docs` and one nested page at the origin as guest, with `sidebar_state=true`, with
-   `sidebar_state=false`, with malformed sidebar state, with a safe query, and with `AUTH_COOKIE`;
+   `sidebar_state=false`, with malformed sidebar state, and with `AUTH_COOKIE`;
 2. require `200`, no `Set-Cookie`, no private/no-store/no-cache, identical bytes, and no configured
    auth-cookie value in the body;
 3. warm every expected edge replica and prove a subsequent request on each is `HIT` with identical
    bytes;
-4. prove query and auth variants reuse the warmed object on the same replica;
+4. prove auth variants reuse the warmed object on the same replica and query variants report
+   `BYPASS`;
 5. require `BYPASS` for `/api/health`, `/docs/og/index`, RSC, router-state, router-prefetch,
    router-segment-prefetch, Server Action, authorization, and `POST` probes;
 6. print one JSON result and never print cookies or bodies, including in thrown errors.
@@ -633,8 +635,9 @@ immediately after both runs. Do not echo either temporary file. After production
 the development server with local automation enabled again, delete the disposable user through the
 existing cleanup endpoint using the cookie jar, stop the server, and delete the cookie jar.
 
-Expected: JSON reports complete-body equality, both replicas warmed, normalized query variants,
-and successful bypass probes. Confirm a warm `HIT` does not add an origin access-log entry.
+Expected: JSON reports complete-body equality for cacheable variants, both replicas warmed, query
+variants bypassed, and successful bypass probes. Confirm a warm `HIT` does not add an origin
+access-log entry.
 
 - [ ] **Step 5: Prove ephemeral invalidation and independent replicas**
 
