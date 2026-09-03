@@ -93,7 +93,7 @@ test("caches only public documentation HTML and immutable Next.js assets", () =>
     expect(block).toContain("proxy_no_cache $skip_document_cache;");
     expect(block).toContain("proxy_no_cache $skip_private_response;");
     expect(block).toContain("proxy_no_cache $upstream_http_set_cookie;");
-    expect(block).toContain("proxy_ignore_headers Cache-Control Expires;");
+    expect(block).toContain("proxy_ignore_headers Cache-Control Expires X-Accel-Buffering;");
     expect(block).toContain("proxy_hide_header Cache-Control;");
     expect(block).toContain("proxy_hide_header Expires;");
     expect(block).toContain("add_header Cache-Control $public_document_cache_control always;");
@@ -101,6 +101,7 @@ test("caches only public documentation HTML and immutable Next.js assets", () =>
 
   const staticAssets = locationBlock(config, "location ^~ /_next/static/", "location /");
   expect(staticAssets).toContain("proxy_cache_bypass $skip_request_cache;");
+  expect(staticAssets).toContain("proxy_ignore_headers X-Accel-Buffering;");
   expect(staticAssets).not.toContain("$skip_document_cache");
 });
 
