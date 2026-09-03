@@ -9,13 +9,17 @@ export function sha256(body) {
   return createHash("sha256").update(body).digest("hex");
 }
 
-export function classifyPublicResponse({ status, cacheControl, setCookie }) {
+export function classifyPublicResponse({ status, cacheControl, setCookie, vary }) {
   if (status !== 200) {
     return { ok: false, reason: `expected HTTP 200, received ${status}` };
   }
 
   if (setCookie) {
     return { ok: false, reason: "response contains Set-Cookie" };
+  }
+
+  if (/(?:^|,)\s*\*(?:\s|,|$)/u.test(vary ?? "")) {
+    return { ok: false, reason: "response Vary contains wildcard" };
   }
 
   if (/(?:^|,)\s*(?:private|no-cache|no-store)(?:\s|=|,|$)/iu.test(cacheControl ?? "")) {
@@ -101,6 +105,30 @@ function parseDocsPaths(value) {
   return uniquePaths;
 }
 
+function parseSensitiveValues(authCookie) {
+  const values = [authCookie];
+
+  for (const cookie of authCookie.split(";")) {
+    const separator = cookie.indexOf("=");
+    if (separator === -1) continue;
+
+    const value = cookie
+      .slice(separator + 1)
+      .trim()
+      .replace(/^"|"$/gu, "");
+    if (!value) continue;
+
+    values.push(value);
+    try {
+      values.push(decodeURIComponent(value));
+    } catch {
+      // The literal cookie value is still sensitive when percent-decoding fails.
+    }
+  }
+
+  return [...new Set(values.filter(Boolean))].sort((left, right) => right.length - left.length);
+}
+
 export function parseVerifierConfig(env = process.env) {
   const originBaseUrl = parseBaseUrl(env, "ORIGIN_BASE_URL");
   const edgeBaseUrl = parseBaseUrl(env, "EDGE_BASE_URL");
@@ -124,6 +152,7 @@ export function parseVerifierConfig(env = process.env) {
     originBaseUrl,
     edgeBaseUrl,
     authCookie,
+    authCookieValues: parseSensitiveValues(authCookie),
     docsPaths: parseDocsPaths(env.DOCS_PATHS),
     edgeReplicaCount,
     maxEdgeRequests,
@@ -132,11 +161,10 @@ export function parseVerifierConfig(env = process.env) {
 
 export function redactError(error, secret) {
   const message = error instanceof Error ? error.message : String(error);
-  if (!secret) {
-    return message;
-  }
-
-  return message.split(secret).join("[REDACTED]");
+  return parseSensitiveValues(secret ?? "").reduce(
+    (redacted, value) => redacted.split(value).join("[REDACTED]"),
+    message
+  );
 }
 
 function requestUrl(baseUrl, path, query = "") {
@@ -169,6 +197,7 @@ async function fetchResponse(fetchImpl, url, options, secret) {
     edgeReplica: response.headers.get("x-edge-replica"),
     setCookie: response.headers.get("set-cookie"),
     status: response.status,
+    vary: response.headers.get("vary"),
   };
 }
 
@@ -210,7 +239,7 @@ async function verifyOriginPath(config, fetchImpl, path) {
     assertPublicResponse(response, `origin ${path} ${variant.name}`);
 
     const digest = sha256(response.body);
-    if (response.body.includes(Buffer.from(config.authCookie))) {
+    if (config.authCookieValues.some((value) => response.body.includes(Buffer.from(value)))) {
       throw new Error(
         `origin ${path} ${variant.name}: response body contains configured auth cookie`
       );
@@ -238,8 +267,13 @@ async function requestEdge(config, fetchImpl, path, options = requestOptions(), 
     config.authCookie
   );
 
-  if (!response.edgeReplica) {
-    throw new Error(`edge ${path}: response is missing X-Edge-Replica`);
+  if (
+    !response.edgeReplica ||
+    !/^[A-Za-z0-9](?:[A-Za-z0-9.-]*[A-Za-z0-9])?$/u.test(response.edgeReplica) ||
+    response.edgeReplica.length > 253 ||
+    config.authCookieValues.some((value) => response.edgeReplica.includes(value))
+  ) {
+    throw new Error(`edge ${path}: X-Edge-Replica is missing or invalid`);
   }
 
   return response;
@@ -280,6 +314,43 @@ async function collectHitsForEveryReplica(
   return hits;
 }
 
+async function verifyVariantHitsOnWarmedReplicas(
+  config,
+  fetchImpl,
+  path,
+  expected,
+  options,
+  query,
+  warmedReplicas,
+  requests
+) {
+  const observed = new Set();
+
+  while (observed.size < warmedReplicas.size) {
+    if (requests.count >= config.maxEdgeRequests) {
+      throw new Error(`edge ${path}: MAX_EDGE_REQUESTS exhausted while checking warmed variants`);
+    }
+
+    const response = await requestEdge(config, fetchImpl, path, options, query);
+    requests.count += 1;
+    assertPublicResponse(response, `edge ${path}`);
+    assertSameBody(expected, { body: response.body, hash: sha256(response.body) }, `edge ${path}`);
+
+    if (!warmedReplicas.has(response.edgeReplica)) {
+      throw new Error(`edge ${path}: response came from an unexpected replica`);
+    }
+
+    if (!observed.has(response.edgeReplica)) {
+      if (response.edgeCache !== "HIT") {
+        throw new Error(
+          `edge ${path}: expected X-Edge-Cache HIT on first response from a warmed replica`
+        );
+      }
+      observed.add(response.edgeReplica);
+    }
+  }
+}
+
 async function verifyBypasses(config, fetchImpl, nestedPath, requests) {
   const probes = [
     { name: "api-health", path: "/api/health" },
@@ -298,6 +369,8 @@ async function verifyBypasses(config, fetchImpl, nestedPath, requests) {
       path: nestedPath,
       headers: { Authorization: "Bearer cache-verifier" },
     },
+    { name: "purpose-prefetch", path: nestedPath, headers: { Purpose: "prefetch" } },
+    { name: "sec-purpose-prefetch", path: nestedPath, headers: { "Sec-Purpose": "prefetch" } },
     { name: "post", path: nestedPath, method: "POST" },
   ];
 
@@ -360,25 +433,26 @@ export async function runVerification(config, fetchImpl = fetch) {
     );
     for (const replica of warmHits) replicas.add(replica);
 
-    const queryHits = await collectHitsForEveryReplica(
+    await verifyVariantHitsOnWarmedReplicas(
       config,
       fetchImpl,
       document.path,
       expected,
       requestOptions(),
       "cache-verifier=safe",
+      warmHits,
       requests
     );
-    const authHits = await collectHitsForEveryReplica(
+    await verifyVariantHitsOnWarmedReplicas(
       config,
       fetchImpl,
       document.path,
       expected,
       requestOptions({ Cookie: config.authCookie }),
       "",
+      warmHits,
       requests
     );
-    for (const replica of [...queryHits, ...authHits]) replicas.add(replica);
   }
 
   const bypassCount = await verifyBypasses(
