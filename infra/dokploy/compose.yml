@@ -1,0 +1,101 @@
+name: nextjs-shadcn
+
+services:
+  edge:
+    build:
+      context: ../..
+      dockerfile: infra/dokploy/nginx/Dockerfile
+    deploy:
+      replicas: 2
+      restart_policy:
+        condition: on-failure
+    depends_on:
+      web:
+        condition: service_healthy
+        required: true
+    expose:
+      - "8080"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8080/nginx-health | grep -qx ok"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+    stop_grace_period: 10s
+    networks:
+      - dokploy-network
+
+  web:
+    build:
+      context: ../..
+      dockerfile: Dockerfile
+      network: dokploy-network
+      args:
+        DATABASE_URL: ${DATABASE_URL:?Set DATABASE_URL in Dokploy}
+        NEXT_PUBLIC_APP_BASE_URL: ${NEXT_PUBLIC_APP_BASE_URL:?Set NEXT_PUBLIC_APP_BASE_URL in Dokploy}
+        NEXT_PUBLIC_YM_COUNTER_ID: ${NEXT_PUBLIC_YM_COUNTER_ID:-}
+        NEXT_DEPLOYMENT_ID: ${NEXT_DEPLOYMENT_ID:?Set NEXT_DEPLOYMENT_ID in Dokploy}
+      secrets:
+        - NEXT_SERVER_ACTIONS_ENCRYPTION_KEY
+        - BETTER_AUTH_SECRET
+        - GOOGLE_CLIENT_ID
+        - GOOGLE_CLIENT_SECRET
+    deploy:
+      replicas: 2
+      restart_policy:
+        condition: on-failure
+    environment:
+      DATABASE_URL: ${DATABASE_URL:?Set DATABASE_URL in Dokploy}
+      NEXT_SERVER_ACTIONS_ENCRYPTION_KEY: ${NEXT_SERVER_ACTIONS_ENCRYPTION_KEY:?Set NEXT_SERVER_ACTIONS_ENCRYPTION_KEY in Dokploy}
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:?Set BETTER_AUTH_SECRET in Dokploy}
+      BETTER_AUTH_URL: ${BETTER_AUTH_URL:?Set BETTER_AUTH_URL in Dokploy}
+      NEXT_PUBLIC_APP_BASE_URL: ${NEXT_PUBLIC_APP_BASE_URL:?Set NEXT_PUBLIC_APP_BASE_URL in Dokploy}
+      NEXT_PUBLIC_YM_COUNTER_ID: ${NEXT_PUBLIC_YM_COUNTER_ID:-}
+      NEXT_DEPLOYMENT_ID: ${NEXT_DEPLOYMENT_ID:?Set NEXT_DEPLOYMENT_ID in Dokploy}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID:-}
+      GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET:-}
+      GITLAB_CLIENT_ID: ${GITLAB_CLIENT_ID:-}
+      GITLAB_CLIENT_SECRET: ${GITLAB_CLIENT_SECRET:-}
+      VK_CLIENT_ID: ${VK_CLIENT_ID:-}
+      YANDEX_CLIENT_ID: ${YANDEX_CLIENT_ID:-}
+      YANDEX_CLIENT_SECRET: ${YANDEX_CLIENT_SECRET:-}
+      REDIS_URL: ${REDIS_URL:-}
+      VALKEY_URL: ${VALKEY_URL:-}
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+      REMOTE_CACHING_ENABLED: ${REMOTE_CACHING_ENABLED:-false}
+      REMOTE_CACHING_PREFIX: ${REMOTE_CACHING_PREFIX:-myapp}
+      PUBLIC_DEFAULT_LOCALE: ${PUBLIC_DEFAULT_LOCALE:-en}
+    expose:
+      - "3000"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:3000/api/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 30s
+    stop_grace_period: 30s
+    networks:
+      - dokploy-network
+
+networks:
+  dokploy-network:
+    external: true
+    name: dokploy-network
+
+secrets:
+  NEXT_SERVER_ACTIONS_ENCRYPTION_KEY:
+    environment: NEXT_SERVER_ACTIONS_ENCRYPTION_KEY
+  BETTER_AUTH_SECRET:
+    environment: BETTER_AUTH_SECRET
+  GOOGLE_CLIENT_ID:
+    environment: GOOGLE_CLIENT_ID
+  GOOGLE_CLIENT_SECRET:
+    environment: GOOGLE_CLIENT_SECRET
