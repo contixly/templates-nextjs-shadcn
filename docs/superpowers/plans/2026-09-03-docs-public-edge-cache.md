@@ -266,7 +266,7 @@ git commit -m "perf: make documentation html viewer independent"
 - Create: `test/infrastructure/dokploy-compose.test.ts`
 
 **Interfaces:**
-- Consumes: root `Dockerfile`, `web:3000/api/health`, external Dokploy network, existing build arguments and BuildKit secrets.
+- Consumes: root `Dockerfile`, `web:3000/api/health/ready`, external Dokploy network, existing build arguments and BuildKit secrets.
 - Produces: `edge:8080/nginx-health`, response headers `X-Edge-Cache` and `X-Edge-Replica`, services `edge` and `web` with two replicas each.
 
 - [ ] **Step 1: Write failing Nginx boundary tests**
@@ -310,15 +310,15 @@ expect(compose).toMatch(/edge:[\s\S]*?replicas:\s*2/u);
 expect(compose).toMatch(/web:[\s\S]*?replicas:\s*2/u);
 expect(compose).toContain("dockerfile: Dockerfile");
 expect(compose).toContain("dockerfile: infra/dokploy/nginx/Dockerfile");
-expect(compose).toContain("http://127.0.0.1:3000/api/health");
+expect(compose).toContain("http://127.0.0.1:3000/api/health/ready");
 expect(compose).toContain("http://127.0.0.1:8080/nginx-health");
 expect(compose).not.toMatch(/^\s{2}(postgres|dragonfly|redis|valkey):/mu);
 expect(compose).not.toMatch(/\/var\/cache\/nginx\/public:/u);
 ```
 
 Assert `DATABASE_URL`, `NEXT_SERVER_ACTIONS_ENCRYPTION_KEY`, `BETTER_AUTH_SECRET`, public base URL,
-OAuth credentials, Redis/Valkey settings, cache prefix, locale, and deployment id are mapped without
-literal production values. Assert the external `dokploy-network` and that only port `8080` is exposed
+OAuth credentials, the required external Redis-compatible URL, cache prefix, locale, and deployment
+id are mapped without literal production values. Assert the external `dokploy-network` and that only port `8080` is exposed
 by `edge`; `web` exposes only port `3000` to the private network.
 
 - [ ] **Step 3: Run both infrastructure tests and verify RED**
@@ -357,7 +357,8 @@ Create a Compose project named `nextjs-shadcn` with only `edge` and `web`. The `
 context `../..`, root `Dockerfile`, build args for `DATABASE_URL`, public variables, and deployment
 id, plus environment-backed BuildKit secrets for the four secret mounts already named by the
 Dockerfile. Runtime environment uses required interpolation for database/auth/public base values and
-optional empty/default interpolation for provider credentials and Redis/Valkey settings.
+the Redis-compatible shared-cache URL, forces remote caching for the two web replicas, and uses
+optional empty/default interpolation only for provider credentials and other non-critical settings.
 
 Use Node for the web healthcheck so the root image needs no added package:
 
@@ -368,7 +369,7 @@ healthcheck:
       "CMD",
       "node",
       "-e",
-      "fetch('http://127.0.0.1:3000/api/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))",
+      "fetch('http://127.0.0.1:3000/api/health/ready').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))",
     ]
 ```
 
@@ -451,17 +452,19 @@ Execute `runVerification(parseVerifierConfig())` only when `import.meta.url` equ
 
 The verification sequence must:
 
-1. fetch `/docs` and one nested page at the origin as guest, with `sidebar_state=true`, with
+1. require `AUTH_COOKIE` to resolve through the origin Better Auth session endpoint to a live
+   session and user;
+2. fetch `/docs` and one nested page at the origin as guest, with `sidebar_state=true`, with
    `sidebar_state=false`, with malformed sidebar state, and with `AUTH_COOKIE`;
-2. require `200`, no `Set-Cookie`, no private/no-store/no-cache, identical bytes, and no configured
+3. require `200`, no `Set-Cookie`, no private/no-store/no-cache, identical bytes, and no configured
    auth-cookie value in the body;
-3. warm every expected edge replica and prove a subsequent request on each is `HIT` with identical
-   bytes;
-4. prove auth variants reuse the warmed object on the same replica and query variants report
+4. require each replica's first sampled response after recreation to be `MISS`, then prove a
+   subsequent request on that replica is `HIT` with identical bytes;
+5. prove auth variants reuse the warmed object on the same replica and query variants report
    `BYPASS`;
-5. require `BYPASS` for `/api/health`, `/docs/og/index`, RSC, router-state, router-prefetch,
+6. require `BYPASS` for `/api/health`, `/docs/og/index`, RSC, router-state, router-prefetch,
    router-segment-prefetch, Server Action, authorization, and `POST` probes;
-6. print one JSON result and never print cookies or bodies, including in thrown errors.
+7. print one JSON result and never print cookies or bodies, including in thrown errors.
 
 Use `redirect: "manual"` so redirects cannot be mistaken for public documents.
 
@@ -515,6 +518,7 @@ npm run test:public-cache
 /_next/static/
 /nginx-health
 /api/health
+/api/health/ready
 ```
 
 Assert both files state that Nginx and Compose are optional and that deployment recreates ephemeral
@@ -535,7 +539,7 @@ Keep existing frontmatter and application-cache sections. Add parallel sections 
 - Cache Components/Redis/Valkey versus the optional full-response edge cache;
 - local and root-Docker commands working without Nginx;
 - the `/docs` and `/_next/static/` positive allowlist and all-private-route bypass rule;
-- `X-Edge-Cache`, `X-Edge-Replica`, both health endpoints, and the verifier command;
+- `X-Edge-Cache`, `X-Edge-Replica`, process/readiness endpoints, and the verifier command;
 - 60-minute TTL, no stale-on-error, and force-recreate invalidation;
 - manual first rollout and delayed auto-deploy.
 

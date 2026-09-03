@@ -61,10 +61,9 @@ services:
       VK_CLIENT_ID: ${VK_CLIENT_ID:-}
       YANDEX_CLIENT_ID: ${YANDEX_CLIENT_ID:-}
       YANDEX_CLIENT_SECRET: ${YANDEX_CLIENT_SECRET:-}
-      REDIS_URL: ${REDIS_URL:-}
-      VALKEY_URL: ${VALKEY_URL:-}
+      REDIS_URL: ${REDIS_URL:?Set the external Redis-compatible URL in Dokploy}
       REDIS_PASSWORD: ${REDIS_PASSWORD:-}
-      REMOTE_CACHING_ENABLED: ${REMOTE_CACHING_ENABLED:-false}
+      REMOTE_CACHING_ENABLED: "true"
       REMOTE_CACHING_PREFIX: ${REMOTE_CACHING_PREFIX:-myapp}
       PUBLIC_DEFAULT_LOCALE: ${PUBLIC_DEFAULT_LOCALE:-en}
     expose:
@@ -75,7 +74,7 @@ services:
           "CMD",
           "node",
           "-e",
-          "fetch('http://127.0.0.1:3000/api/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))",
+          "fetch('http://127.0.0.1:3000/api/health/ready').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))",
         ]
       interval: 10s
       timeout: 5s

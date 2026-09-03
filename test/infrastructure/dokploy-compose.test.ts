@@ -27,9 +27,7 @@ const requiredKeys = [
   "YANDEX_CLIENT_ID",
   "YANDEX_CLIENT_SECRET",
   "REDIS_URL",
-  "VALKEY_URL",
   "REDIS_PASSWORD",
-  "REMOTE_CACHING_ENABLED",
   "REMOTE_CACHING_PREFIX",
   "PUBLIC_DEFAULT_LOCALE",
   "NEXT_DEPLOYMENT_ID",
@@ -43,7 +41,7 @@ test("defines only the two-replica edge and web topology on the external Dokploy
   expect(compose).toMatch(/web:[\s\S]*?replicas:\s*2/u);
   expect(compose).toContain("dockerfile: Dockerfile");
   expect(compose).toContain("dockerfile: infra/dokploy/nginx/Dockerfile");
-  expect(compose).toContain("http://127.0.0.1:3000/api/health");
+  expect(compose).toContain("http://127.0.0.1:3000/api/health/ready");
   expect(compose).toContain("http://127.0.0.1:8080/nginx-health");
   expect(compose).toContain("wget -qO- http://127.0.0.1:8080/nginx-health | grep -qx ok");
   expect(compose).not.toContain("grep --quiet");
@@ -75,7 +73,8 @@ test("maps build arguments, BuildKit secrets, runtime settings, and safe default
   }
 
   expect(compose).toContain("NEXT_PUBLIC_APP_BASE_URL: ${NEXT_PUBLIC_APP_BASE_URL:?");
-  expect(compose).toContain("REMOTE_CACHING_ENABLED: ${REMOTE_CACHING_ENABLED:-false}");
+  expect(compose).toContain("REDIS_URL: ${REDIS_URL:?");
+  expect(compose).toContain('REMOTE_CACHING_ENABLED: "true"');
   expect(compose).toContain("REMOTE_CACHING_PREFIX: ${REMOTE_CACHING_PREFIX:-myapp}");
   expect(compose).toContain("PUBLIC_DEFAULT_LOCALE: ${PUBLIC_DEFAULT_LOCALE:-en}");
   expect(compose).not.toMatch(/https?:\/\/(?!127\.0\.0\.1|web:)/u);
@@ -96,5 +95,6 @@ test("provides one safe example value for every Compose interpolation key", () =
   expect(exampleEnv).toContain("NEXT_PUBLIC_APP_BASE_URL=https://example.com");
   expect(exampleEnv).toMatch(/^DATABASE_URL=.*database\.invalid/mu);
   expect(exampleEnv).toContain("replace-with-a-secret");
+  expect(exampleEnv).not.toMatch(/^REMOTE_CACHING_ENABLED=/mu);
   expect(exampleEnv).not.toMatch(/localhost|127\.0\.0\.1/u);
 });

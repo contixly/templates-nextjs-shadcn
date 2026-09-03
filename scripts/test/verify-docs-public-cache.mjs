@@ -221,6 +221,30 @@ function requestOptions(headers = {}, method = "GET") {
   return { headers, method };
 }
 
+async function verifyAuthenticatedSession(config, fetchImpl) {
+  const response = await fetchResponse(
+    fetchImpl,
+    requestUrl(config.originBaseUrl, "/api/auth/get-session"),
+    requestOptions({ Cookie: config.authCookie }),
+    config.authCookie
+  );
+
+  if (response.status !== 200) {
+    throw new Error(`origin session validation: expected HTTP 200, received ${response.status}`);
+  }
+
+  let payload;
+  try {
+    payload = JSON.parse(response.body.toString("utf8"));
+  } catch {
+    throw new Error("origin session validation returned invalid JSON");
+  }
+
+  if (!payload?.session || !payload?.user) {
+    throw new Error("AUTH_COOKIE does not resolve to a live origin session");
+  }
+}
+
 async function verifyOriginPath(config, fetchImpl, path) {
   const variants = [
     { name: "guest", options: requestOptions() },
@@ -318,6 +342,12 @@ async function collectHitsForEveryReplica(
 
     assertPublicResponse(response, `edge ${path}`);
     assertSameBody(expected, { body: response.body, hash: sha256(response.body) }, `edge ${path}`);
+
+    if (seen === 1 && response.edgeCache !== "MISS") {
+      throw new Error(
+        `edge ${path}: expected X-Edge-Cache MISS on first response from replica ${response.edgeReplica}`
+      );
+    }
 
     if (seen >= 2 && response.edgeCache === "HIT") {
       hits.add(response.edgeReplica);
@@ -431,6 +461,8 @@ async function verifyQueryBypass(config, fetchImpl, path, requests) {
 }
 
 export async function runVerification(config, fetchImpl = fetch) {
+  await verifyAuthenticatedSession(config, fetchImpl);
+
   const originDocuments = [];
   for (const path of config.docsPaths) {
     originDocuments.push(await verifyOriginPath(config, fetchImpl, path));

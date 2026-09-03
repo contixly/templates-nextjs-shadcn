@@ -63,7 +63,9 @@ add Nginx, Compose, Redis, or Valkey just to run the template locally or as one 
 
 For a Dokploy deployment that needs a shared documentation response cache, the optional topology is
 defined in `infra/dokploy/compose.yml`. Traefik sends public traffic to Nginx, and Nginx sends it to
-the Next.js web containers. PostgreSQL and Redis or Valkey stay external to this Compose file.
+the Next.js web containers. PostgreSQL and the Redis-compatible shared cache stay external to this
+Compose file. Because the topology runs two web replicas, it requires `REDIS_URL` and enables remote
+caching so tag and path invalidation remain consistent between replicas.
 
 ### What the edge may cache
 
@@ -80,8 +82,9 @@ that depends on a user, a cookie, a workspace, or a request-specific operation.
 ### Check an edge deployment
 
 Nginx adds `X-Edge-Cache` (`MISS`, `HIT`, `BYPASS`, or `EXPIRED`) and `X-Edge-Replica` to proxied
-responses. Use `GET /nginx-health` to check the Nginx process. Use `GET /api/health` directly on a
-web container to check the Next.js application and its dependencies.
+responses. Use `GET /nginx-health` to check the Nginx process and `GET /api/health` to check the
+Next.js process. Use `GET /api/health/ready` directly on a web container to verify PostgreSQL and,
+when remote caching is enabled, the shared Redis-compatible cache.
 
 Before routing real traffic through the edge, run the verifier with its required origin URL, edge
 URL, and a disposable authenticated test cookie supplied through your secure environment:
@@ -90,10 +93,12 @@ URL, and a disposable authenticated test cookie supplied through your secure env
 npm run test:public-cache
 ```
 
-The verifier compares complete queryless documentation responses for guest, authenticated, and
-sidebar-cookie requests. It also checks that both edge replicas warm from `MISS` to `HIT`, that
-documentation queries remain `BYPASS`, and that private or framework requests remain `BYPASS`. Do
-not copy cookies or other credentials into documentation, shell history, or reports.
+Run the verifier only after recreating every edge replica so the sampled paths start cold. It first
+requires the authenticated cookie to resolve to a live origin session, then compares complete
+queryless documentation responses for guest, authenticated, and sidebar-cookie requests. It also
+requires each edge replica to warm from `MISS` to `HIT`, verifies that documentation queries remain
+`BYPASS`, and keeps private or framework requests on `BYPASS`. Do not copy cookies or other
+credentials into documentation, shell history, or reports.
 
 ### Freshness and rollout
 

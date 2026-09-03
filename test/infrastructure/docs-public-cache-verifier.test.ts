@@ -18,8 +18,10 @@ type FetchRequest = {
 };
 
 type MockOptions = {
+  authenticatedSession?: boolean;
   edgeCacheKey?: (request: FetchRequest) => string;
   edgeReplica?: string;
+  initialEdgeCacheKeys?: string[];
   originHeaders?: HeadersInit;
   originBody?: (request: FetchRequest) => string;
 };
@@ -36,7 +38,7 @@ function verifierConfig() {
 
 function createMockFetch(options: MockOptions = {}) {
   const requests: FetchRequest[] = [];
-  const cache = new Set<string>();
+  const cache = new Set(options.initialEdgeCacheKeys ?? []);
   const bypassHeaders = [
     "rsc",
     "next-router-state-tree",
@@ -61,6 +63,14 @@ function createMockFetch(options: MockOptions = {}) {
     const body = Buffer.from(options.originBody?.(request) ?? `<html>${url.pathname}</html>`);
 
     if (url.host === "origin.test") {
+      if (url.pathname === "/api/auth/get-session") {
+        return Response.json(
+          options.authenticatedSession === false
+            ? null
+            : { session: { id: "session-id" }, user: { id: "user-id" } }
+        );
+      }
+
       return new Response(body, {
         status: 200,
         headers: { "Cache-Control": "public, s-maxage=3600", ...options.originHeaders },
@@ -194,7 +204,7 @@ describe("public documentation cache verifier", () => {
       },
     });
 
-    expect(requests).toHaveLength(33);
+    expect(requests).toHaveLength(34);
     expect(requests).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ redirect: "manual" }),
@@ -206,6 +216,14 @@ describe("public documentation cache verifier", () => {
       requests.some((request) => request.headers.get("next-action") === "cache-verifier")
     ).toBe(true);
     expect(requests.some((request) => request.method === "POST")).toBe(true);
+    expect(
+      requests.some(
+        (request) =>
+          request.url.host === "origin.test" &&
+          request.url.pathname === "/api/auth/get-session" &&
+          request.headers.get("cookie") === authCookie
+      )
+    ).toBe(true);
     expect(JSON.stringify(result)).not.toContain(authCookie);
     expect(JSON.stringify(result)).not.toContain("token-secret");
     expect(JSON.stringify(result)).not.toContain("profile-secret");
@@ -237,6 +255,24 @@ describe("public documentation cache verifier", () => {
 
     await expect(runVerification(verifierConfig(), fetchImpl)).rejects.toThrow(
       "expected X-Edge-Cache HIT on first response"
+    );
+  });
+
+  test("rejects an already-warm replica when a cold cache is required", async () => {
+    const { fetchImpl } = createMockFetch({
+      initialEdgeCacheKeys: ["/docs", "/docs/general/quick-start"],
+    });
+
+    await expect(runVerification(verifierConfig(), fetchImpl)).rejects.toThrow(
+      "expected X-Edge-Cache MISS on first response from replica"
+    );
+  });
+
+  test("rejects an auth cookie that does not resolve to a live origin session", async () => {
+    const { fetchImpl } = createMockFetch({ authenticatedSession: false });
+
+    await expect(runVerification(verifierConfig(), fetchImpl)).rejects.toThrow(
+      "AUTH_COOKIE does not resolve to a live origin session"
     );
   });
 

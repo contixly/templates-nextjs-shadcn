@@ -342,6 +342,7 @@ describe("documents system", () => {
         "/_next/static/",
         "/nginx-health",
         "/api/health",
+        "/api/health/ready",
       ]) {
         expect(source).toContain(requiredTerm);
       }

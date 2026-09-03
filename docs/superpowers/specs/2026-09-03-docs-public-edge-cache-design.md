@@ -33,8 +33,8 @@ normal OpenSpec process.
 
 ## Current state
 
-- The root `Dockerfile` produces a standalone Next.js image listening on port `3000` and exposing
-  `/api/health`.
+- The root `Dockerfile` produces a standalone Next.js image listening on port `3000`. It exposes
+  process liveness at `/api/health` and dependency readiness at `/api/health/ready`.
 - The live Dokploy service is currently an Application built from that Dockerfile, with two web
   replicas and the public domain routed directly to port `3000`.
 - PostgreSQL and Dragonfly/Redis are external services and are not owned by this application
@@ -75,7 +75,8 @@ Traefik -> edge:8080 (Nginx x2) -> web:3000 (Next.js x2)
 Traefik owns TLS and routes the public domain only to `edge:8080`. Nginx and Next.js share the
 private Dokploy network. The `web` service uses the unchanged root Dockerfile. Compose owns only
 `edge` and `web`; it does not create, migrate, delete, or attach volumes for PostgreSQL or
-Dragonfly/Redis.
+Dragonfly/Redis. Because it runs two web replicas, the topology requires the existing external
+Redis-compatible cache and enables remote caching so invalidation is shared between replicas.
 
 The first rollout uses two edge and two web replicas. Each edge replica has its own ephemeral cache.
 There is no shared Nginx cache volume.
@@ -172,8 +173,9 @@ outside the first version.
 ## Health and observability
 
 Nginx exposes `GET /nginx-health`, returning `200` with `Cache-Control: no-store`. This checks only
-the edge process. Rollout verification separately calls `web:3000/api/health` to prove the Next.js
-origin and its external dependencies are healthy.
+the edge process. `web:3000/api/health` checks only the Next.js process. The Compose healthcheck and
+rollout verification call `web:3000/api/health/ready`, which requires PostgreSQL and the configured
+shared Redis-compatible cache to answer successfully.
 
 Every proxied response includes:
 
@@ -227,7 +229,8 @@ Run a production build and start the standalone output or root Docker image with
 - the response has no `Set-Cookie`, authenticated marker, user identifier, workspace data, or other
   session-derived content;
 - the response policy permits shared caching;
-- `/api/health` still succeeds when the application is run directly.
+- `/api/health` still succeeds when the application is run directly;
+- `/api/health/ready` reports whether the configured database and remote cache are reachable.
 
 Body equality is checked using the complete response bytes and a cryptographic hash, not a selected
 DOM fragment.
@@ -235,8 +238,9 @@ DOM fragment.
 ### Local Docker edge integration
 
 - Compose renders two `web` and two `edge` replicas without database or Dragonfly services.
-- `nginx -t` succeeds and both health endpoints work.
-- A documentation request produces `MISS` then `HIT` on the same edge replica.
+- `nginx -t` succeeds and all process/readiness endpoints work.
+- After edge recreation, the first documentation request to each replica is `MISS` and a later
+  request to that same replica is `HIT`.
 - Documentation query variants report `BYPASS`; different queryless document paths do not collide.
 - Guest, authenticated, and sidebar-cookie variants return identical bodies.
 - Concurrent cold requests are collapsed within one replica.
