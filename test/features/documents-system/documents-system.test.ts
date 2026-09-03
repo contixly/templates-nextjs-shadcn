@@ -322,6 +322,70 @@ describe("documents system", () => {
     expect(source).toContain('id="main-content"');
   });
 
+  it("documents the optional public edge cache in both supported locales", async () => {
+    const cachingPageLocales = ["en", "ru"] as const;
+    const cachingPages = await Promise.all(
+      cachingPageLocales.map(async (locale) => ({
+        locale,
+        source: await readFile(
+          `src/features/documents-system/content/application/caching.${locale}.md`,
+          "utf8"
+        ),
+      }))
+    );
+
+    for (const { locale, source } of cachingPages) {
+      for (const requiredTerm of [
+        "infra/dokploy/compose.yml",
+        "npm run test:public-cache",
+        "/docs",
+        "/_next/static/",
+        "/nginx-health",
+        "/api/health",
+        "/api/health/ready",
+      ]) {
+        expect(source).toContain(requiredTerm);
+      }
+
+      expect(source).toMatch(/Nginx[\s\S]{0,180}(?:optional|необязатель)/iu);
+      expect(source).toMatch(/Compose[\s\S]{0,180}(?:optional|необязатель)/iu);
+      expect(source).toMatch(
+        locale === "en"
+          ? /documentation[^.!?]{0,220}query[^.!?]{0,140}(?:bypass|BYPASS)/iu
+          : /документац[^.!?]{0,220}параметр[а-я]* запрос[а-я]*[^.!?]{0,140}(?:обход|BYPASS)/iu
+      );
+
+      const edgeCacheInvalidationContractByLocale: Record<
+        (typeof cachingPageLocales)[number],
+        { pattern: RegExp; brokenFixture: string }
+      > = {
+        en: {
+          pattern:
+            /deployment[^.!?]{0,220}force-recreate[^.!?]{0,140}edge[^.!?]{0,140}invalida[^.!?]{0,140}ephemeral/iu,
+          brokenFixture:
+            "During a deployment, force-recreate every edge container. Its ephemeral cache is local.",
+        },
+        ru: {
+          pattern:
+            /развертывани[^.!?]{0,220}принудительн[а-я]* пересозда[а-я]*[^.!?]{0,140}пограничн[^.!?]{0,140}временн[^.!?]{0,140}инвалид/iu,
+          brokenFixture:
+            "При развертывании принудительно пересоздавайте каждый контейнер пограничного слоя. Его временный кеш локален.",
+        },
+      };
+      const edgeCacheInvalidationContract = edgeCacheInvalidationContractByLocale[locale];
+
+      expect(edgeCacheInvalidationContract.brokenFixture).toMatch(/(?:force-recreate|пересозда)/iu);
+      expect(edgeCacheInvalidationContract.brokenFixture).toMatch(/(?:edge|пограничн)/iu);
+      expect(edgeCacheInvalidationContract.brokenFixture).toMatch(/(?:ephemeral|временн)/iu);
+      expect(edgeCacheInvalidationContract.brokenFixture).not.toMatch(
+        edgeCacheInvalidationContract.pattern
+      );
+      expect(source).toMatch(edgeCacheInvalidationContract.pattern);
+
+      expect(locale).toMatch(/^(?:en|ru)$/u);
+    }
+  });
+
   it("indexes the selected locale document title for search", () => {
     const documents = resolveDocumentsSystemRegistryDocuments(
       [
