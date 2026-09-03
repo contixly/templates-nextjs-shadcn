@@ -89,8 +89,8 @@ test("caches only public documentation HTML and immutable Next.js assets", () =>
     expect(block).toContain('proxy_cache_key "$forwarded_proto|$host|$uri";');
     expect(block).toContain("proxy_cache_valid 200 60m;");
     expect(block).toContain("proxy_cache_lock on;");
-    expect(block).toContain("proxy_cache_bypass $skip_request_cache;");
-    expect(block).toContain("proxy_no_cache $skip_request_cache;");
+    expect(block).toContain("proxy_cache_bypass $skip_document_cache;");
+    expect(block).toContain("proxy_no_cache $skip_document_cache;");
     expect(block).toContain("proxy_no_cache $skip_private_response;");
     expect(block).toContain("proxy_no_cache $upstream_http_set_cookie;");
     expect(block).toContain("proxy_ignore_headers Cache-Control Expires;");
@@ -98,6 +98,10 @@ test("caches only public documentation HTML and immutable Next.js assets", () =>
     expect(block).toContain("proxy_hide_header Expires;");
     expect(block).toContain("add_header Cache-Control $public_document_cache_control always;");
   }
+
+  const staticAssets = locationBlock(config, "location ^~ /_next/static/", "location /");
+  expect(staticAssets).toContain("proxy_cache_bypass $skip_request_cache;");
+  expect(staticAssets).not.toContain("$skip_document_cache");
 });
 
 test("bypasses request and response variants that are unsafe for a pathname-only cache key", () => {
@@ -112,6 +116,8 @@ test("bypasses request and response variants that are unsafe for a pathname-only
   expect(config).toMatch(/map \$http_next_action \$skip_next_action/u);
   expect(config).toMatch(/map "\$http_purpose\|\$http_sec_purpose" \$skip_prefetch/u);
   expect(config).toMatch(/map \$uri \$skip_next_data_path/u);
+  expect(config).toMatch(/map \$args \$skip_document_query/u);
+  expect(config).toMatch(/map "\$skip_request_cache\$skip_document_query" \$skip_document_cache/u);
   expect(config).toMatch(/\\\.rsc/u);
   expect(config).toMatch(/\\\.segment\\\.rsc/u);
   expect(config).toMatch(
