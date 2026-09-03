@@ -33,6 +33,19 @@ function locationBlock(config: string, declaration: string, nextDeclaration?: st
   return config.slice(start, end);
 }
 
+function mapMatchesPath(config: string, mapName: string, path: string): boolean {
+  const declaration = `map $uri $${mapName} {`;
+  const start = config.indexOf(declaration);
+  const end = config.indexOf("\n    }", start + declaration.length);
+
+  expect(start).toBeGreaterThanOrEqual(0);
+  expect(end).toBeGreaterThan(start);
+
+  return [...config.slice(start, end).matchAll(/^\s*~\*(\S+)\s+1;$/gmu)].some((entry) =>
+    new RegExp(entry[1], "iu").test(path)
+  );
+}
+
 test("builds a pinned official Nginx edge image and validates its configuration", () => {
   const dockerfile = readRequiredFile(dockerfilePath);
 
@@ -132,6 +145,31 @@ test("keeps generated documentation images and every non-allowlisted route proxy
   }
 
   expect(fallback).toContain("proxy_no_cache 1;");
+});
+
+test.each([
+  "/docs/opengraph-image",
+  "/docs/twitter-image",
+  "/docs/opengraph-image.png",
+  "/docs/twitter-image.jpg",
+  "/docs/guide/opengraph-image",
+  "/docs/guide/twitter-image",
+  "/docs/guide/chapter/opengraph-image.png",
+  "/docs/guide/chapter/twitter-image.jpg",
+])("bypasses generated image route %s before the nested documentation cache", (path) => {
+  const config = readRequiredFile(configPath);
+
+  expect(mapMatchesPath(config, "skip_generated_docs_image", path)).toBe(true);
+});
+
+test.each([
+  "/docs/guide/opengraph-image-guide",
+  "/docs/guide/my-twitter-image",
+  "/workspace/opengraph-image",
+])("does not classify ordinary route %s as a generated documentation image", (path) => {
+  const config = readRequiredFile(configPath);
+
+  expect(mapMatchesPath(config, "skip_generated_docs_image", path)).toBe(false);
 });
 
 test("preserves proxy identity, normalizes compression, and exposes edge diagnostics", () => {
