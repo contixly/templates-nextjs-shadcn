@@ -129,6 +129,9 @@ function parseSensitiveValues(authCookie) {
   return [...new Set(values.filter(Boolean))].sort((left, right) => right.length - left.length);
 }
 
+/**
+ * @param {Record<string, string | undefined>} [env]
+ */
 export function parseVerifierConfig(env = process.env) {
   const originBaseUrl = parseBaseUrl(env, "ORIGIN_BASE_URL");
   const edgeBaseUrl = parseBaseUrl(env, "EDGE_BASE_URL");

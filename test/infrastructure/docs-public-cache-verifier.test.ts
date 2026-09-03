@@ -48,11 +48,13 @@ function createMockFetch(options: MockOptions = {}) {
     "sec-purpose",
   ];
 
-  const fetchImpl = async (url: URL, init: RequestInit) => {
+  const fetchImpl: typeof fetch = async (input, init) => {
+    const url = new URL(input instanceof Request ? input.url : input);
+    const requestInit = init ?? {};
     const request = {
-      headers: new Headers(init.headers),
-      method: init.method ?? "GET",
-      redirect: init.redirect ?? "",
+      headers: new Headers(requestInit.headers),
+      method: requestInit.method ?? (input instanceof Request ? input.method : "GET"),
+      redirect: requestInit.redirect ?? "",
       url,
     };
     requests.push(request);
@@ -245,11 +247,12 @@ describe("public documentation cache verifier", () => {
   ])("rejects unsafe origin %s", async (_name, options) => {
     const { fetchImpl } = createMockFetch(options);
     if (_name === "redirect") {
-      const redirectingFetch = async (url: URL, init: RequestInit) => {
+      const redirectingFetch: typeof fetch = async (input, init) => {
+        const url = new URL(input instanceof Request ? input.url : input);
         if (url.host === "origin.test") {
           return new Response("redirect", { status: 302, headers: { Location: "/docs" } });
         }
-        return fetchImpl(url, init);
+        return fetchImpl(input, init);
       };
       await expect(runVerification(verifierConfig(), redirectingFetch)).rejects.toThrow();
       return;
