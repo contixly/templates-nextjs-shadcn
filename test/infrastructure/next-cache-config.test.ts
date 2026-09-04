@@ -5,12 +5,17 @@ import { pathToFileURL } from "node:url";
 
 type CacheSettingsModule = {
   assertRemoteCacheConfiguration: () => void;
+  getCachePrefixes: (segments: { keySegment: string; tagSegment: string }) => {
+    keyPrefix: string;
+    tagPrefix: string;
+  };
   getRedisConnectionUrl: () => string | undefined;
 };
 
 const remoteCacheEnvKeys = [
   "REMOTE_CACHING_ENABLED",
   "REMOTE_CACHING_PREFIX",
+  "NEXT_DEPLOYMENT_ID",
   "REDIS_URL",
   "VALKEY_URL",
   "REDIS_PASSWORD",
@@ -131,6 +136,35 @@ describe("Next cache configuration", () => {
           "REDIS_URL or VALKEY_URL must be configured when REMOTE_CACHING_ENABLED is true."
         );
         expect(getRedisConnectionUrl()).toBeUndefined();
+      }
+    );
+  });
+
+  test("isolates shared cache keys and tags between deployments", async () => {
+    await withRemoteCacheEnv(
+      cacheSettingsPath,
+      {
+        REMOTE_CACHING_PREFIX: "template",
+        NEXT_DEPLOYMENT_ID: "deploy-a",
+      },
+      ({ getCachePrefixes }) => {
+        expect(getCachePrefixes({ keySegment: "cache", tagSegment: "tags" })).toEqual({
+          keyPrefix: "template:deploy:deploy-a:cache:",
+          tagPrefix: "template:deploy:deploy-a:tags:",
+        });
+      }
+    );
+  });
+
+  test("keeps the existing cache namespace for standalone runs without a deployment id", async () => {
+    await withRemoteCacheEnv(
+      cacheSettingsPath,
+      { REMOTE_CACHING_PREFIX: "template" },
+      ({ getCachePrefixes }) => {
+        expect(getCachePrefixes({ keySegment: "cache", tagSegment: "tags" })).toEqual({
+          keyPrefix: "template:cache:",
+          tagPrefix: "template:tags:",
+        });
       }
     );
   });
