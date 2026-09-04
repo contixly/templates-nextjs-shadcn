@@ -1,9 +1,9 @@
 import { ImageResponse } from "next/og";
-import { size } from "@/src/app/opengraph-image";
-import { cache } from "react";
 import { Metadata } from "next";
+import { cache } from "react";
 import { GlobalMetadata } from "@lib/metadata";
 import { APP_BASE_DOMAIN } from "@lib/environment";
+import { OG_IMAGE_SIZE } from "@lib/metadata-og-constants";
 
 const categoryColor = "#2563eb";
 
@@ -139,7 +139,7 @@ export const buildMetadataOGImage = cache(async (metadata: Metadata, categoryNam
       </div>
     </div>,
     {
-      ...size,
+      ...OG_IMAGE_SIZE,
     }
   );
 });

@@ -1,5 +1,6 @@
 import { buildPageMetadata } from "@lib/metadata";
 import accountsRoutes from "../../src/features/accounts/accounts-routes";
+import dashboardRoutes from "../../src/features/dashboard/dashboard-routes";
 import workspaceRoutes from "../../src/features/workspaces/workspaces-routes";
 
 jest.mock("../../src/lib/metadata", () => ({
@@ -36,6 +37,23 @@ describe("login page metadata export", () => {
 });
 
 describe("workspace og image export", () => {
+  it("forwards organization dashboard params to buildPageMetadata", async () => {
+    const pageModule =
+      await import("../../src/app/(protected)/(global)/w/[organizationKey]/dashboard/opengraph-image");
+    const mockedBuildPageMetadata = buildPageMetadata as jest.MockedFunction<
+      typeof buildPageMetadata
+    >;
+
+    await pageModule.default({ params: Promise.resolve({ organizationKey: "workspace-123" }) });
+
+    expect(mockedBuildPageMetadata).toHaveBeenCalledWith(
+      dashboardRoutes.pages.organization_dashboard,
+      {
+        organizationKey: "workspace-123",
+      }
+    );
+  });
+
   it("forwards workspace params to buildPageMetadata", async () => {
     const pageModule =
       await import("../../src/app/(protected)/(global)/w/[organizationKey]/opengraph-image");

@@ -10,6 +10,7 @@ import { getDocumentsSystemEnvironment } from "@features/documents-system/docume
 import { documentsSystemTools } from "@features/documents-system/documents-system-tools";
 import { createDocumentsMdxComponents } from "@features/documents-system/ui/mdx/documents-mdx-components";
 import { DocumentsSystemPage } from "@features/documents-system/ui/page/documents-system-page";
+import { buildDocumentsSystemMetadata } from "@features/documents-system/documents-system-metadata";
 
 export async function generateMetadata({
   params,
@@ -26,22 +27,12 @@ export async function generateMetadata({
     return null;
   }
 
-  const imageUrl = `/docs/og/${currentPath}?locale=${locale}`;
-
-  return {
+  return buildDocumentsSystemMetadata({
     title: document.meta.title,
     description: document.meta.description,
-    openGraph: {
-      title: document.meta.title,
-      description: document.meta.description,
-      images: [imageUrl],
-    },
-    twitter: {
-      title: document.meta.title,
-      description: document.meta.description,
-      images: [imageUrl],
-    },
-  };
+    currentPath,
+    locale,
+  });
 }
 
 export async function generateStaticParams() {

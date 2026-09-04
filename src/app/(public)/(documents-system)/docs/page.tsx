@@ -9,6 +9,7 @@ import { getDocumentsSystemEnvironment } from "@features/documents-system/docume
 import { documentsSystemTools } from "@features/documents-system/documents-system-tools";
 import { createDocumentsMdxComponents } from "@features/documents-system/ui/mdx/documents-mdx-components";
 import { DocumentsSystemPage } from "@features/documents-system/ui/page/documents-system-page";
+import { buildDocumentsSystemMetadata } from "@features/documents-system/documents-system-metadata";
 
 const DOCUMENT_URL = "index";
 
@@ -21,10 +22,12 @@ export async function generateMetadata(): Promise<Metadata | null> {
     return null;
   }
 
-  return {
+  return buildDocumentsSystemMetadata({
     title: document.meta.title,
     description: document.meta.description,
-  };
+    currentPath: DOCUMENT_URL,
+    locale,
+  });
 }
 
 export default async function DocumentsSystemHomePage() {
