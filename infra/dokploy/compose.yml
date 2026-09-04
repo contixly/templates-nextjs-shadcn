@@ -29,7 +29,6 @@ services:
     build:
       context: ../..
       dockerfile: Dockerfile
-      network: dokploy-network
       args:
         DATABASE_URL: ${DATABASE_URL:?Set DATABASE_URL in Dokploy}
         NEXT_PUBLIC_APP_BASE_URL: ${NEXT_PUBLIC_APP_BASE_URL:?Set NEXT_PUBLIC_APP_BASE_URL in Dokploy}

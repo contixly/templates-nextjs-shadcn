@@ -4,6 +4,11 @@ export const remoteCachingEnabled = ["1", "true", "yes"].includes(
 
 export const remoteCachingPrefix = String(process.env.REMOTE_CACHING_PREFIX ?? "myapp");
 
+const deploymentId = String(process.env.NEXT_DEPLOYMENT_ID ?? "").trim();
+const remoteCacheScope = deploymentId
+  ? `${remoteCachingPrefix}:deploy:${deploymentId}`
+  : remoteCachingPrefix;
+
 const normalizeConnectionUrl = (url) => String(url ?? "").trim();
 
 const redisUrl =
@@ -33,6 +38,6 @@ export const getRedisConnectionUrl = () => {
 };
 
 export const getCachePrefixes = ({ keySegment, tagSegment }) => ({
-  keyPrefix: `${remoteCachingPrefix}:${keySegment}:`,
+  keyPrefix: `${remoteCacheScope}:${keySegment}:`,
   tagPrefix: `${remoteCachingPrefix}:${tagSegment}:`,
 });

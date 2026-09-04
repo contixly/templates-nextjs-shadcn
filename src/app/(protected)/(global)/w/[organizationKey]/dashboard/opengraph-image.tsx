@@ -1,16 +1,18 @@
 import { buildPageMetadata, GlobalMetadata } from "@lib/metadata";
 import routes from "@features/routes";
 import { buildMetadataOGImage } from "@lib/metadata-og";
-import { OG_IMAGE_SIZE } from "@lib/metadata-og-constants";
 
 export const alt = GlobalMetadata.applicationName as string;
 
-export const size = OG_IMAGE_SIZE;
+export const size = {
+  width: 1200,
+  height: 630,
+};
 
 export const contentType = "image/png";
 
-const page = routes.application.pages.home;
-const opengraphImage = async () =>
-  buildMetadataOGImage(await buildPageMetadata(page), page.featureName);
+const page = routes.dashboard.pages.organization_dashboard;
+const opengraphImage = async ({ params }: { params: Promise<{ organizationKey: string }> }) =>
+  buildMetadataOGImage(await buildPageMetadata(page, await params), page.featureName);
 
 export default opengraphImage;
