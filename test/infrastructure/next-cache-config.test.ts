@@ -140,7 +140,7 @@ describe("Next cache configuration", () => {
     );
   });
 
-  test("isolates shared cache keys and tags between deployments", async () => {
+  test("isolates cache keys while sharing invalidation tags between deployments", async () => {
     await withRemoteCacheEnv(
       cacheSettingsPath,
       {
@@ -150,7 +150,7 @@ describe("Next cache configuration", () => {
       ({ getCachePrefixes }) => {
         expect(getCachePrefixes({ keySegment: "cache", tagSegment: "tags" })).toEqual({
           keyPrefix: "template:deploy:deploy-a:cache:",
-          tagPrefix: "template:deploy:deploy-a:tags:",
+          tagPrefix: "template:tags:",
         });
       }
     );

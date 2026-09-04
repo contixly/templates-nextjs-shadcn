@@ -107,9 +107,9 @@ origin fails; an expired entry waits for an origin response. Each edge replica h
 cache, with no shared cache volume or per-page purge API. During a deployment, force-recreate every
 edge container to invalidate its ephemeral cache and every cached response.
 
-Set a new `NEXT_DEPLOYMENT_ID` for every application build. The remote Cache Components and ISR
-namespaces include this identifier, so a new release cannot reuse an RSC response that references
-assets from an older build.
+Set a new `NEXT_DEPLOYMENT_ID` for every application build. Remote Cache Components and ISR values
+use a namespace that includes this identifier, so a new release cannot reuse an RSC response that
+references assets from an older build. Invalidation tags remain shared between active releases.
 
 Make the first Compose rollout manually. Verify both health endpoints, the allowlist and bypasses,
 and a warm `HIT` on each replica before enabling auto-deploy later as a separate operational change.

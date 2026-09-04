@@ -39,5 +39,5 @@ export const getRedisConnectionUrl = () => {
 
 export const getCachePrefixes = ({ keySegment, tagSegment }) => ({
   keyPrefix: `${remoteCacheScope}:${keySegment}:`,
-  tagPrefix: `${remoteCacheScope}:${tagSegment}:`,
+  tagPrefix: `${remoteCachingPrefix}:${tagSegment}:`,
 });
