@@ -41,6 +41,7 @@ test("defines only the two-replica edge and web topology on the external Dokploy
   expect(compose).toMatch(/web:[\s\S]*?replicas:\s*2/u);
   expect(compose).toContain("dockerfile: Dockerfile");
   expect(compose).toContain("dockerfile: infra/dokploy/nginx/Dockerfile");
+  expect(compose).not.toMatch(/^\s{6}network:\s*dokploy-network$/mu);
   expect(compose).toContain("http://127.0.0.1:3000/api/health/ready");
   expect(compose).toContain("http://127.0.0.1:8080/nginx-health");
   expect(compose).toContain("wget -qO- http://127.0.0.1:8080/nginx-health | grep -qx ok");
