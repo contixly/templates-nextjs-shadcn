@@ -1,7 +1,7 @@
 # workspace-settings-navigation Specification
 
 ## Purpose
-TBD - created by archiving change add-workspace-settings-pages. Update Purpose after archive.
+Define the organization-scoped workspace settings area, its section navigation, and member access to each section.
 ## Requirements
 ### Requirement: Workspace Settings Use Dedicated Section Pages
 
@@ -65,4 +65,3 @@ accessible workspace members, while exposing the invitations section only to mem
 - **WHEN** an authenticated user opens the roles page before that feature is implemented
 - **THEN** the system renders a placeholder state for that section
 - **AND** does not expose non-functional management controls on that page
-

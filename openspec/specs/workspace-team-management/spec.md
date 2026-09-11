@@ -1,7 +1,7 @@
 # workspace-team-management Specification
 
 ## Purpose
-TBD - created by archiving change add-better-auth-teams. Update Purpose after archive.
+Define workspace team membership and management using Better Auth Teams within the current workspace organization.
 ## Requirements
 ### Requirement: Workspace Teams Use Better Auth Teams
 The system MUST back workspace team management with Better Auth Teams within the current workspace organization and

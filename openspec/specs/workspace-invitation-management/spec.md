@@ -1,7 +1,7 @@
 # workspace-invitation-management Specification
 
 ## Purpose
-TBD - created by archiving change add-workspace-invitations. Update Purpose after archive.
+Define how authorized workspace members view, create, copy, resend, and cancel workspace invitations.
 ## Requirements
 ### Requirement: Workspace Invitations Settings Page Lists Workspace Invitations
 The system MUST render the workspace invitations settings section from the Better Auth organization invitations
@@ -202,4 +202,3 @@ invited workspace organization.
 - **AND** one of those invitations targets a team
 - **THEN** the system renders the target team name with that invitation
 - **AND** still allows the user to open the dedicated invitation decision route
-

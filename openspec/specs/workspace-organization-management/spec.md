@@ -1,7 +1,7 @@
 # workspace-organization-management Specification
 
 ## Purpose
-TBD - created by archiving change replace-workspaces-with-organizations. Update Purpose after archive.
+Define workspace creation, selection, and management while Better Auth organizations provide the underlying data model.
 ## Requirements
 ### Requirement: Workspace Management Uses Better Auth Organizations
 The system MUST back workspace management with Better Auth organizations while preserving "Workspace" as the user-facing term.
@@ -154,4 +154,3 @@ disable domain restrictions for that workspace.
   request that changes allowed email-domain restrictions directly
 - **THEN** the system rejects the mutation
 - **AND** leaves the underlying organization restrictions unchanged
-

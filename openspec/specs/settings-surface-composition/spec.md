@@ -1,7 +1,7 @@
 # settings-surface-composition Specification
 
 ## Purpose
-TBD - created by archiving change align-settings-surfaces-with-vercel. Update Purpose after archive.
+Define the shared layout and introductory content used by account and workspace settings pages.
 ## Requirements
 ### Requirement: Settings Surfaces Use The Shared Settings Shell
 The system MUST render account settings and organization-scoped workspace settings inside the shared settings shell with
@@ -76,4 +76,3 @@ tables, and danger states remain readable and visually distinct in both light an
 - **WHEN** a settings page renders a destructive or irreversible action
 - **THEN** the section uses destructive semantic color tokens for emphasis
 - **AND** preserves enough contrast for the title, description, controls, and nested warning content in both themes
-

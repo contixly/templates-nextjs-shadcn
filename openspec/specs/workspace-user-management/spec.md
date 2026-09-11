@@ -1,7 +1,7 @@
 # workspace-user-management Specification
 
 ## Purpose
-TBD - created by archiving change add-workspace-users-list. Update Purpose after archive.
+Define the workspace users settings surface, its member list, and the initial boundaries for member-management actions.
 ## Requirements
 ### Requirement: Workspace Users Settings Page Lists Organization Members
 The system MUST render the workspace users settings section from the Better Auth organization members associated with
@@ -159,4 +159,3 @@ restrictions and MUST render a page-level warning when any current member is out
 - **AND** every listed member email domain matches the restrictions
 - **THEN** the system does not render a domain-restriction warning
 - **AND** does not mark any member row as out-of-policy
-

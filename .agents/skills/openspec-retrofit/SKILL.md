@@ -1,15 +1,19 @@
 ---
-name: "OpenSpec: Retrofit"
-description: "Reverse-engineer OpenSpec specs from existing codebase with interactive confirmation."
-category: OpenSpec
-tags: [openspec, retrofit, discovery]
+name: openspec-retrofit
+description: Reverse-engineer OpenSpec specifications from an existing codebase, showing a draft before writing.
+license: Project-specific
+compatibility: Requires the project's pinned OpenSpec CLI.
+metadata:
+  author: project
+  version: "1.13-compatible"
 ---
 <!-- OPENSPEC:START -->
 **Guardrails**
+- Use `npm run openspec -- <command>` for every OpenSpec command. It verifies the project-local CLI version; never use a global binary or `npx openspec`.
 - Generate all specs in-memory first; write files only after explicit user confirmation.
 - Retrofit produces a **starting point**, not final truth. Users will refine specs afterward.
 - Follow OpenSpec format strictly (Requirements with SHALL/MUST + Scenarios with GIVEN/WHEN/THEN).
-- Refer to `openspec/AGENTS.md` for OpenSpec conventions and spec format rules.
+- Read `openspec/config.yaml`, `openspec/project.md`, and the existing specifications before proposing any write.
 - Ask clarifying questions when capability boundaries are unclear.
 
 **Workflow**
@@ -20,7 +24,7 @@ Track these phases as TODOs. Use parallel exploration where steps are independen
 
 ### Phase 1: Discovery (Parallel Exploration)
 
-Launch these tasks in parallel using the Task tool with `subagent_type=Explore`:
+Investigate these areas independently; parallelize only when the execution environment supports it:
 
 1. **Detect Tech Stack** - Check for marker files:
    - `package.json` → Node/JavaScript ecosystem
@@ -217,7 +221,7 @@ Present findings and obtain user approval before writing.
       ...
    ```
 
-3. **Interactive Confirmation** - Use AskUserQuestion for decisions:
+3. **Interactive Confirmation** - Ask the user for decisions:
 
    a. **Check for existing openspec/**:
       - If exists, present options:
@@ -280,7 +284,7 @@ Only proceed after explicit user confirmation from Phase 4.
       - Write `openspec/specs/<capability>/spec.md`
 
 4. **Post-write validation**:
-   - Run `openspec validate --strict`
+   - Run `npm run openspec -- validate --all --strict`
    - If validation fails, report issues but keep files
    - Suggest fixes for common format issues
 
@@ -297,8 +301,8 @@ Only proceed after explicit user confirmation from Phase 4.
 
    Next steps:
    1. Review generated specs and refine requirements
-   2. Run `openspec list --specs` to verify
-   3. Use `openspec validate --strict` to check format
+   2. Run `npm run openspec -- list --specs` to verify
+   3. Use `npm run openspec -- validate --all --strict` to check format
 
    NOTE: These specs are a starting point. Refine them
    to reflect intended behavior, not implementation quirks.
@@ -324,10 +328,9 @@ If some specs exist but are incomplete:
 ---
 
 **Reference**
-- `openspec list --specs` - Verify created specs
-- `openspec validate --strict` - Validate format compliance
-- `openspec/AGENTS.md` - OpenSpec conventions reference
-- Task tool with `subagent_type=Explore` - Parallel codebase exploration
+- `npm run openspec -- list --specs` - Verify created specs
+- `npm run openspec -- validate --all --strict` - Validate format compliance
+- `openspec/config.yaml` and `openspec/project.md` - Project conventions reference
 - Context7 MCP for framework-specific patterns:
   ```
   mcp__plugin_context7_context7__resolve-library-id

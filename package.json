@@ -16,6 +16,10 @@
     "format": "prettier --write .",
     "migrate:postgres": "dotenv -e .env -- npx prisma migrate deploy",
     "shadcn:upgrade": "npx shadcn@latest add -y -o $(basename -s .tsx ./src/components/ui/*.tsx | grep -v '^sidebar$')",
+    "openspec": "node scripts/openspec.mjs",
+    "openspec:check": "npm run openspec -- --version",
+    "openspec:update": "npm run openspec -- update",
+    "openspec:validate": "npm run openspec -- validate --all --strict --report findings",
     "openspec:ui": "npx openspecui@latest",
     "test:public-cache": "node scripts/test/verify-docs-public-cache.mjs"
   },
@@ -73,6 +77,7 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@fission-ai/openspec": "1.13.0",
     "@playwright/mcp": "^0.0.79",
     "@playwright/test": "^1.62.1",
     "@tailwindcss/postcss": "^4.3.3",
