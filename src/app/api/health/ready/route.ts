@@ -1,6 +1,9 @@
 import { checkApplicationReadiness } from "@server/readiness";
+import { connection } from "next/server";
 
 export async function GET(): Promise<Response> {
+  await connection();
+
   try {
     await checkApplicationReadiness();
     return Response.json({ status: "READY" });
