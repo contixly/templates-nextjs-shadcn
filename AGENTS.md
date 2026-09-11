@@ -67,6 +67,12 @@ The project follows FSD principles. Each feature is self-contained in `src/featu
 
 ## OpenSpec Workflow
 
+OpenSpec is pinned to `@fission-ai/openspec` in `devDependencies`. Do not invoke a global `openspec` binary or
+`npx openspec` in this repository: use `npm run openspec -- <command>` so the project guard verifies the local CLI
+version before every operation. Use `npm run openspec:validate` for strict validation and `npm run openspec:update`
+after deliberately upgrading the pinned package. The guard fails closed when the installed CLI differs from the exact
+version in `package.json`; direct global invocation intentionally remains outside repository enforcement.
+
 When a feature change affects existing OpenSpec capabilities or introduces behavior that should be specified, route the
 work through the relevant OpenSpec skill (`openspec-propose`, `openspec-apply-change`, `openspec-retrofit`, or
 `openspec-archive-change`) before implementation. Keep the specs, implementation, and related e2e coverage aligned:

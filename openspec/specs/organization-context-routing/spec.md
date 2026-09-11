@@ -1,7 +1,7 @@
 # organization-context-routing Specification
 
 ## Purpose
-TBD - created by archiving change replace-workspaces-with-organizations. Update Purpose after archive.
+Define how the application resolves the active organization and keeps organization-scoped routes, navigation, and breadcrumbs in that context.
 ## Requirements
 ### Requirement: Global Dashboard Resolves Organization Context
 The system MUST treat `/dashboard` as a global entry point that resolves an organization context and redirects the user to `/w/:organizationKey/dashboard`, where `organizationKey` is the organization's slug when present and its ID otherwise.
