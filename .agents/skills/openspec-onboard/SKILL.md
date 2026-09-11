@@ -1,9 +1,9 @@
 ---
 name: openspec-onboard
 description: Guided onboarding for OpenSpec - walk through a complete workflow cycle with narration and real codebase work.
-allowed-tools: "Bash(npm run openspec:*)"
+allowed-tools: Bash(openspec:*)
 license: MIT
-compatibility: Requires npm run openspec -- CLI.
+compatibility: Requires openspec CLI.
 metadata:
   author: openspec
   version: "1.0"
@@ -12,7 +12,7 @@ metadata:
 
 Guide the user through their first complete OpenSpec workflow cycle. This is a teaching experience—you'll do real work in their codebase while explaining each step.
 
-**Store selection:** If the user names a store (a store is a standalone OpenSpec repo registered on this machine) or the work lives in one, run `npm run openspec -- store list --json` to discover registered store ids, then pass `--store <id>` on the commands that read or write specs and changes (`new change`, `status`, `instructions`, `list`, `show`, `validate`, `archive`, `doctor`, `context`, `schemas`, `view`). Once selected, treat `--store <id>` as sticky for the rest of the workflow. Every unscoped example of those commands below is shorthand: before running it, append the flag. For example, run `npm run openspec -- status --change "<name>" --json --store "<id>"`, not the unscoped form shown below. Other commands do not take the flag. Hints printed by commands already carry the flag; keep it on follow-ups. Without a store, commands act on the nearest local `openspec/` root.
+**Store selection:** If the user names a store (a store is a standalone OpenSpec repo registered on this machine) or the work lives in one, run `openspec store list --json` to discover registered store ids, then pass `--store <id>` on the commands that read or write specs and changes (`new change`, `status`, `instructions`, `list`, `show`, `validate`, `archive`, `doctor`, `context`, `schemas`, `view`). Once selected, treat `--store <id>` as sticky for the rest of the workflow. Every unscoped example of those commands below is shorthand: before running it, append the flag. For example, run `openspec status --change "<name>" --json --store "<id>"`, not the unscoped form shown below. Other commands do not take the flag. Hints printed by commands already carry the flag; keep it on follow-ups. Without a store, commands act on the nearest local `openspec/` root.
 
 ---
 
@@ -22,9 +22,9 @@ Before starting, check if the OpenSpec CLI is installed:
 
 ```bash
 # Unix/macOS
-npm run openspec -- --version 2>&1 || echo "CLI_NOT_INSTALLED"
+openspec --version 2>&1 || echo "CLI_NOT_INSTALLED"
 # Windows (PowerShell)
-# if (Get-Command npm run openspec -- -ErrorAction SilentlyContinue) { npm run openspec -- --version } else { echo "CLI_NOT_INSTALLED" }
+# if (Get-Command openspec -ErrorAction SilentlyContinue) { openspec --version } else { echo "CLI_NOT_INSTALLED" }
 ```
 
 **If CLI not installed:**
@@ -170,14 +170,14 @@ Now let's create a change to hold our work.
 ```
 ## Creating a Change
 
-A "change" in OpenSpec is a container for all the thinking and planning around a piece of work. It lives at the `changeRoot` reported by `npm run openspec -- status --change "<name>" --json` and holds your artifacts—proposal, specs, design, tasks.
+A "change" in OpenSpec is a container for all the thinking and planning around a piece of work. It lives at the `changeRoot` reported by `openspec status --change "<name>" --json` and holds your artifacts—proposal, specs, design, tasks.
 
 Let me create one for our task.
 ```
 
 **DO:** Create the change with a derived kebab-case name:
 ```bash
-npm run openspec -- new change "<derived-name>"
+openspec new change "<derived-name>"
 ```
 
 **SHOW:**
@@ -252,9 +252,9 @@ Does this capture the intent? I can adjust before we save it.
 
 After approval, save the proposal:
 ```bash
-npm run openspec -- instructions proposal --change "<name>" --json
+openspec instructions proposal --change "<name>" --json
 ```
-Then write the content to the `resolvedOutputPath` from `npm run openspec -- instructions proposal --change "<name>" --json`.
+Then write the content to the `resolvedOutputPath` from `openspec instructions proposal --change "<name>" --json`.
 
 ```
 Proposal saved. This is your "why" document—you can always come back and refine it as understanding evolves.
@@ -277,7 +277,7 @@ For a small task like this, we might only need one spec file.
 
 **DO:** Resolve where the spec file should be created:
 ```bash
-npm run openspec -- instructions specs --change "<name>" --json
+openspec instructions specs --change "<name>" --json
 # Use resolvedOutputPath from the JSON. If it is a glob, choose the concrete file path using the schema instruction and the change's context.
 ```
 
@@ -350,7 +350,7 @@ Here's the design:
 For a small task, this captures the key decisions without over-engineering.
 ```
 
-Save to the `resolvedOutputPath` from `npm run openspec -- instructions design --change "<name>" --json`.
+Save to the `resolvedOutputPath` from `openspec instructions design --change "<name>" --json`.
 
 ---
 
@@ -388,7 +388,7 @@ Each checkbox becomes a unit of work in the apply phase. Ready to implement?
 
 **PAUSE** - Wait for user to confirm they're ready to implement.
 
-Save to the `resolvedOutputPath` from `npm run openspec -- instructions tasks --change "<name>" --json`.
+Save to the `resolvedOutputPath` from `openspec instructions tasks --change "<name>" --json`.
 
 ---
 
@@ -439,7 +439,7 @@ Archived changes become your project's decision history—you can always find th
 
 **DO:** Archive the change (`--yes` answers the confirmation prompts, which you cannot answer from a tool call):
 ```bash
-npm run openspec -- archive "<name>" --yes
+openspec archive "<name>" --yes
 ```
 
 **SHOW:**
@@ -507,10 +507,10 @@ Try `$openspec-propose (Codex) or /openspec-propose (other agents)` on something
 If the user says they need to stop, want to pause, or seem disengaged:
 
 ```
-No problem! Your change is saved at the `changeRoot` reported by `npm run openspec -- status --change "<name>" --json`.
+No problem! Your change is saved at the `changeRoot` reported by `openspec status --change "<name>" --json`.
 
 To pick up where we left off later:
-- `$openspec-continue-change (Codex) or /openspec-continue-change (other agents) <name>` - Resume artifact creation (if installed; otherwise `npm run openspec -- status --change "<name>" --json` shows the next artifact)
+- `$openspec-continue-change (Codex) or /openspec-continue-change (other agents) <name>` - Resume artifact creation (if installed; otherwise `openspec status --change "<name>" --json` shows the next artifact)
 - `$openspec-apply-change (Codex) or /openspec-apply-change (other agents) <name>` - Jump to implementation (if tasks exist)
 
 The work won't be lost. Come back whenever you're ready.

@@ -1,9 +1,9 @@
 ---
 name: openspec-apply-change
 description: Implement tasks from an OpenSpec change. Use when the user wants to start implementing, continue implementation, or work through tasks.
-allowed-tools: "Bash(npm run openspec:*)"
+allowed-tools: Bash(openspec:*)
 license: MIT
-compatibility: Requires npm run openspec -- CLI.
+compatibility: Requires openspec CLI.
 metadata:
   author: openspec
   version: "1.0"
@@ -12,7 +12,7 @@ metadata:
 
 Implement tasks from an OpenSpec change.
 
-**Store selection:** If the user names a store (a store is a standalone OpenSpec repo registered on this machine) or the work lives in one, run `npm run openspec -- store list --json` to discover registered store ids, then pass `--store <id>` on the commands that read or write specs and changes (`new change`, `status`, `instructions`, `list`, `show`, `validate`, `archive`, `doctor`, `context`, `schemas`, `view`). Once selected, treat `--store <id>` as sticky for the rest of the workflow. Every unscoped example of those commands below is shorthand: before running it, append the flag. For example, run `npm run openspec -- status --change "<name>" --json --store "<id>"`, not the unscoped form shown below. Other commands do not take the flag. Hints printed by commands already carry the flag; keep it on follow-ups. Without a store, commands act on the nearest local `openspec/` root.
+**Store selection:** If the user names a store (a store is a standalone OpenSpec repo registered on this machine) or the work lives in one, run `openspec store list --json` to discover registered store ids, then pass `--store <id>` on the commands that read or write specs and changes (`new change`, `status`, `instructions`, `list`, `show`, `validate`, `archive`, `doctor`, `context`, `schemas`, `view`). Once selected, treat `--store <id>` as sticky for the rest of the workflow. Every unscoped example of those commands below is shorthand: before running it, append the flag. For example, run `openspec status --change "<name>" --json --store "<id>"`, not the unscoped form shown below. Other commands do not take the flag. Hints printed by commands already carry the flag; keep it on follow-ups. Without a store, commands act on the nearest local `openspec/` root.
 
 **Input**: Optionally specify a change name (e.g., `$openspec-apply-change (Codex) or /openspec-apply-change (other agents) add-auth`). If omitted, check if it can be inferred from conversation context. If vague or ambiguous you MUST prompt for available changes.
 
@@ -23,13 +23,13 @@ Implement tasks from an OpenSpec change.
    If a name is provided, use it. Otherwise:
    - Infer from conversation context if the user mentioned a change
    - Auto-select if only one active change exists
-   - If ambiguous, run `npm run openspec -- list --json` to get available changes and ask the user to select one
+   - If ambiguous, run `openspec list --json` to get available changes and ask the user to select one
 
    Always announce: "Using change: <name>" and how to override (e.g., `$openspec-apply-change (Codex) or /openspec-apply-change (other agents) <other>`).
 
 2. **Check status to understand the schema**
    ```bash
-   npm run openspec -- status --change "<name>" --json
+   openspec status --change "<name>" --json
    ```
    Parse the JSON to understand:
    - `schemaName`: The workflow being used (e.g., "spec-driven")
@@ -39,7 +39,7 @@ Implement tasks from an OpenSpec change.
 3. **Get apply instructions**
 
    ```bash
-   npm run openspec -- instructions apply --change "<name>" --json
+   openspec instructions apply --change "<name>" --json
    ```
 
    This returns:
@@ -51,7 +51,7 @@ Implement tasks from an OpenSpec change.
    - Optional `operationGuidance`: current advisory guidance for apply
 
    **Handle states:**
-   - If `state: "blocked"` (missing artifacts): show message, suggest using `$openspec-continue-change (Codex) or /openspec-continue-change (other agents)` (if it is not installed, run `npm run openspec -- status --change "<name>" --json` to see the next artifact and `npm run openspec -- instructions <artifact-id> --change "<name>" --json` for how to create it)
+   - If `state: "blocked"` (missing artifacts): show message, suggest using `$openspec-continue-change (Codex) or /openspec-continue-change (other agents)` (if it is not installed, run `openspec status --change "<name>" --json` to see the next artifact and `openspec instructions <artifact-id> --change "<name>" --json` for how to create it)
    - If `state: "all_done"`: congratulate, suggest archive
    - Otherwise: proceed to implementation
 
