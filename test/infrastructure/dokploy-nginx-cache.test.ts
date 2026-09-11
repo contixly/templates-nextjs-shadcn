@@ -66,7 +66,8 @@ test("uses one worker, bounded independent storage, and dynamic Docker DNS", () 
   expect(config).toContain("resolver 127.0.0.11 valid=10s ipv6=off;");
   expect(config).toContain("keys_zone=public_pages:16m");
   expect(config).toContain("max_size=512m");
-  expect(config).toContain('set $web_upstream "http://web:3000";');
+  expect(config).toContain('set $web_upstream "http://nextjs-shadcn-web:3000";');
+  expect(config).not.toContain('set $web_upstream "http://web:3000";');
   expect(config).toContain("proxy_pass $web_upstream;");
   expect(config).not.toMatch(/upstream\s+web\s*\{/u);
   expect(config).not.toContain("proxy_cache_use_stale");

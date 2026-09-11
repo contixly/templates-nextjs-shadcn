@@ -52,6 +52,9 @@ test("defines only the two-replica edge and web topology on the external Dokploy
   expect(compose).toMatch(/edge:[\s\S]*?expose:\s*\n\s*- "8080"/u);
   expect(compose).toMatch(/web:[\s\S]*?expose:\s*\n\s*- "3000"/u);
   expect(compose).toMatch(
+    /web:[\s\S]*?networks:\s*\n\s*dokploy-network:\s*\n\s*aliases:\s*\n\s*- nextjs-shadcn-web/u
+  );
+  expect(compose).toMatch(
     /dokploy-network:\s*\n\s*external:\s*true\s*\n\s*name:\s*dokploy-network/u
   );
 });
