@@ -13,7 +13,7 @@ metadata:
 - Generate all specs in-memory first; write files only after explicit user confirmation.
 - Retrofit produces a **starting point**, not final truth. Users will refine specs afterward.
 - Follow OpenSpec format strictly (Requirements with SHALL/MUST + Scenarios with GIVEN/WHEN/THEN).
-- Read `openspec/config.yaml`, `openspec/project.md`, and the existing specifications before proposing any write.
+- Read `openspec/config.yaml` and the existing specifications before proposing any write.
 - Ask clarifying questions when capability boundaries are unclear.
 
 **Workflow**
@@ -108,39 +108,23 @@ For each capability, note: name, purpose, key files, dependencies, confidence le
 
 Generate specs following OpenSpec format. Do NOT write files yet.
 
-1. **Generate project.md** - Create project context document:
-   ```markdown
-   # Project Context
+1. **Generate configuration context** - Draft the value for `context` in `openspec/config.yaml`:
+   ```yaml
+   context: |
+     Purpose: [Extracted from README or inferred from codebase]
 
-   ## Purpose
-   [Extracted from README or inferred from codebase]
+     Tech stack:
+     - [Detected frontend, backend, and infrastructure technologies]
 
-   ## Tech Stack
-   ### Frontend
-   - [Detected frontend technologies]
+     Project conventions:
+     - [Code style and architecture conventions]
+     - [Testing strategy and Git workflow]
 
-   ### Backend
-   - [Detected backend technologies]
-
-   ### Infrastructure
-   - [Detected infrastructure components]
-
-   ## Project Conventions
-   ### Code Style
-   [Extracted from linter configs, .editorconfig]
-
-   ### Architecture Patterns
-   [Detected from directory structure]
-
-   ### Testing Strategy
-   [Inferred from test files and configs]
-
-   ### Git Workflow
-   [If detected from .github, commit patterns]
-
-   ## Important Constraints
-   [Rate limits, read-only, security requirements, etc.]
+     Important constraints:
+     - [Rate limits, read-only boundaries, security requirements, and other durable constraints]
    ```
+   Keep this as a concise, durable instruction for future workflows. Do not put generated capability requirements,
+   implementation details that will quickly drift, secrets, or user-specific data in it.
 
 2. **Generate capability specs** - For each identified capability:
    ```markdown
@@ -227,12 +211,13 @@ Present findings and obtain user approval before writing.
       - If exists, present options:
         - **Overwrite**: Replace all (backs up existing to `openspec/.backup/`)
         - **Merge**: Add new capabilities, preserve existing
-        - **Supplement**: Only add `project.md` if missing
+        - **Supplement**: Only add or update the `context` field in `config.yaml`
         - **Abort**: Cancel retrofit
 
-   b. **project.md confirmation**:
+   b. **Configuration context confirmation**:
       - Show preview
-      - Ask: "Write project.md? (y/n/edit)"
+      - If `config.yaml` already has `context`, ask whether to replace it, merge the discovered facts into it, or leave it unchanged.
+      - Ask: "Write the OpenSpec configuration context? (y/n/edit)"
 
    c. **Per-capability confirmation**:
       - For each capability, ask:
@@ -263,7 +248,7 @@ Only proceed after explicit user confirmation from Phase 4.
 1. **Create directory structure** (if missing):
    ```
    openspec/
-   ├── project.md
+   ├── config.yaml
    └── specs/
        ├── [capability-1]/
        │   └── spec.md
@@ -274,11 +259,11 @@ Only proceed after explicit user confirmation from Phase 4.
 2. **Handle existing openspec/**:
    - If user chose **merge**: Add new capabilities only, skip existing
    - If user chose **overwrite**: Back up to `openspec/.backup/<timestamp>/` first
-   - If user chose **supplement**: Only write `project.md`
+   - If user chose **supplement**: Only write or update the `context` field in `config.yaml`
 
 3. **Write files in order**:
    a. Create `openspec/` directory if needed
-   b. Write `openspec/project.md`
+   b. Update `openspec/config.yaml` with the confirmed `context` value while preserving its existing `schema`, `rules`, and other keys
    c. For each confirmed capability:
       - Create `openspec/specs/<capability>/` directory
       - Write `openspec/specs/<capability>/spec.md`
@@ -293,7 +278,7 @@ Only proceed after explicit user confirmation from Phase 4.
    === RETROFIT COMPLETE ===
 
    Files created:
-   - openspec/project.md
+   - openspec/config.yaml (context updated)
    - openspec/specs/[capability-1]/spec.md
    - openspec/specs/[capability-2]/spec.md
 
@@ -330,7 +315,7 @@ If some specs exist but are incomplete:
 **Reference**
 - `npm run openspec -- list --specs` - Verify created specs
 - `npm run openspec -- validate --all --strict` - Validate format compliance
-- `openspec/config.yaml` and `openspec/project.md` - Project conventions reference
+- `openspec/config.yaml` - Project conventions and durable workflow context reference
 - Context7 MCP for framework-specific patterns:
   ```
   mcp__plugin_context7_context7__resolve-library-id
